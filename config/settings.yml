@@ -1,0 +1,11 @@
+---
+:ems:
+  :ems_kubernetes:
+    :event_handling:
+      :event_groups:
+:http_proxy:
+  :kubernetes:
+    :host:
+    :password:
+    :port:
+    :user:

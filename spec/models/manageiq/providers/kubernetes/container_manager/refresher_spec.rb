@@ -19,11 +19,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     expect(described_class.ems_type).to eq(:kubernetes)
   end
 
-  # Smoke test the use of ContainerLabelTagMapping during refresh.
+  # Smoke test the use of ResourceLabelTagMapping during refresh.
   before :each do
     @name_category = FactoryGirl.create(:classification, :name => 'name', :description => 'Name')
     @label_tag_mapping = FactoryGirl.create(
-      :container_label_tag_mapping,
+      :resource_label_tag_mapping,
       :label_name => 'name', :tag => @name_category.tag
     )
   end

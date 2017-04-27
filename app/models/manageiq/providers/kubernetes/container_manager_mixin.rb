@@ -14,6 +14,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     end
   end
 
+  def supports_metrics?
+    connection_configurations.hawkular != nil
+  end
+
   module ClassMethods
     def raw_api_endpoint(hostname, port, path = '')
       URI::HTTPS.build(:host => hostname, :port => port.presence.try(:to_i), :path => path)

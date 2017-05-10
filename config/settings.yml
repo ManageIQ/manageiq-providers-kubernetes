@@ -3,6 +3,39 @@
   :ems_kubernetes:
     :event_handling:
       :event_groups:
+        :addition:
+          :critical:
+            - CONTAINER_CREATED
+            - REPLICATOR_SUCCESSFULCREATE
+            - REPLICATOR_FAILEDCREATE
+        :status:
+          :critical:
+            - NODE_NODEREADY
+            - NODE_NODENOTREADY
+            - POD_FAILEDVALIDATION
+            - POD_DEADLINEEXCEEDED
+            - POD_INSUFFICIENTFREECPU
+            - POD_NODESELECTORMISMATCHING
+            - POD_SCHEDULED
+            - POD_FAILEDSCHEDULING
+            - CONTAINER_UNHEALTHY
+            - CONTAINER_KILLING
+            - CONTAINER_STARTED
+            - CONTAINER_STOPPED
+        :power:
+          :critical:
+            - NODE_REBOOTED
+            - NODE_NODESCHEDULABLE
+            - NODE_NODENOTSCHEDULABLE
+        :storage:
+          :critical:
+            - NODE_FAILEDMOUNT
+            - NODE_INVALIDDISKCAPACITY
+            - POD_OUTOFDISK
+            - POD_INSUFFICIENTFREEMEMORY
+        :network:
+          :critical:
+            - POD_HOSTPORTCONFLICT
 :http_proxy:
   :kubernetes:
     :host:

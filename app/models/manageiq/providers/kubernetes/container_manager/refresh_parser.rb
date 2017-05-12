@@ -3,6 +3,7 @@ require 'shellwords'
 module ManageIQ::Providers::Kubernetes
   class ContainerManager::RefreshParser
     include Vmdb::Logging
+    include ContainerManager::EntitiesMapping
     def self.ems_inv_to_hashes(inventory, options = Config::Options.new)
       new.ems_inv_to_hashes(inventory, options)
     end
@@ -31,34 +32,38 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_nodes(inventory)
-      process_collection(inventory["node"], :container_nodes) { |n| parse_node(n) }
-      @data[:container_nodes].each do |cn|
-        @data_index.store_path(:container_nodes, :by_name, cn[:name], cn)
+      key = path_for_entity("node")
+      process_collection(inventory["node"], key) { |n| parse_node(n) }
+      @data[key].each do |cn|
+        @data_index.store_path(key, :by_name, cn[:name], cn)
       end
     end
 
     def get_services(inventory)
-      process_collection(inventory["service"], :container_services) { |s| parse_service(s) }
-      @data[:container_services].each do |se|
-        @data_index.store_path(:container_services, :by_namespace_and_name, se[:namespace], se[:name], se)
+      key = path_for_entity("service")
+      process_collection(inventory["service"], key) { |s| parse_service(s) }
+      @data[key].each do |se|
+        @data_index.store_path(key, :by_namespace_and_name, se[:namespace], se[:name], se)
       end
     end
 
     def get_replication_controllers(inventory)
+      key = path_for_entity("replication_controller")
       process_collection(inventory["replication_controller"],
-                         :container_replicators) do |rc|
+                         key) do |rc|
         parse_replication_controllers(rc)
       end
-      @data[:container_replicators].each do |rc|
-        @data_index.store_path(:container_replicators,
+      @data[key].each do |rc|
+        @data_index.store_path(key,
                                :by_namespace_and_name, rc[:namespace], rc[:name], rc)
       end
     end
 
     def get_pods(inventory)
-      process_collection(inventory["pod"], :container_groups) { |n| parse_pod(n) }
-      @data[:container_groups].each do |cg|
-        @data_index.store_path(:container_groups, :by_namespace_and_name,
+      key = path_for_entity("pod")
+      process_collection(inventory["pod"], key) { |n| parse_pod(n) }
+      @data[key].each do |cg|
+        @data_index.store_path(key, :by_namespace_and_name,
                                cg[:namespace], cg[:name], cg)
       end
     end
@@ -73,44 +78,45 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_namespaces(inventory)
-      process_collection(inventory["namespace"], :container_projects) { |n| parse_namespace(n) }
+      key = path_for_entity("namespace")
+      process_collection(inventory["namespace"], key) { |n| parse_namespace(n) }
 
-      @data[:container_projects].each do |ns|
-        @data_index.store_path(:container_projects, :by_name, ns[:name], ns)
+      @data[key].each do |ns|
+        @data_index.store_path(key, :by_name, ns[:name], ns)
       end
     end
 
     def get_persistent_volumes(inventory)
-      process_collection(inventory["persistent_volume"], :persistent_volumes) { |n| parse_persistent_volume(n) }
-      @data[:persistent_volumes].each do |pv|
-        @data_index.store_path(:persistent_volumes, :by_name, pv[:name], pv)
+      key = path_for_entity("persistent_volume")
+      process_collection(inventory["persistent_volume"], key) { |n| parse_persistent_volume(n) }
+      @data[key].each do |pv|
+        @data_index.store_path(key, :by_name, pv[:name], pv)
       end
     end
 
     def get_persistent_volume_claims(inventory)
-      process_collection(inventory["persistent_volume_claim"],
-                         :persistent_volume_claims) { |n| parse_persistent_volume_claim(n) }
-      @data[:persistent_volume_claims].each do |pvc|
-        @data_index.store_path(:persistent_volume_claims, :by_namespace_and_name, pvc[:namespace], pvc[:name], pvc)
+      key = path_for_entity("persistent_volume_claim")
+      process_collection(inventory["persistent_volume_claim"], key) { |n| parse_persistent_volume_claim(n) }
+      @data[key].each do |pvc|
+        @data_index.store_path(key, :by_namespace_and_name, pvc[:namespace], pvc[:name], pvc)
       end
     end
 
     def get_resource_quotas(inventory)
-      process_collection(inventory["resource_quota"], :container_quotas) { |n| parse_quota(n) }
+      process_collection(inventory["resource_quota"], path_for_entity("resource_quota")) { |n| parse_quota(n) }
     end
 
     def get_limit_ranges(inventory)
-      process_collection(inventory["limit_range"], :container_limits) { |n| parse_range(n) }
+      process_collection(inventory["limit_range"], path_for_entity("limit_range")) { |n| parse_range(n) }
     end
 
     def get_component_statuses(inventory)
-      process_collection(inventory["component_status"],
-                         :container_component_statuses) do |cs|
+      key = path_for_entity("component_status")
+      process_collection(inventory["component_status"], key) do |cs|
         parse_component_status(cs)
       end
-      @data[:container_component_statuses].each do |cs|
-        @data_index.store_path(:container_component_statuses,
-                               :by_name, cs[:name], cs)
+      @data[key].each do |cs|
+        @data_index.store_path(key, :by_name, cs[:name], cs)
       end
     end
 
@@ -268,7 +274,7 @@ module ManageIQ::Providers::Kubernetes
 
       endpoint_container_groups.each do |group|
         cg = @data_index.fetch_path(
-          :container_groups, :by_namespace_and_name, group[:namespace],
+          path_for_entity("pod"), :by_namespace_and_name, group[:namespace],
           group[:name])
         container_groups << cg unless cg.nil?
       end
@@ -294,7 +300,7 @@ module ManageIQ::Providers::Kubernetes
         pc
       end
 
-      new_result[:project] = @data_index.fetch_path(:container_projects, :by_name,
+      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name,
                                                     service.metadata["table"][:namespace])
       new_result
     end
@@ -318,11 +324,10 @@ module ManageIQ::Providers::Kubernetes
       )
 
       unless pod.spec.nodeName.nil?
-        new_result[:container_node] = @data_index.fetch_path(
-          :container_nodes, :by_name, pod.spec.nodeName)
+        new_result[:container_node] = @data_index.fetch_path(path_for_entity("node"), :by_name, pod.spec.nodeName)
       end
 
-      new_result[:project] = @data_index.fetch_path(:container_projects, :by_name, pod.metadata["table"][:namespace])
+      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, pod.metadata["table"][:namespace])
 
       # TODO, map volumes
       # TODO, podIP
@@ -350,7 +355,7 @@ module ManageIQ::Providers::Kubernetes
         createdby = JSON.parse(createdby_txt)
         if createdby.kind_of?(Hash) && !createdby['reference'].nil?
           new_result[:container_replicator] = @data_index.fetch_path(
-            :container_replicators, :by_namespace_and_name,
+            path_for_entity("replication_controller"), :by_namespace_and_name,
             createdby['reference']['namespace'], createdby['reference']['name'])
         end
       end
@@ -372,7 +377,7 @@ module ManageIQ::Providers::Kubernetes
         (subset.addresses || []).each do |address|
           next if address.targetRef.try(:kind) != 'Pod'
           cg = @data_index.fetch_path(
-            :container_groups, :by_namespace_and_name,
+            path_for_entity("pod"), :by_namespace_and_name,
             # namespace is overriden in more_core_extensions and hence needs
             # a non method access
             address.targetRef["table"][:namespace], address.targetRef.name)
@@ -405,7 +410,7 @@ module ManageIQ::Providers::Kubernetes
       )
 
       unless persistent_volume.spec.claimRef.nil?
-        new_result[:persistent_volume_claim] = @data_index.fetch_path(:persistent_volume_claims,
+        new_result[:persistent_volume_claim] = @data_index.fetch_path(path_for_entity("persistent_volume_claim"),
                                                                       :by_namespace_and_name,
                                                                       persistent_volume.spec.claimRef.namespace,
                                                                       persistent_volume.spec.claimRef.name)
@@ -446,7 +451,7 @@ module ManageIQ::Providers::Kubernetes
     def parse_quota(resource_quota)
       new_result = parse_base_item(resource_quota).except(:namespace)
       new_result[:project] = @data_index.fetch_path(
-        :container_projects,
+        path_for_entity("namespace"),
         :by_name,
         resource_quota.metadata["table"][:namespace])
       new_result[:container_quota_items] = parse_quota_items resource_quota
@@ -481,7 +486,7 @@ module ManageIQ::Providers::Kubernetes
     def parse_range(limit_range)
       new_result = parse_base_item(limit_range).except(:namespace)
       new_result[:project] = @data_index.fetch_path(
-        :container_projects,
+        path_for_entity("namespace"),
         :by_name,
         limit_range.metadata["table"][:namespace])
       new_result[:container_limit_items] = parse_range_items limit_range
@@ -546,7 +551,7 @@ module ManageIQ::Providers::Kubernetes
         :selector_parts   => parse_selector_parts(container_replicator)
       )
 
-      new_result[:project] = @data_index.fetch_path(:container_projects, :by_name,
+      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name,
                                                     container_replicator.metadata["table"][:namespace])
       new_result
     end
@@ -805,7 +810,7 @@ module ManageIQ::Providers::Kubernetes
         {
           :type                    => 'ContainerVolume',
           :name                    => volume.name,
-          :persistent_volume_claim => @data_index.fetch_path(:persistent_volume_claims,
+          :persistent_volume_claim => @data_index.fetch_path(path_for_entity("persistent_volume_claim"),
                                                              :by_namespace_and_name,
                                                              pod.metadata.namespace,
                                                              volume.persistentVolumeClaim.try(:claimName))
@@ -853,6 +858,10 @@ module ManageIQ::Providers::Kubernetes
         :common_partition        => [volume.gcePersistentDisk.try(:partition),
                                      volume.awsElasticBlockStore.try(:partition)].compact.first
       }
+    end
+
+    def path_for_entity(entity)
+      miq_entity(entity).tableize.to_sym
     end
   end
 end

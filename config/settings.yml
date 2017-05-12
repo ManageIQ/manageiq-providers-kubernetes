@@ -42,3 +42,5 @@
     :password:
     :port:
     :user:
+:container_scanning:
+  :scanning_job_timeout: 20.minutes

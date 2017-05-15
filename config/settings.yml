@@ -36,6 +36,8 @@
         :network:
           :critical:
             - POD_HOSTPORTCONFLICT
+    :open_timeout: 60.seconds
+    :read_timeout: 60.seconds
 :http_proxy:
   :kubernetes:
     :host:

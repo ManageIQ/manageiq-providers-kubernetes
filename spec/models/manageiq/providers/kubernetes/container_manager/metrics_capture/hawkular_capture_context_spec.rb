@@ -1,4 +1,4 @@
-describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext do
+describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext do
   @node = nil
 
   before(:each) do
@@ -27,20 +27,22 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Capt
                                                           :userid   => "_"}}]
     )
 
-    VCR.use_cassette("#{described_class.name.underscore}_refresh",
-                     :match_requests_on => [:path,]) do # , :record => :new_episodes) do
-      EmsRefresh.refresh(@ems)
-      @node = @ems.container_nodes.first
-      pod = @ems.container_groups.first
-      container = @ems.containers.first
+    if @node.nil?
+      VCR.use_cassette("#{described_class.name.underscore}_refresh",
+                       :match_requests_on => [:path,]) do # , :record => :new_episodes) do
+        EmsRefresh.refresh(@ems)
+        @node = @ems.container_nodes.first
+        pod = @ems.container_groups.first
+        container = @ems.containers.first
 
-      @targets = [['node', @node], ['pod', pod], ['container', container]]
-    end if @node.nil?
+        @targets = [['node', @node], ['pod', pod], ['container', container]]
+      end
+    end
   end
 
   it "will read hawkular status" do
     VCR.use_cassette("#{described_class.name.underscore}_status") do # , :record => :new_episodes) do
-      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext.new(
+      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
         @node, @start_time, @end_time, @interval
       )
 
@@ -57,7 +59,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Capt
   it "will read hawkular metrics" do
     @targets.each do |target_name, target|
       VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_metrics") do # , :record => :new_episodes) do
-        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext.new(
+        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
           target, @start_time, @end_time, @interval
         )
 

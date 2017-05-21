@@ -42,7 +42,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '{"MetricsService":"STARTED","Implementation-Version":"0.21.5.Final","Built-From-Git-SHA1":"e779588593f13224225356a94f1d8642fbccb30f"}'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:19 GMT
 - request:
     method: get
@@ -86,7 +86,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '[{"start":1482306053000,"end":1482306073000,"min":1.54760358235403E14,"avg":1.54761471914033E14,"median":1.54760358235403E14,"max":1.54762585592663E14,"sum":3.09522943828066E14,"samples":2,"empty":false},{"start":1482392533000,"end":1482392553000,"empty":true}]'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:20 GMT
 - request:
     method: get
@@ -130,7 +130,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '{"MetricsService":"STARTED","Implementation-Version":"0.21.5.Final","Built-From-Git-SHA1":"e779588593f13224225356a94f1d8642fbccb30f"}'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:20 GMT
 - request:
     method: get
@@ -174,7 +174,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '[{"start":1482306073000,"end":1482306093000,"min":3.469869056E9,"avg":3.469901824E9,"median":3.469869056E9,"max":3.469934592E9,"sum":6.939803648E9,"samples":2,"empty":false},{"start":1482392533000,"end":1482392553000,"empty":true}]'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:22 GMT
 - request:
     method: get
@@ -218,7 +218,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '{"MetricsService":"STARTED","Implementation-Version":"0.21.5.Final","Built-From-Git-SHA1":"e779588593f13224225356a94f1d8642fbccb30f"}'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:22 GMT
 - request:
     method: get
@@ -262,7 +262,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '[{"start":1482306053000,"end":1482306073000,"min":1.4290391845E10,"avg":1.42905156885E10,"median":1.4290391845E10,"max":1.4290639532E10,"sum":2.8581031377E10,"samples":2,"empty":false},{"start":1482392533000,"end":1482392553000,"empty":true}]'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:24 GMT
 - request:
     method: get
@@ -306,7 +306,7 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '{"MetricsService":"STARTED","Implementation-Version":"0.21.5.Final","Built-From-Git-SHA1":"e779588593f13224225356a94f1d8642fbccb30f"}'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:24 GMT
 - request:
     method: get
@@ -350,6 +350,6 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '[{"start":1482306053000,"end":1482306073000,"min":1.3327668735E10,"avg":1.3327726648E10,"median":1.3327668735E10,"max":1.3327784561E10,"sum":2.6655453296E10,"samples":2,"empty":false},{"start":1482392533000,"end":1482392553000,"empty":true}]'
-    http_version: 
+    http_version:
   recorded_at: Thu, 22 Dec 2016 07:42:25 GMT
 recorded_with: VCR 3.0.3

@@ -128,14 +128,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     it "node counters and gauges are correctly processed" do
       METRICS_EXERCISES.each do |exercise|
         exercise[:counters].each do |metrics|
-          allow_any_instance_of(described_class::CaptureContext)
+          allow_any_instance_of(described_class::HawkularCaptureContext)
             .to receive(:fetch_counters_data)
             .with("machine/node/#{metrics[:args]}")
             .and_return(metrics[:data])
         end
 
         exercise[:gauges].each do |metrics|
-          allow_any_instance_of(described_class::CaptureContext)
+          allow_any_instance_of(described_class::HawkularCaptureContext)
             .to receive(:fetch_gauges_data)
             .with("machine/node/#{metrics[:args]}")
             .and_return(metrics[:data])
@@ -150,14 +150,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     it "container counters and gauges are correctly processed" do
       METRICS_EXERCISES.each do |exercise|
         exercise[:counters].each do |metrics|
-          allow_any_instance_of(described_class::CaptureContext)
+          allow_any_instance_of(described_class::HawkularCaptureContext)
             .to receive(:fetch_counters_data)
             .with("container/group/#{metrics[:args]}")
             .and_return(metrics[:data])
         end
 
         exercise[:gauges].each do |metrics|
-          allow_any_instance_of(described_class::CaptureContext)
+          allow_any_instance_of(described_class::HawkularCaptureContext)
             .to receive(:fetch_gauges_data)
             .with("container/group/#{metrics[:args]}")
             .and_return(metrics[:data])

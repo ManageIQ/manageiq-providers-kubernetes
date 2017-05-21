@@ -14,7 +14,7 @@ module ManageIQ::Providers
       end
     end
 
-    require_nested :CaptureContext
+    require_nested :HawkularCaptureContext
 
     INTERVAL = 20.seconds
 
@@ -57,7 +57,7 @@ module ManageIQ::Providers
                 "[#{start_time}] [#{end_time}]")
 
       begin
-        context = CaptureContext.new(target, start_time, end_time, INTERVAL)
+        context = HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
       rescue TargetValidationError, TargetValidationWarning => e
         _log.send(e.log_severity, "[#{target_name}] #{e.message}")
         ems.try(:update_attributes,

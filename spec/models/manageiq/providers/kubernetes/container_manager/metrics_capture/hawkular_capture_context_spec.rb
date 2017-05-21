@@ -1,4 +1,4 @@
-describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext do
+describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext do
   @node = nil
 
   before(:each) do
@@ -25,31 +25,33 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Capt
                                                           :userid   => "_"}}]
     )
 
-    VCR.use_cassette("#{described_class.name.underscore}_refresh",
-                     :match_requests_on => [:path,]) do # , :record => :new_episodes) do
-      EmsRefresh.refresh(@ems)
-      @node = @ems.container_nodes.first
-      pod = @ems.container_groups.first
-      container = @ems.containers.first
+    if @node.nil?
+      VCR.use_cassette("#{described_class.name.underscore}_refresh",
+                       :match_requests_on => [:path,]) do # , :record => :new_episodes) do
+        EmsRefresh.refresh(@ems)
+        @node = @ems.container_nodes.first
+        pod = @ems.container_groups.first
+        container = @ems.containers.first
 
-      @targets = [['node', @node], ['pod', pod], ['container', container]]
-    end if @node.nil?
+        @targets = [['node', @node], ['pod', pod], ['container', container]]
+      end
+    end
   end
 
   it "will read hawkular status" do
-    start_time = Time.parse("2017-06-22 18:35:42 UTC").utc
+    start_time = Time.parse("2017-07-05 18:35:42 UTC").utc
     end_time   = nil
     interval   = nil
 
     VCR.use_cassette("#{described_class.name.underscore}_status") do # , :record => :new_episodes) do
-      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext.new(
+      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
         @node, start_time, end_time, interval
       )
 
       metrics = {"MetricsService"         => "STARTED",
-                 "Cassandra"              => "up",
                  "Implementation-Version" => "0.26.1.Final",
-                 "Built-From-Git-SHA1"    => "45b148c834ed62018f153c23187b4436ae4208fe"}
+                 "Built-From-Git-SHA1"    => "45b148c834ed62018f153c23187b4436ae4208fe",
+                 "Cassandra"              => "up"}
 
       data = context.hawkular_client.http_get('/status')
 
@@ -58,13 +60,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Capt
   end
 
   it "will read hawkular metrics" do
-    start_time = Time.parse("2017-06-22 18:40:42 UTC").utc
+    start_time = Time.parse("2017-07-05 18:40:42 UTC").utc
     end_time   = nil
     interval   = 20
 
     @targets.each do |target_name, target|
       VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_metrics") do # , :record => :new_episodes) do
-        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext.new(
+        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
           target, start_time, end_time, interval
         )
 
@@ -76,13 +78,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Capt
   end
 
   it "will read only specific timespan hawkular metrics" do
-    start_time = Time.parse("2017-06-22 18:35:42 UTC").utc
-    end_time   = Time.parse("2017-06-22 18:40:42 UTC").utc
+    start_time = Time.parse("2017-07-05 18:35:42 UTC").utc
+    end_time   = Time.parse("2017-07-05 18:40:42 UTC").utc
     interval   = 20
 
     @targets.each do |target_name, target|
       VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_timespan") do # , :record => :new_episodes) do
-        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::CaptureContext.new(
+        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
           target, start_time, end_time, interval
         )
 

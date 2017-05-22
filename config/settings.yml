@@ -1,6 +1,9 @@
 ---
 :ems:
   :ems_kubernetes:
+    :miq_namespace: management-infra
+    :image_inspector_registry: docker.io
+    :image_inspector_repository: openshift/image-inspector
     :event_handling:
       :event_groups:
         :addition:
@@ -44,5 +47,18 @@
     :password:
     :port:
     :user:
-:container_scanning:
-  :scanning_job_timeout: 20.minutes
+:ems_refresh:
+  :kubernetes:
+    :refresh_interval: 15.minutes
+:workers:
+  :worker_base:
+    :event_catcher:
+      :event_catcher_kubernetes:
+        :poll: 1.seconds
+    :queue_worker_base:
+        :ems_metrics_collector_worker:
+          :ems_metrics_collector_worker_kubernetes:
+            :metrics_port: 5000
+            :metrics_path: "/hawkular/metrics"
+        :ems_refresh_worker:
+          :ems_refresh_worker_kubernetes: {}

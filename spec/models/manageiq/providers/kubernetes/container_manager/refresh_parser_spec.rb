@@ -1227,5 +1227,37 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         )
       end
     end
+
+    describe "parse_quantity" do
+      let(:container_spec) do
+        array_recursive_ostruct(
+          :name         => "mongodb",
+          :image        => "centos/mongodb-32-centos7@sha256:02685168dd84c9119f8ab635078eec8697442fba93a7b342095e03b31aa8c5dd",
+          :ports        => [{:containerPort => 27_017, :protocol => "TCP"}],
+          :resources    => {
+            :limits   => {
+              :cpu    => "3500m",
+              :memory => "512Mi"
+            },
+            :requests => {
+              #:cpu    => nil
+              :memory => "1.2e6"
+            }
+          },
+          :volumeMounts => []
+        )
+      end
+
+      let(:pod_id) { "95b9aa14-7186-11e7-8ac6-001a4a162683" }
+
+      it "handles parsing of quantities in container spec limits" do
+        expect(parser.parse_container_spec(container_spec, pod_id)).to include(
+          :limit_cpu_cores      => 3.5,
+          :limit_memory_bytes   => 536_870_912,
+          :request_cpu_cores    => nil,
+          :request_memory_bytes => 1_200_000.0
+        )
+      end
+    end
   end
 end

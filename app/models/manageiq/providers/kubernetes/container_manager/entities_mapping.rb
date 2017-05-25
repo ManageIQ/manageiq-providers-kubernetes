@@ -22,4 +22,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
   def miq_entity(entity)
     MAPPING[entity]
   end
+
+  # NOTE: Use of this method may result in unexpected behavior.  If more than
+  # one ManageIQ class maps to an entity, this method will only return the first
+  # instance.  For example, ContainerProject maps to 'namespace' and 'project'.
+  # This method will only return 'namespace'
+  def entity_by_resource(entity)
+    MAPPING.key(entity)
+  end
 end

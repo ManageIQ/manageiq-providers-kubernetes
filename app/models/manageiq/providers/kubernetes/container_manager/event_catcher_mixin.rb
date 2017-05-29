@@ -14,8 +14,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
   }
 
   def event_monitor_handle
-    require 'kubernetes/events/kubernetes_event_monitor'
-    @event_monitor_handle ||= KubernetesEventMonitor.new(@ems)
+    @event_monitor_handle ||= ManageIQ::Providers::Kubernetes::ContainerManager::KubernetesEventMonitor.new(@ems)
   end
 
   def reset_event_monitor_handle

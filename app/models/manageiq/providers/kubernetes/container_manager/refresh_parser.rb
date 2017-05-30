@@ -4,14 +4,27 @@ module ManageIQ::Providers::Kubernetes
   class ContainerManager::RefreshParser
     include Vmdb::Logging
     include ContainerManager::EntitiesMapping
-    def self.ems_inv_to_hashes(inventory, options = Config::Options.new)
-      new.ems_inv_to_hashes(inventory, options)
+    include ContainerManager::RefreshParserGraph
+
+    def self.ems_inv_to_hashes(ems, inventory, options = Config::Options.new)
+      new(ems, options).ems_inv_to_hashes(inventory, options)
     end
 
-    def initialize
+    def self.ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
+      new(ems, options).ems_inv_to_inv_collections(inventory, options)
+    end
+
+    def initialize(ems, options)
+      @ems = ems
+      @options = options
+
       @data = {}
       @data_index = {}
       @label_tag_mapping = ContainerLabelTagMapping.cache
+
+      if @options.inventory_object_refresh
+        initialize_inventory_collections(@ems)
+      end
     end
 
     def ems_inv_to_hashes(inventory, _options = Config::Options.new)
@@ -29,6 +42,10 @@ module ManageIQ::Providers::Kubernetes
       get_component_statuses(inventory)
       EmsRefresh.log_inv_debug_trace(@data, "data:")
       @data
+    end
+
+    def ems_inv_to_inv_collections(inventory, _options  = Config::Options.new)
+      @inv_collections.values
     end
 
     def get_nodes(inventory)

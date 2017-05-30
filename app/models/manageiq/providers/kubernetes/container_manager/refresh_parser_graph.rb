@@ -72,6 +72,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParserGraph
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => Hardware,
         :parent => ems,
+        :association => :container_node_computer_system_hardwares,
         # can't nest has_many through ?
         :arel => Hardware.joins(:computer_system => :container_node)
                          .where(:container_nodes => {:ems_id => ems.id}),
@@ -81,6 +82,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParserGraph
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => OperatingSystem,
         :parent => ems,
+        :association => :container_node_computer_system_operating_systems,
         # can't nest has_many through
         :arel => OperatingSystem.joins(:computer_system => :container_node)
                                 .where(:container_nodes => {:ems_id => ems.id}),
@@ -267,11 +269,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParserGraph
   end
 
   def custom_attributes_for(relation, section)
-    @inv_collections[[:custom_attributes_for, relation.model.name, section]] ||= ::ManagerRefresh::InventoryCollection.new(
-      :model_class => CustomAttribute,
-      :arel => custom_attributes_query_for(relation, section),
-      :manager_ref => [:resource, :section, :name],
-    )
+    # TODO
+    # @inv_collections[[:custom_attributes_for, relation.model.name, section]] ||= ::ManagerRefresh::InventoryCollection.new(
+    #  :model_class => CustomAttribute,
+    #  :arel => custom_attributes_query_for(relation, section),
+    #  :manager_ref => [:resource, :section, :name],
+    #)
   end
 
   def lazy_find_project(hash)
@@ -553,10 +556,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParserGraph
   end
 
   def graph_container_conditions_inventory(relation, parent, hashes)
-    hashes.to_a.each do |h|
-      h = h.merge(:container_entity => parent)
-      container_conditions_for(relation).build(h)
-    end
+    # TODO
+    #hashes.to_a.each do |h|
+    #  h = h.merge(:container_entity => parent)
+    #  container_conditions_for(relation).build(h)
+    #end
   end
 
   def graph_security_context_inventory(resource, hash)
@@ -584,7 +588,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParserGraph
   def graph_custom_attributes_inventory(relation, parent, section, hashes)
     hashes.to_a.each do |h|
       h = h.merge(:resource => parent)
-      custom_attributes_for(relation, section).build(h)
+      # TODO custom_attributes_for(relation, section).build(h)
     end
   end
 

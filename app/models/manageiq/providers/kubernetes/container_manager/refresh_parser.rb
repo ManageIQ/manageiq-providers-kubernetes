@@ -44,7 +44,25 @@ module ManageIQ::Providers::Kubernetes
       @data
     end
 
-    def ems_inv_to_inv_collections(inventory, _options  = Config::Options.new)
+    def ems_inv_to_inv_collections(inventory, options  = Config::Options.new)
+      hashes = ems_inv_to_hashes(inventory, options)
+
+      graph_keys = [:container_projects, :container_quotas, :container_limits,
+                    :container_nodes,
+                    :container_image_registries, :container_images,
+                    :container_groups, :container_replicators,
+                    :container_services, :container_routes,
+                    :container_component_statuses, :container_templates,
+                    :container_builds, :container_build_pods,
+                    :persistent_volume_claims, :persistent_volumes,
+                   ]
+
+      # TODO: deleting vs archiving!
+
+      graph_keys.each do |k|
+        send("graph_#{k}_inventory", @ems, hashes[k])
+      end
+
       @inv_collections.values
     end
 

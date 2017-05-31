@@ -4,7 +4,7 @@ module ManageIQ::Providers::Kubernetes
   class ContainerManager::RefreshParser
     include Vmdb::Logging
     include ContainerManager::EntitiesMapping
-    include ContainerManager::RefreshParserGraph
+    include ContainerManager::InventoryCollections
 
     def self.ems_inv_to_hashes(ems, inventory, options = Config::Options.new)
       new(ems, options).ems_inv_to_hashes(inventory, options)

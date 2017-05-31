@@ -166,15 +166,47 @@ module ManageIQ::Providers::Kubernetes
     def get_nodes_graph(inv)
       collection = @inv_collections[:container_nodes]
 
-      inv["node"].each do |node|
-        h = parse_node(node)
+      inv["node"].each do |data|
+        h = parse_node(data)
 
         h.except!(:namespace, :tags)
-        _custom_attrs = h.extract!(:labels, :additional_attributes)
-        _children = h.extract!(:container_conditions, :computer_system)
 
-        collection.build(h)
+        _custom_attrs = h.extract!(:labels, :additional_attributes)
+        children = h.extract!(:container_conditions, :computer_system)
+
+        node = collection.build(h)
+
+        get_node_container_conditions_graph(node, children[:container_conditions])
+        get_node_computer_systems_graph(node, children[:computer_system])
       end
+    end
+
+    def get_node_container_conditions_graph(parent, hashes)
+      # TODO
+    end
+
+    def get_node_computer_systems_graph(parent, hash)
+      return if hash.nil?
+
+      hash[:managed_entity] = parent
+      children = hash.extract!(:hardware, :operating_system)
+
+      computer_system = @inv_collections[:container_node_computer_systems].build(hash)
+
+      get_node_computer_system_hardware_graph(computer_system, children[:hardware])
+      get_node_computer_system_operating_system_graph(computer_system, children[:operating_system])
+    end
+
+    def get_node_computer_system_hardware_graph(parent, hash)
+      return if hash.nil?
+      hash[:computer_system] = parent
+      @inv_collections[:container_node_computer_system_hardwares].build(hash)
+    end
+
+    def get_node_computer_system_operating_system_graph(parent, hash)
+      return if hash.nil?
+      hash[:computer_system] = parent
+      @inv_collections[:container_node_computer_system_operating_systems].build(hash)
     end
 
     def get_namespaces_graph(inv)
@@ -197,23 +229,43 @@ module ManageIQ::Providers::Kubernetes
       inv["resource_quota"].each do |quota|
         h = parse_quota(quota)
 
-        _project = h.delete(:project)
-        _items   = h.delete(:container_quota_items)
+        h[:container_project] = lazy_find_project(h.delete(:project))
+
+        items = h.delete(:container_quota_items)
+        get_container_quota_items_graph(h, items)
 
         collection.build(h)
+      end
+    end
+
+    def get_container_quota_items_graph(parent, hashes)
+      container_quota = @inv_collections[:container_quotas].lazy_find(parent[:ems_ref])
+      hashes.each do |hash|
+        hash[:container_quota] = container_quota
+        @inv_collections[:container_quota_items].build(hash)
       end
     end
 
     def get_limit_ranges_graph(inv)
       collection = @inv_collections[:container_limits]
 
-      inv["limit_range"].each do |range|
-        h = parse_range(range)
+      inv["limit_range"].each do |data|
+        h = parse_range(data)
 
-        _project   = h.delete(:project)
-        _children = h.extract!(:container_limit_items)
+        h[:container_project] = lazy_find_project(h.delete(:project))
+        items = h.delete(:container_limit_items)
 
-        collection.build(h)
+        limit = collection.build(h)
+
+        get_limit_range_items_graph(limit, items)
+      end
+    end
+
+    def get_limit_range_items_graph(parent, hashes)
+      collection = @inv_collections[:container_limit_items]
+      hashes.each do |hash|
+        hash[:container_limit] = parent
+        collection.build(hash)
       end
     end
 
@@ -225,7 +277,7 @@ module ManageIQ::Providers::Kubernetes
 
         h.except!(:namespace, :tags)
 
-        _project      = h.delete(:project)
+        h[:container_project] = lazy_find_project(h.delete(:project))
         _custom_attrs = h.extract!(:labels, :selector_parts)
 
         collection.build(h)
@@ -264,8 +316,9 @@ module ManageIQ::Providers::Kubernetes
 
         h.except!(:tags, :namespace)
 
+        h[:container_project] = lazy_find_project(h.delete(:project))
+
         _build_pod_name = h.delete(:build_pod_name)
-        _project        = h.delete(:project)
         _custom_attrs   = h.extract!(:labels, :node_selector_parts)
         children       = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
 
@@ -330,7 +383,8 @@ module ManageIQ::Providers::Kubernetes
 
         h.except!(:tags, :namespace)
 
-        _project      = h.delete(:project)
+        h[:container_project] = lazy_find_project(h.delete(:project))
+
         _custom_attrs = h.extract!(:labels, :selector_parts)
         _children     = h.extract!(:container_service_port_configs)
 
@@ -1092,6 +1146,11 @@ module ManageIQ::Providers::Kubernetes
 
     def path_for_entity(entity)
       miq_entity(entity).tableize.to_sym
+    end
+
+    def lazy_find_project(hash)
+      return if hash.nil?
+      @inv_collections[:container_projects].lazy_find(hash[:ems_ref])
     end
   end
 end

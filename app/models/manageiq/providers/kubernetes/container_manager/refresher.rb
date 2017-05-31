@@ -8,9 +8,9 @@ module ManageIQ::Providers::Kubernetes
       EmsRefresh.log_inv_debug_trace(entities, "inv_hash:")
 
       if refresher_options.try(:[], :inventory_object_refresh)
-        ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser.ems_inv_to_inv_collections(ems, entities)
+        ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser.ems_inv_to_inv_collections(ems, entities, refresher_options)
       else
-        ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser.ems_inv_to_hashes(ems, entities)
+        ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser.ems_inv_to_hashes(ems, entities, refresher_options)
       end
     end
   end

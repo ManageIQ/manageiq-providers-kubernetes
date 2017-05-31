@@ -45,23 +45,17 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def ems_inv_to_inv_collections(inventory, options  = Config::Options.new)
-      hashes = ems_inv_to_hashes(inventory, options)
-
-      graph_keys = [:container_projects, :container_quotas, :container_limits,
-                    :container_nodes,
-                    :container_image_registries, :container_images,
-                    :container_groups, :container_replicators,
-                    :container_services, :container_routes,
-                    :container_component_statuses, :container_templates,
-                    :container_builds, :container_build_pods,
-                    :persistent_volume_claims, :persistent_volumes,
-                   ]
-
-      # TODO: deleting vs archiving!
-
-      graph_keys.each do |k|
-        send("graph_#{k}_inventory", @ems, hashes[k])
-      end
+      get_additional_attributes_graph(inventory)
+      get_nodes_graph(inventory)
+      get_namespaces_graph(inventory)
+      get_resource_quotas_graph(inventory)
+      get_limit_ranges_graph(inventory)
+      get_replication_controllers_graph(inventory)
+      get_persistent_volume_claims_graph(inventory)
+      get_persistent_volumes_graph(inventory)
+      get_pods_graph(inventory)
+      get_services_graph(inventory)
+      get_component_statuses_graph(inventory)
 
       @inv_collections.values
     end
@@ -165,6 +159,149 @@ module ManageIQ::Providers::Kubernetes
         ats = @data_index.fetch_path(:additional_attributes, :by_node, aa[:node]) || []
         ats << {:name => aa[:name], :value => aa[:value], :section => "additional_attributes"}
         @data_index.store_path(:additional_attributes, :by_node, aa[:node], ats)
+      end
+    end
+
+    ## InventoryObject Refresh methods
+
+    def get_additional_attributes_graph(inv)
+    end
+
+    def get_nodes_graph(inv)
+      collection = @inv_collections[:container_nodes]
+
+      inv["node"].each do |node|
+        h = parse_node(node)
+
+        h.except!(:namespace, :tags)
+        _custom_attrs = h.extract!(:labels, :additional_attributes)
+        _children = h.extract!(:container_conditions, :computer_system)
+
+        collection.build(h)
+      end
+    end
+
+    def get_namespaces_graph(inv)
+      collection = @inv_collections[:container_projects]
+
+      inv["namespace"].each do |ns|
+        h = parse_namespace(ns)
+
+        h.except!(:tags)
+
+        _custom_attrs = h.extract!(:labels)
+
+        collection.build(h)
+      end
+    end
+
+    def get_resource_quotas_graph(inv)
+      collection = @inv_collections[:container_quotas]
+
+      inv["resource_quota"].each do |quota|
+        h = parse_quota(quota)
+
+        _project = h.delete(:project)
+        _items   = h.delete(:container_quota_items)
+
+        collection.build(h)
+      end
+    end
+
+    def get_limit_ranges_graph(inv)
+      collection = @inv_collections[:container_limits]
+
+      inv["limit_range"].each do |range|
+        h = parse_range(range)
+
+        _project   = h.delete(:project)
+        _children = h.extract!(:container_limit_items)
+
+        collection.build(h)
+      end
+    end
+
+    def get_replication_controllers_graph(inv)
+      collection = @inv_collections[:container_replicators]
+
+      inv["replication_controller"].each do |rc|
+        h = parse_replication_controllers(rc)
+
+        h.except!(:namespace, :tags)
+
+        _project      = h.delete(:project)
+        _custom_attrs = h.extract!(:labels, :selector_parts)
+
+        collection.build(h)
+      end
+    end
+
+    def get_persistent_volume_claims_graph(inv)
+      collection = @inv_collections[:persistent_volume_claims]
+
+      inv["persistent_volume_claim"].each do |pvc|
+        h = parse_persistent_volume_claim(pvc)
+
+        h.except!(:namespace)
+
+        collection.build(h)
+      end
+    end
+
+    def get_persistent_volumes_graph(inv)
+      collection = @inv_collections[:persistent_volumes]
+
+      inv["persistent_volume"].each do |pv|
+        h = parse_persistent_volume(pv)
+
+        h.except!(:namespace)
+
+        collection.build(h)
+      end
+    end
+
+    def get_pods_graph(inv)
+      collection = @inv_collections[:container_groups]
+
+      inv["pod"].each do |pod|
+        h = parse_pod(pod)
+
+        h.except!(:tags, :namespace)
+
+        _build_pod_name = h.delete(:build_pod_name)
+        _project        = h.delete(:project)
+        _custom_attrs   = h.extract!(:labels, :node_selector_parts)
+        _children       = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
+
+        collection.build(h)
+      end
+    end
+
+    def get_services_graph(inv)
+      collection = @inv_collections[:container_services]
+
+      inv["service"].each do |service|
+        h = parse_service(service)
+
+        h.except!(:tags, :namespace)
+
+        _project      = h.delete(:project)
+        _custom_attrs = h.extract!(:labels, :selector_parts)
+        _children     = h.extract!(:container_service_port_configs)
+
+        _container_image_registry = h.delete(:container_image_registry)
+        _container_groups         = h.delete(:container_groups)
+
+        collection.build(h)
+      end
+    end
+
+    def get_component_statuses_graph(inv)
+      collection = @inv_collections[:container_component_statuses]
+
+      inv["component_status"].each do |cs|
+        h = parse_component_status(cs)
+        collection.build(h)
       end
     end
 

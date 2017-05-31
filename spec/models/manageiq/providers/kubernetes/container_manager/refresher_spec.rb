@@ -28,7 +28,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     )
   end
 
-  it "will perform a full refresh on k8s" do
+  def full_refresh_test
     3.times do # Run three times to verify that second & third runs with existing data do not change anything
       VCR.use_cassette(described_class.name.underscore) do # , :record => :new_episodes) do
         EmsRefresh.refresh(@ems)
@@ -53,6 +53,22 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       assert_specific_container_component_status
       assert_specific_persistent_volume
     end
+  end
+
+  it "will perform a full refresh on k8s" do
+    full_refresh_test
+  end
+
+  it "will perform a full refresh with inventory_objects on k8s" do
+    stub_settings_merge(
+      :ems_refresh => {
+        :kubernetes => {
+          :inventory_object_refresh => true
+        }
+      }
+    )
+
+    full_refresh_test
   end
 
   def assert_table_counts

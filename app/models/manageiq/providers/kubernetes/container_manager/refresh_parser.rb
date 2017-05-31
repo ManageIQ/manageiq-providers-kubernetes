@@ -45,7 +45,6 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def ems_inv_to_inv_collections(inventory, options  = Config::Options.new)
-      get_additional_attributes_graph(inventory)
       get_nodes_graph(inventory)
       get_namespaces_graph(inventory)
       get_resource_quotas_graph(inventory)
@@ -164,9 +163,6 @@ module ManageIQ::Providers::Kubernetes
 
     ## InventoryObject Refresh methods
 
-    def get_additional_attributes_graph(inv)
-    end
-
     def get_nodes_graph(inv)
       collection = @inv_collections[:container_nodes]
 
@@ -271,10 +267,59 @@ module ManageIQ::Providers::Kubernetes
         _build_pod_name = h.delete(:build_pod_name)
         _project        = h.delete(:project)
         _custom_attrs   = h.extract!(:labels, :node_selector_parts)
-        _children       = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
+        children       = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
 
+        container_group = collection.build(h)
+
+        get_container_definitions_graph(container_group, children[:container_definitions])
+      end
+    end
+
+    def get_container_definitions_graph(parent, hashes)
+      collection = @inv_collections[:container_definitions]
+      hashes.each do |h|
+        h[:container_group] = parent
+        children = h.extract!(:container_port_configs, :container_env_vars, :security_context, :container)
+
+        container_definition = collection.build(h)
+
+        get_container_port_configs_graph(container_definition, children[:container_port_configs])
+        get_container_env_vars_graph(container_definition, children[:container_env_vars])
+        get_container_security_context_graph(container_definition, children[:security_context]) if children[:security_context]
+        get_containers_graph(container_definition, children[:container]) if children[:container]
+      end
+    end
+
+    def get_container_port_configs_graph(parent, hashes)
+      collection = @inv_collections[:container_port_configs]
+      hashes.each do |h|
+        h[:container_definition] = parent
         collection.build(h)
       end
+    end
+
+    def get_container_env_vars_graph(parent, hashes)
+      collection = @inv_collections[:container_env_vars]
+      hashes.each do |h|
+        h[:container_definition] = parent
+        collection.build(h)
+      end
+    end
+
+    def get_container_security_context_graph(parent, h)
+      collection = @inv_collections[:security_contexts]
+      h[:resource] = parent
+      collection.build(h)
+    end
+
+    def get_containers_graph(parent, h)
+      collection = @inv_collections[:containers]
+
+      h[:container_definition] = parent
+
+      _container_image = h.delete(:container_image)
+
+      collection.build(h)
     end
 
     def get_services_graph(inv)

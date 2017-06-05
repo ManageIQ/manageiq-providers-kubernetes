@@ -44,7 +44,7 @@ module ManageIQ::Providers::Kubernetes
       @data
     end
 
-    def ems_inv_to_inv_collections(inventory, options  = Config::Options.new)
+    def ems_inv_to_inv_collections(inventory, _options = Config::Options.new)
       get_nodes_graph(inventory)
       get_namespaces_graph(inventory)
       get_resource_quotas_graph(inventory)
@@ -320,7 +320,7 @@ module ManageIQ::Providers::Kubernetes
 
         _build_pod_name = h.delete(:build_pod_name)
         _custom_attrs   = h.extract!(:labels, :node_selector_parts)
-        children       = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
+        children        = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
 
         container_group = collection.build(h)
 

@@ -191,7 +191,7 @@ module ManageIQ::Providers::Kubernetes
       hash[:managed_entity] = parent
       children = hash.extract!(:hardware, :operating_system)
 
-      computer_system = @inv_collections[:container_node_computer_systems].build(hash)
+      computer_system = @inv_collections[:computer_systems].build(hash)
 
       get_node_computer_system_hardware_graph(computer_system, children[:hardware])
       get_node_computer_system_operating_system_graph(computer_system, children[:operating_system])
@@ -200,13 +200,13 @@ module ManageIQ::Providers::Kubernetes
     def get_node_computer_system_hardware_graph(parent, hash)
       return if hash.nil?
       hash[:computer_system] = parent
-      @inv_collections[:container_node_computer_system_hardwares].build(hash)
+      @inv_collections[:computer_system_hardwares].build(hash)
     end
 
     def get_node_computer_system_operating_system_graph(parent, hash)
       return if hash.nil?
       hash[:computer_system] = parent
-      @inv_collections[:container_node_computer_system_operating_systems].build(hash)
+      @inv_collections[:computer_system_operating_systems].build(hash)
     end
 
     def get_namespaces_graph(inv)

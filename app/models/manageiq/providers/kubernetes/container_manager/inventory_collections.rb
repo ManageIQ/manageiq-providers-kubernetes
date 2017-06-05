@@ -43,25 +43,25 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
 
     # polymorphic child of ContainerNode & ContainerImage,
     # but refresh only sets it on nodes.
-    @inv_collections[:container_node_computer_systems] =
+    @inv_collections[:computer_systems] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => ComputerSystem,
         :parent      => ems,
-        :association => :container_node_computer_systems,
+        :association => :computer_systems,
         :manager_ref => [:managed_entity],
       )
-    @inv_collections[:container_node_computer_system_hardwares] =
+    @inv_collections[:computer_system_hardwares] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => Hardware,
         :parent      => ems,
-        :association => :container_node_computer_system_hardwares,
+        :association => :computer_system_hardwares,
         :manager_ref => [:computer_system],
       )
-    @inv_collections[:container_node_computer_system_operating_systems] =
+    @inv_collections[:computer_system_operating_systems] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => OperatingSystem,
         :parent      => ems,
-        :association => :container_node_computer_system_operating_systems,
+        :association => :computer_system_operating_systems,
         :manager_ref => [:computer_system],
       )
 

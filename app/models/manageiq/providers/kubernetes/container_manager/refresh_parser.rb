@@ -14,7 +14,7 @@ module ManageIQ::Providers::Kubernetes
       new(ems, options).ems_inv_to_inv_collections(inventory, options)
     end
 
-    def initialize(ems, options)
+    def initialize(ems, options = Config::Options.new)
       @ems = ems
       @options = options
 

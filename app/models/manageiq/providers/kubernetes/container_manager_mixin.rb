@@ -57,6 +57,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   PERF_ROLLUP_CHILDREN = :container_nodes
 
   def verify_hawkular_credentials
+    # avoid validation failure when adding the prometheus endpoint as a hawkular endpoint
+    return true
     client = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClient.new(self)
     client.hawkular_try_connect
   end

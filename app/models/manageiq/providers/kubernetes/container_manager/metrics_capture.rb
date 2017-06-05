@@ -3,7 +3,7 @@ module ManageIQ::Providers
     class CollectionFailure < RuntimeError; end
     class TargetValidationError < RuntimeError; end
 
-    require_nested :CaptureContext
+    require_nested :HawkularCaptureContext
 
     INTERVAL = 20.seconds
 
@@ -46,7 +46,7 @@ module ManageIQ::Providers
                 "[#{start_time}] [#{end_time}]")
 
       begin
-        context = CaptureContext.new(target, start_time, end_time, INTERVAL)
+        context = HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
       rescue TargetValidationError => e
         _log.error("#{target_name} is not valid: #{e.message}")
         ems.update_attributes(:last_metrics_error       => :invalid,

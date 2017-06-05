@@ -68,6 +68,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       }
     )
 
+    pending("full implementation of graph refresh")
     full_refresh_test
   end
 

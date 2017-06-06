@@ -6,25 +6,20 @@ module ManageIQ::Providers::Kubernetes
     include ContainerManager::EntitiesMapping
     include ContainerManager::InventoryCollections
 
-    def self.ems_inv_to_hashes(ems, inventory, options = Config::Options.new)
-      new(ems, options).ems_inv_to_hashes(inventory, options)
+    def self.ems_inv_to_hashes(inventory, options = Config::Options.new)
+      new(options).ems_inv_to_hashes(inventory, options)
     end
 
     def self.ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
-      new(ems, options).ems_inv_to_inv_collections(inventory, options)
+      new(options).ems_inv_to_inv_collections(ems, inventory, options)
     end
 
-    def initialize(ems, options = Config::Options.new)
-      @ems = ems
+    def initialize(options = Config::Options.new)
       @options = options
 
       @data = {}
       @data_index = {}
       @label_tag_mapping = ContainerLabelTagMapping.cache
-
-      if @options.inventory_object_refresh
-        initialize_inventory_collections(@ems)
-      end
     end
 
     def ems_inv_to_hashes(inventory, _options = Config::Options.new)
@@ -44,7 +39,8 @@ module ManageIQ::Providers::Kubernetes
       @data
     end
 
-    def ems_inv_to_inv_collections(inventory, _options = Config::Options.new)
+    def ems_inv_to_inv_collections(ems, inventory, _options = Config::Options.new)
+      initialize_inventory_collections(ems)
       get_nodes_graph(inventory)
       get_namespaces_graph(inventory)
       get_resource_quotas_graph(inventory)

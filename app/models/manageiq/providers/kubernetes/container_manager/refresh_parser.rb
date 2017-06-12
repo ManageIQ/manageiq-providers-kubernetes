@@ -874,7 +874,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def path_for_entity(entity)
-      miq_entity(entity).tableize.to_sym
+      resource_by_entity(entity).tableize.to_sym
     end
   end
 end

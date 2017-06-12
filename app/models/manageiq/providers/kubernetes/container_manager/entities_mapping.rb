@@ -19,7 +19,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
     'image'                   => 'ContainerImage'
   }.freeze
 
-  def miq_entity(entity)
+  def resource_by_entity(entity)
     MAPPING[entity]
   end
 

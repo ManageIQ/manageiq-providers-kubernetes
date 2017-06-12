@@ -58,30 +58,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       compute_derivative(fetch_counters_data(resource))
     end
 
-    def fetch_counters_data(resource)
-      sort_and_normalize(
-        hawkular_client.counters.get_data(
-          resource,
-          :starts         => (@start_time - @interval).to_i.in_milliseconds,
-          :bucketDuration => "#{@interval}s"
-        )
-      )
-    rescue SystemCallError, SocketError, OpenSSL::SSL::SSLError => e
-      raise CollectionFailure, e.message
-    end
-
-    def fetch_gauges_data(resource)
-      sort_and_normalize(
-        hawkular_client.gauges.get_data(
-          resource,
-          :starts         => @start_time.to_i.in_milliseconds,
-          :bucketDuration => "#{@interval}s"
-        )
-      )
-    rescue SystemCallError, SocketError, OpenSSL::SSL::SSLError => e
-      raise CollectionFailure, e.message
-    end
-
     def process_cpu_counters_rate(counters_rate)
       @metrics |= ['cpu_usage_rate_average'] unless counters_rate.empty?
       total_cpu_time = @node_cores * CPU_NANOSECONDS * @interval
@@ -126,13 +102,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
           }
         end
       end
-    end
-
-    def sort_and_normalize(data)
-      # Sorting and removing last entry because always incomplete
-      # as it's still in progress.
-      norm_data = (data.sort_by { |x| x['start'] }).slice(0..-2)
-      norm_data.reject { |x| x.values.include?('NaN') || x['empty'] == true }
     end
 
     def compute_derivative(counters)

@@ -1,12 +1,7 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
   class PrometheusCaptureContext
+    include ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClientMixin
     include CaptureContextMixin
-
-    def prometheus_client
-      RestClient::Resource.new(
-        "http://#{@ext_management_system.hostname}/api/v1/query_range"
-      )
-    end
 
     def collect_node_metrics
       cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"\",id=\"/\",instance=\"#{@target.hostname}\",job=\"kubernetes-nodes\"})"
@@ -57,12 +52,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     def fetch_counters_data(resource)
       sort_and_normalize(
         prometheus_client.get(
-          :params => {
-            :query => resource,
-            :start => (@start_time - @interval).to_i,
-            :end   => Time.now.utc.to_i,
-            :step  => @interval.to_i
-          }
+          "query_range",
+          :query => resource,
+          :start => (@start_time - @interval).to_i,
+          :end   => Time.now.utc.to_i,
+          :step  => @interval.to_i
         )
       )
     rescue SystemCallError, SocketError, OpenSSL::SSL::SSLError => e
@@ -72,12 +66,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     def fetch_gauges_data(resource)
       sort_and_normalize(
         prometheus_client.get(
-          :params => {
-            :query => resource,
-            :start => @start_time.to_i,
-            :end   => Time.now.utc.to_i,
-            :step  => @interval.to_i
-          }
+          "query_range",
+          :query => resource,
+          :start => @start_time.to_i,
+          :end   => Time.now.utc.to_i,
+          :step  => @interval.to_i
         )
       )
     rescue SystemCallError, SocketError, OpenSSL::SSL::SSLError => e

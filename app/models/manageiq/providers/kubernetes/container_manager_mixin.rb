@@ -61,6 +61,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     client.hawkular_try_connect
   end
 
+  def verify_prometheus_credentials
+    true
+  end
+
   # UI methods for determining availability of fields
   def supports_port?
     true
@@ -128,6 +132,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     options = options.merge(:auth_type => auth_type)
     if options[:auth_type].to_s == "hawkular"
       verify_hawkular_credentials
+    elsif options[:auth_type].to_s == "prometheus"
+      verify_prometheus_credentials
     else
       with_provider_connection(options, &:api_valid?)
     end

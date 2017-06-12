@@ -14,7 +14,8 @@ module ManageIQ::Providers
       end
     end
 
-    require_nested :CaptureContext
+    require_nested :HawkularCaptureContext
+    require_nested :PrometheusCaptureContext
 
     INTERVAL = 20.seconds
 
@@ -57,7 +58,11 @@ module ManageIQ::Providers
                 "[#{start_time}] [#{end_time}]")
 
       begin
-        context = CaptureContext.new(target, start_time, end_time, INTERVAL)
+        context = if ems && ems.connection_configurations.prometheus.try(:endpoint)
+                    PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
+                  else
+                    HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
+                  end
       rescue TargetValidationError, TargetValidationWarning => e
         _log.send(e.log_severity, "[#{target_name}] #{e.message}")
         ems.try(:update_attributes,

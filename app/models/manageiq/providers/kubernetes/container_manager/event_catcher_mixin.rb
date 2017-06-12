@@ -1,21 +1,48 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
   extend ActiveSupport::Concern
 
-  # https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/container/event.go
-  # 'Created', 'Failed', 'Started', 'Killing', 'Stopped' and 'Unhealthy' are in fact container related events,
-  # returned as part of a pod event.
-  ENABLED_EVENTS = {
-    'Node'                  => %w(NodeReady NodeNotReady Rebooted NodeSchedulable NodeNotSchedulable InvalidDiskCapacity
-                                  FailedMount),
-    'Pod'                   => %w(Scheduled FailedScheduling FailedValidation HostPortConflict DeadlineExceeded
-                                  OutOfDisk NodeSelectorMismatching InsufficientFreeCPU
-                                  InsufficientFreeMemory Created Failed Started Killing Stopped Unhealthy),
-    'ReplicationController' => %w(SuccessfulCreate FailedCreate)
-  }
+  class PrometheusEventMonitor
+    def initialize(ems)
+      @ems = ems
+    end
+
+    def start
+      @collecting_events = true
+    end
+
+    def stop
+      @collecting_events = false
+    end
+
+    def each_batch
+      while @collecting_events
+        yield fetch
+      end
+      # version = inventory.get_events.resourceVersion
+      # watcher(version).each do |notice|
+      #   yield notice
+      # end
+    rescue EOFError => err
+      $kube_log.info("Monitoring connection closed #{err}")
+    end
+
+    def fetch
+      endpoint = @ems.connection_configurations.hawkular.try(:endpoint)
+      url = "http://#{endpoint.hostname}/api/v1/alerts"
+      conn = Faraday.new(:url => url) do |faraday|
+        faraday.adapter Faraday.default_adapter
+        faraday.response :json
+      end
+
+      response = conn.get
+      body = response.body
+      events = body["data"].select { |alert| alert["labels"]["job"] == 'kubernetes-nodes' }
+      events
+    end
+  end
 
   def event_monitor_handle
-    require 'kubernetes/events/kubernetes_event_monitor'
-    @event_monitor_handle ||= KubernetesEventMonitor.new(@ems)
+    @event_monitor_handle ||= PrometheusEventMonitor.new(@ems)
   end
 
   def reset_event_monitor_handle
@@ -35,78 +62,38 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
   def monitor_events
     event_monitor_handle.start
     event_monitor_running
-    # TODO: since event_monitor_handle is returning only events that
-    # are generated starting from this moment we need to pull the
-    # entire # inventory to make sure that it's up-to-date.
-    event_monitor_handle.each do |event|
-      # Sleeping here is not necessary because the events are delivered
-      # asynchronously when available.
+    event_monitor_handle.each_batch do |event|
       @queue.enq event
+      # TODO: mark all events not retrieved as resolved
+      sleep_poll_normal
     end
+
   ensure
     reset_event_monitor_handle
   end
 
   def queue_event(event)
-    event_data = extract_event_data(event)
-    _log.info "#{log_prefix} Queuing event [#{event_data}]"
-    event_hash = ManageIQ::Providers::Kubernetes::ContainerManager::EventParser.event_to_hash(event_data, @cfg[:ems_id])
+    event_hash = extract_event_data(event)
+    _log.info "#{log_prefix} Queuing event [#{event_hash}]"
     EmsEvent.add_queue('add', @cfg[:ems_id], event_hash)
-  end
-
-  def filtered?(event)
-    extract_event_data(event).nil?
   end
 
   # Returns hash, or nil if event should be discarded.
   def extract_event_data(event)
-    event_data = {
-      :timestamp => event.object.lastTimestamp,
-      :kind      => event.object.involvedObject.kind,
-      :name      => event.object.involvedObject.name,
-      :namespace => event.object.involvedObject['table'][:namespace],
-      :reason    => event.object.reason,
-      :message   => event.object.message,
-      :uid       => event.object.involvedObject.uid
+    annotations, labels = event["annotations"], event["labels"]
+    started = Time.zone.at(Time.parse(event["startsAt"])) # 2017-06-02T18:55:37.805Z
+    instance = ContainerNode.find_by(:name => labels["instance"])
+    {
+      :ems_id              => @cfg[:ems_id],
+      :source              => 'DATAWAREHOUSE',
+      :timestamp           => started,
+      :event_type          => 'datawarehouse_alert',
+      :target_type         => instance.class.name,
+      :target_id           => instance.id,
+      :container_node_id   => instance.id,
+      :container_node_name => instance.name,
+      :message             => annotations["summary"],
+      :full_data           => event.to_h
     }
-
-    unless event.object.involvedObject.fieldPath.nil?
-      event_data[:fieldpath] = event.object.involvedObject.fieldPath
-    end
-
-    supported_reasons = ENABLED_EVENTS[event_data[:kind]] || []
-
-    unless supported_reasons.include?(event_data[:reason])
-      return
-    end
-
-    event_type_prefix = event_data[:kind].upcase
-
-    # Handle event data for specific entities
-    case event_data[:kind]
-    when 'Node'
-      event_data[:container_node_name] = event_data[:name]
-      # Workaround for missing/useless node UID (#9600, https://github.com/kubernetes/kubernetes/issues/29289)
-      if event_data[:uid].nil? || event_data[:uid] == event_data[:name]
-        node = ContainerNode.find_by(:ems_id => @ems.id, :name => event_data[:name])
-        event_data[:uid] = node.try!(:ems_ref)
-      end
-    when 'Pod'
-      /^spec.containers{(?<container_name>.*)}$/ =~ event_data[:fieldpath]
-      unless container_name.nil?
-        event_type_prefix = "CONTAINER"
-        event_data[:container_name] = container_name
-      end
-      event_data[:container_group_name] = event_data[:name]
-      event_data[:container_namespace] = event_data[:namespace]
-    when 'ReplicationController'
-      event_type_prefix = "REPLICATOR"
-      event_data[:container_replicator_name] = event_data[:name]
-      event_data[:container_namespace] = event_data[:namespace]
-    end
-
-    event_data[:event_type] = "#{event_type_prefix}_#{event_data[:reason].upcase}"
-
-    event_data
   end
 end

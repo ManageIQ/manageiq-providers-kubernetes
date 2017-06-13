@@ -15,6 +15,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
 
   include ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
+  # See HasMonitoringManagerMixin
+  has_one :monitoring_manager,
+          :foreign_key => :parent_ems_id,
+          :class_name  => "ManageIQ::Providers::Kubernetes::MonitoringManager",
+          :autosave    => true,
+          :dependent   => :destroy
+
   # This is the API version that we use and support throughout the entire code
   # (parsers, events, etc.). It should be explicitly selected here and not
   # decided by the user nor out of control in the defaults of kubeclient gem

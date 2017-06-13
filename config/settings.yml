@@ -1,6 +1,10 @@
 ---
 :ems:
   :ems_kubernetes:
+    :ems_monitoring:
+      :alerts_collection:
+        :open_timeout: 10.seconds
+        :timeout: 20.seconds
     :miq_namespace: management-infra
     :image_inspector_registry: docker.io
     :image_inspector_repository: openshift/image-inspector

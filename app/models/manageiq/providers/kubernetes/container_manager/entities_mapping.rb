@@ -16,7 +16,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
     'build_config'            => 'ContainerBuild',
     'build'                   => 'ContainerBuildPod',
     'template'                => 'ContainerTemplate',
-    'image'                   => 'ContainerImage'
+    'image'                   => 'ContainerImage',
+    'openshift_image'         => 'OpenshiftContainerImage'
   }.freeze
 
   def resource_by_entity(entity)

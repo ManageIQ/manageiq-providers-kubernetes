@@ -1,7 +1,7 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
   def initialize_inventory_collections(ems)
     # TODO: Targeted refreshes will require adjusting the associations / arels. (duh)
-    @inv_collections = {}
+    @collections = @inv_collections = {}
     @inv_collections[:container_projects] = ::ManagerRefresh::InventoryCollection.new(
       :model_class    => ContainerProject,
       :parent         => ems,

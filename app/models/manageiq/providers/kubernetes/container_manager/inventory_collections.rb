@@ -105,15 +105,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       )
     initialize_container_conditions_collection(ems.container_groups)
     initialize_custom_attributes_collections(ems.container_groups, %w(labels node_selectors))
-    @inv_collections[:container_definitions] =
-      ::ManagerRefresh::InventoryCollection.new(
-        :model_class    => ContainerDefinition,
-        :parent         => ems,
-        :builder_params => {:ems_id => ems.id},
-        :association    => :container_definitions,
-        # parser sets :ems_ref => "#{pod_id}_#{container_def.name}_#{container_def.image}"
-        :delete_method  => :disconnect_inv,
-      )
     @inv_collections[:container_volumes] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => ContainerVolume,
@@ -143,7 +134,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :parent      => ems,
         :association => :container_env_vars,
         # TODO: old save matches on all :name, :value, :field_path - does this matter?
-        :manager_ref => [:container_definition, :name],
+        :manager_ref => [:container, :name],
       )
     @inv_collections[:security_contexts] =
       ::ManagerRefresh::InventoryCollection.new(

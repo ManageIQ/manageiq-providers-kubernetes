@@ -44,7 +44,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
       assert_authentication
       assert_table_counts
       assert_specific_container
-      assert_specific_container_definition
       assert_specific_container_group
       assert_specific_container_node
       assert_specific_container_service
@@ -69,7 +68,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     expect(ContainerService.count).to eq(5)
     expect(ContainerPortConfig.count).to eq(2)
     expect(ContainerEnvVar.count).to eq(3)
-    expect(ContainerDefinition.count).to eq(3)
     expect(ContainerReplicator.count).to eq(2)
     expect(ContainerProject.count).to eq(1)
     expect(ContainerQuota.count).to eq(2)
@@ -116,7 +114,7 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     end
 
     expect(@container.container_image.name).to eq("kubernetes/heapster")
-    expect(@container.container_definition.command).to eq("/heapster --source\\=kubernetes:https://kubernetes "\
+    expect(@container.command).to eq("/heapster --source\\=kubernetes:https://kubernetes "\
                                                       "--sink\\=influxdb:http://monitoring-influxdb:80")
 
     @container2 = Container.find_by(:name => "influxdb")
@@ -133,18 +131,13 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
       :name => "monitoring-influx-grafana-controller-22icy"
     )
 
-    # Check relation to provider, container definition and container image
+    # Check relation to provider and container image
     expect(@container2.container_image.name).to eq("kubernetes/heapster_influxdb")
-    expect(@container2.container_definition).not_to be_nil
     expect(@container2.ext_management_system).to eq(@ems)
 
     expect(@container.container_node).to have_attributes(
       :name => "10.35.0.169"
     )
-  end
-
-  def assert_specific_container_definition
-    expect(ContainerDefinition.find_by(:name => "heapster").ext_management_system).to eq(@ems)
   end
 
   def assert_specific_container_group
@@ -424,7 +417,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     it "saves the objects in the DB" do
       expect(ContainerGroup.count).to eq(10)
       expect(Container.count).to eq(10)
-      expect(ContainerDefinition.count).to eq(10)
       expect(ContainerService.count).to eq(11)
       expect(ContainerQuota.count).to eq(3)
       expect(ContainerQuotaItem.count).to eq(15)
@@ -452,8 +444,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
         expect(ContainerGroup.where(:deleted_on => nil).count).to eq(7)
         expect(Container.count).to eq(10)
         expect(Container.where(:deleted_on => nil).count).to eq(7)
-        expect(ContainerDefinition.count).to eq(10)
-        expect(ContainerDefinition.where(:deleted_on => nil).count).to eq(7)
       end
 
       it "removes the deleted objects from the DB" do
@@ -485,19 +475,19 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
           assert_disconnected(pod)
           expect(pod.container_project).to be_nil
           expect(pod.containers.count).to eq(1)
-          expect(pod.container_definitions.count).to eq(1)
+          expect(pod.containers.count).to eq(1)
         end
 
-        container_def0 = ContainerDefinition.find_by(:name => "my-container", :container_group => pod0)
-        container_def1 = ContainerDefinition.find_by(:name => "my-container", :container_group => pod1)
+        container0 = Container.find_by(:name => "my-container", :container_group => pod0)
+        container1 = Container.find_by(:name => "my-container", :container_group => pod1)
 
-        [container_def0, container_def1].each do |container_def|
-          assert_disconnected(container_def)
-          expect(container_def.container).not_to be_nil
+        [container0, container1].each do |container|
+          assert_disconnected(container)
+          expect(container).not_to be_nil
         end
 
-        container0 = Container.find_by(:name => "my-container", :container_definition => container_def0)
-        container1 = Container.find_by(:name => "my-container", :container_definition => container_def1)
+        container0 = Container.find_by(:name => "my-container")
+        container1 = Container.find_by(:name => "my-container")
 
         [container0, container1].each do |container|
           assert_disconnected(container)

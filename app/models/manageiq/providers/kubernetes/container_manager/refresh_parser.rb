@@ -87,6 +87,8 @@ module ManageIQ::Providers::Kubernetes
       key = path_for_entity("pod")
       process_collection(inventory["pod"], key) { |n| parse_pod(n) }
       @data[key].each do |cg|
+        node_name = cg.delete(:container_node_name)
+        cg[:container_node] = node_name && @data_index.fetch_path(path_for_entity("node"), :by_name, node_name)
         @data_index.store_path(key, :by_namespace_and_name,
                                cg[:namespace], cg[:name], cg)
       end
@@ -575,15 +577,11 @@ module ManageIQ::Providers::Kubernetes
         :phase                 => pod.status.phase,
         :message               => pod.status.message,
         :reason                => pod.status.reason,
-        :container_node        => nil,
+        :container_node_name   => pod.spec.nodeName,
         :container_definitions => [],
         :container_replicator  => nil,
         :build_pod_name        => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
       )
-
-      unless pod.spec.nodeName.nil?
-        new_result[:container_node] = @data_index.fetch_path(path_for_entity("node"), :by_name, pod.spec.nodeName)
-      end
 
       new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, pod.metadata.namespace)
 

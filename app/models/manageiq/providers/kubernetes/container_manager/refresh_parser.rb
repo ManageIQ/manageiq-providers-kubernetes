@@ -59,6 +59,7 @@ module ManageIQ::Providers::Kubernetes
       key = path_for_entity("node")
       process_collection(inventory["node"], key) { |n| parse_node(n) }
       @data[key].each do |cn|
+        cn[:additional_attributes] = @data_index.fetch_path(:additional_attributes, :by_node, cn[:name])
         @data_index.store_path(key, :by_name, cn[:name], cn)
       end
     end
@@ -522,8 +523,6 @@ module ManageIQ::Providers::Kubernetes
 
       new_result[:container_conditions] = parse_conditions(node)
       cross_link_node(new_result)
-
-      new_result[:additional_attributes] = @data_index.fetch_path(:additional_attributes, :by_node, node.metadata.name)
 
       new_result
     end

@@ -532,19 +532,10 @@ module ManageIQ::Providers::Kubernetes
       if new_result[:ems_ref].nil? # Typically this happens for kubernetes services
         new_result[:ems_ref] = "#{new_result[:namespace]}_#{new_result[:name]}"
       end
-      container_groups = []
 
-      endpoint_container_groups = @data_index.fetch_path(
+      container_groups = @data_index.fetch_path(
         :container_endpoints, :by_namespace_and_name, new_result[:namespace],
         new_result[:name], :container_groups)
-      endpoint_container_groups ||= []
-
-      endpoint_container_groups.each do |group|
-        cg = @data_index.fetch_path(
-          path_for_entity("pod"), :by_namespace_and_name, group[:namespace],
-          group[:name])
-        container_groups << cg unless cg.nil?
-      end
 
       labels = parse_labels(service)
       new_result.merge!(

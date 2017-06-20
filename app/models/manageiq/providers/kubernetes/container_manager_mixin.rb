@@ -42,7 +42,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
         options[:version] || kubernetes_version,
         :ssl_options    => Kubeclient::Client::DEFAULT_SSL_OPTIONS.merge(options[:ssl_options] || {}),
         :auth_options   => kubernetes_auth_options(options),
-        :http_proxy_uri => VMDB::Util.http_proxy_uri,
+        :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri,
         :timeouts       => {
           :open => Settings.ems.ems_kubernetes.open_timeout.to_f_with_method,
           :read => Settings.ems.ems_kubernetes.read_timeout.to_f_with_method
@@ -108,11 +108,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
   def connect(options = {})
     effective_options = options.merge(
-      :hostname => options[:hostname] || address,
-      :port     => options[:port] || port,
-      :user     => options[:user] || authentication_userid(options[:auth_type]),
-      :pass     => options[:pass] || authentication_password(options[:auth_type]),
-      :bearer   => options[:bearer] || authentication_token(options[:auth_type] || 'bearer'),
+      :hostname    => options[:hostname] || address,
+      :port        => options[:port] || port,
+      :user        => options[:user] || authentication_userid(options[:auth_type]),
+      :pass        => options[:pass] || authentication_password(options[:auth_type]),
+      :bearer      => options[:bearer] || authentication_token(options[:auth_type] || 'bearer'),
+      :http_proxy  => self.options ? self.options.fetch_path(:proxy_settings, :http_proxy) : nil,
       :ssl_options => options[:ssl_options] || {
         :verify_ssl => verify_ssl_mode,
         :cert_store => ssl_cert_store

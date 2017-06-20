@@ -14,6 +14,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   require_nested :Scanning
 
   include ManageIQ::Providers::Kubernetes::ContainerManagerMixin
+  include ManageIQ::Providers::Kubernetes::ContainerManager::Options
 
   # See HasMonitoringManagerMixin
   has_one :monitoring_manager,

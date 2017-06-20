@@ -172,6 +172,25 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       )
       described_class.raw_connect(hostname, port, options)
     end
+
+    it "connect uses provider options for http_proxy" do
+      allow(VMDB::Util).to receive(:http_proxy_uri).and_return(URI::HTTP.build(:host => "some"))
+      require 'kubeclient'
+      my_proxy_value = "internal_proxy.org"
+      expect(Kubeclient::Client).to receive(:new).with(
+        instance_of(URI::HTTPS), 'v1',
+        hash_including(:http_proxy_uri => my_proxy_value)
+      )
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
+        ]
+      )
+      ems.update(:options => {:proxy_settings => {:http_proxy => my_proxy_value}})
+      ems.connect
+    end
   end
 
   # Test MonitoringManager functionality related to ContainerManager

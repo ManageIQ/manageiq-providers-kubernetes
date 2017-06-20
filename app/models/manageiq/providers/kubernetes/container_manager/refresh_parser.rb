@@ -103,6 +103,12 @@ module ManageIQ::Providers::Kubernetes
       @data[key].each do |cg|
         node_name = cg.delete(:container_node_name)
         cg[:container_node] = node_name && @data_index.fetch_path(path_for_entity("node"), :by_name, node_name)
+        cg[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, cg[:namespace])
+        replicator_ref = cg.delete(:container_replicator_ref)
+        cg[:container_replicator] = replicator_ref && @data_index.fetch_path(
+          path_for_entity("replication_controller"), :by_namespace_and_name,
+          replicator_ref[:namespace], replicator_ref[:name]
+        )
         @data_index.store_path(key, :by_namespace_and_name,
                                cg[:namespace], cg[:name], cg)
       end
@@ -580,11 +586,8 @@ module ManageIQ::Providers::Kubernetes
         :reason                => pod.status.reason,
         :container_node_name   => pod.spec.nodeName,
         :container_definitions => [],
-        :container_replicator  => nil,
         :build_pod_name        => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
       )
-
-      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, pod.metadata.namespace)
 
       # TODO, map volumes
       # TODO, podIP
@@ -602,6 +605,7 @@ module ManageIQ::Providers::Kubernetes
         )
       end
 
+      new_result[:container_replicator_ref] = nil
       # NOTE: what we are trying to access here is the attribute:
       #   pod.metadata.annotations.kubernetes.io/created-by
       # but 'annotations' may be nil. The weird attribute name is
@@ -611,9 +615,10 @@ module ManageIQ::Providers::Kubernetes
         # NOTE: the annotation content is JSON, so it needs to be parsed
         createdby = JSON.parse(createdby_txt)
         if createdby.kind_of?(Hash) && !createdby['reference'].nil?
-          new_result[:container_replicator] = @data_index.fetch_path(
-            path_for_entity("replication_controller"), :by_namespace_and_name,
-            createdby['reference']['namespace'], createdby['reference']['name'])
+          new_result[:container_replicator_ref] = {
+            :namespace => createdby['reference']['namespace'],
+            :name      => createdby['reference']['name']
+          }
         end
       end
 

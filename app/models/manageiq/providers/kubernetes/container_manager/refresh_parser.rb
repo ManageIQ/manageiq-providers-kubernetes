@@ -92,6 +92,7 @@ module ManageIQ::Providers::Kubernetes
         parse_replication_controllers(rc)
       end
       @data[key].each do |rc|
+        rc[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, rc[:namespace])
         @data_index.store_path(key,
                                :by_namespace_and_name, rc[:namespace], rc[:name], rc)
       end
@@ -149,11 +150,19 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_resource_quotas(inventory)
-      process_collection(inventory["resource_quota"], path_for_entity("resource_quota")) { |n| parse_quota(n) }
+      key = path_for_entity("resource_quota")
+      process_collection(inventory["resource_quota"], key) { |n| parse_quota(n) }
+      @data[key].each do |q|
+        q[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, q.delete(:namespace))
+      end
     end
 
     def get_limit_ranges(inventory)
-      process_collection(inventory["limit_range"], path_for_entity("limit_range")) { |n| parse_range(n) }
+      key = path_for_entity("limit_range")
+      process_collection(inventory["limit_range"], key) { |n| parse_range(n) }
+      @data[key].each do |r|
+        r[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, r.delete(:namespace))
+      end
     end
 
     def get_component_statuses(inventory)
@@ -710,12 +719,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def parse_quota(resource_quota)
-      new_result = parse_base_item(resource_quota).except(:namespace)
-      new_result[:project] = @data_index.fetch_path(
-        path_for_entity("namespace"),
-        :by_name,
-        resource_quota.metadata.namespace
-      )
+      new_result = parse_base_item(resource_quota)
       new_result[:container_quota_items] = parse_quota_items resource_quota
       new_result
     end
@@ -746,12 +750,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def parse_range(limit_range)
-      new_result = parse_base_item(limit_range).except(:namespace)
-      new_result[:project] = @data_index.fetch_path(
-        path_for_entity("namespace"),
-        :by_name,
-        limit_range.metadata.namespace
-      )
+      new_result = parse_base_item(limit_range)
       new_result[:container_limit_items] = parse_range_items limit_range
       new_result
     end
@@ -813,9 +812,6 @@ module ManageIQ::Providers::Kubernetes
         :tags             => map_labels('ContainerReplicator', labels),
         :selector_parts   => parse_selector_parts(container_replicator)
       )
-
-      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name,
-                                                    container_replicator.metadata.namespace)
       new_result
     end
 

@@ -1,12 +1,16 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClientMixin
-  def hawkular_client
+  def hawkular_client(tenant = nil)
     require 'hawkular/hawkular_client'
 
     @hawkular_uri ||= hawkular_uri
     @hawkular_credentials ||= hawkular_credentials
     @hawkular_options ||= hawkular_options
 
-    Hawkular::Metrics::Client.new(@hawkular_uri, @hawkular_credentials, @hawkular_options)
+    if tenant
+      Hawkular::Metrics::Client.new(@hawkular_uri, @hawkular_credentials, @hawkular_options.merge(:tenant => tenant))
+    else
+      Hawkular::Metrics::Client.new(@hawkular_uri, @hawkular_credentials, @hawkular_options)
+    end
   end
 
   # may be nil
@@ -37,6 +41,17 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawkul
     }
   end
 
+  def hawkular_compatbility_matrix
+    return {} unless @ext_management_system
+
+    cli = hawkular_client("_system").gauges
+    {
+      :has_allocatable => cli.query(:descriptor_name => "cpu/node_allocatable").compact.any?,
+      :has_rate        => cli.query(:descriptor_name => "cpu/usage_rate").compact.any?,
+      :has_rss         => cli.query(:descriptor_name => "memory/rss").compact.any?
+    }
+  end
+
   def hawkular_try_connect
     # check the connection and the credentials by trying
     # to access hawkular's availability private data, and fetch one line of data.
@@ -44,6 +59,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawkul
     # because only if the connection is ok, and the token is valid,
     # we will get an OK response, with an array of data, or an empty array
     # if no data availabel.
-    hawkular_client.avail.get_data('all', :limit => 1).kind_of?(Array)
+    hawkular_client.avail.get_data("all", :limit => 1).kind_of?(Array)
   end
 end

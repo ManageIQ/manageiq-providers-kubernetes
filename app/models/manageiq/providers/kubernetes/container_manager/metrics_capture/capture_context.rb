@@ -9,6 +9,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       @interval = interval
       @tenant = target.try(:container_project).try(:name) || '_system'
       @ext_management_system = @target.ext_management_system || @target.try(:old_ext_management_system)
+      @compatbility_matrix = hawkular_compatbility_matrix
       @ts_values = Hash.new { |h, k| h[k] = {} }
       @metrics = []
 

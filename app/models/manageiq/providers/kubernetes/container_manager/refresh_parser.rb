@@ -645,7 +645,8 @@ module ManageIQ::Providers::Kubernetes
           next if address.targetRef.try(:kind) != 'Pod'
           cg = @data_index.fetch_path(
             path_for_entity("pod"), :by_namespace_and_name,
-            address.targetRef.namespace, address.targetRef.name)
+            address.targetRef.namespace, address.targetRef.name
+          )
           new_result[:container_groups] << cg unless cg.nil?
         end
       end
@@ -718,7 +719,8 @@ module ManageIQ::Providers::Kubernetes
       new_result[:project] = @data_index.fetch_path(
         path_for_entity("namespace"),
         :by_name,
-        resource_quota.metadata.namespace)
+        resource_quota.metadata.namespace
+      )
       new_result[:container_quota_items] = parse_quota_items resource_quota
       new_result
     end
@@ -753,7 +755,8 @@ module ManageIQ::Providers::Kubernetes
       new_result[:project] = @data_index.fetch_path(
         path_for_entity("namespace"),
         :by_name,
-        limit_range.metadata.namespace)
+        limit_range.metadata.namespace
+      )
       new_result[:container_limit_items] = parse_range_items limit_range
       new_result
     end

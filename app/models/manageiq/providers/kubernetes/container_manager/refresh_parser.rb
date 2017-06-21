@@ -568,7 +568,7 @@ module ManageIQ::Providers::Kubernetes
       end
 
       new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name,
-                                                    service.metadata["table"][:namespace])
+                                                    service.metadata.namespace)
       new_result
     end
 
@@ -594,7 +594,7 @@ module ManageIQ::Providers::Kubernetes
         new_result[:container_node] = @data_index.fetch_path(path_for_entity("node"), :by_name, pod.spec.nodeName)
       end
 
-      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, pod.metadata["table"][:namespace])
+      new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, pod.metadata.namespace)
 
       # TODO, map volumes
       # TODO, podIP
@@ -645,9 +645,7 @@ module ManageIQ::Providers::Kubernetes
           next if address.targetRef.try(:kind) != 'Pod'
           cg = @data_index.fetch_path(
             path_for_entity("pod"), :by_namespace_and_name,
-            # namespace is overriden in more_core_extensions and hence needs
-            # a non method access
-            address.targetRef["table"][:namespace], address.targetRef.name)
+            address.targetRef.namespace, address.targetRef.name)
           new_result[:container_groups] << cg unless cg.nil?
         end
       end
@@ -720,7 +718,7 @@ module ManageIQ::Providers::Kubernetes
       new_result[:project] = @data_index.fetch_path(
         path_for_entity("namespace"),
         :by_name,
-        resource_quota.metadata["table"][:namespace])
+        resource_quota.metadata.namespace)
       new_result[:container_quota_items] = parse_quota_items resource_quota
       new_result
     end
@@ -755,7 +753,7 @@ module ManageIQ::Providers::Kubernetes
       new_result[:project] = @data_index.fetch_path(
         path_for_entity("namespace"),
         :by_name,
-        limit_range.metadata["table"][:namespace])
+        limit_range.metadata.namespace)
       new_result[:container_limit_items] = parse_range_items limit_range
       new_result
     end
@@ -819,7 +817,7 @@ module ManageIQ::Providers::Kubernetes
       )
 
       new_result[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name,
-                                                    container_replicator.metadata["table"][:namespace])
+                                                    container_replicator.metadata.namespace)
       new_result
     end
 
@@ -1010,9 +1008,7 @@ module ManageIQ::Providers::Kubernetes
       {
         :ems_ref          => item.metadata.uid,
         :name             => item.metadata.name,
-        # namespace is overriden in more_core_extensions and hence needs
-        # a non method access
-        :namespace        => item.metadata["table"][:namespace],
+        :namespace        => item.metadata.namespace,
         :ems_created_on   => item.metadata.creationTimestamp,
         :resource_version => item.metadata.resourceVersion
       }

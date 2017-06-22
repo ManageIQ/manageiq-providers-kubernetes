@@ -63,7 +63,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       :timestamp => event.object.lastTimestamp,
       :kind      => event.object.involvedObject.kind,
       :name      => event.object.involvedObject.name,
-      :namespace => event.object.involvedObject['table'][:namespace],
+      :namespace => event.object.involvedObject.namespace,
       :reason    => event.object.reason,
       :message   => event.object.message,
       :uid       => event.object.involvedObject.uid

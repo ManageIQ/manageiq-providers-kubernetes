@@ -948,32 +948,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
       }
       parser.get_additional_attributes(inventory)
       parser.get_nodes(inventory)
-      expect(parser.instance_variable_get(:@data)[:container_nodes]).to eq([{
-        :name                  => 'test-node',
-        :ems_ref               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-        :ems_created_on        => '2016-01-01T11:10:21Z',
-        :container_conditions  => [],
-        :identity_infra        => 'aws:///zone/aws-id',
-        :labels                => [],
-        :tags                  => [],
-        :lives_on_id           => nil,
-        :lives_on_type         => nil,
-        :max_container_groups  => nil,
-        :computer_system       => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace             => nil,
-        :resource_version      => '369104',
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes => [{ :name => "key", :value => "val", :section => "additional_attributes" }]
-      }])
+      expect(parser.instance_variable_get(:@data)[:container_nodes]).to match(
+        [
+          a_hash_including(
+            :name                  => 'test-node',
+            :additional_attributes => [{ :name => "key", :value => "val", :section => "additional_attributes" }]
+          )
+        ]
+      )
     end
 
     it "handles node with multiple custom attributes" do
@@ -984,33 +966,15 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
       }
       parser.get_additional_attributes(inventory)
       parser.get_nodes(inventory)
-      expect(parser.instance_variable_get(:@data)[:container_nodes]).to eq([{
-        :name                  => 'test-node',
-        :ems_ref               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-        :ems_created_on        => '2016-01-01T11:10:21Z',
-        :container_conditions  => [],
-        :identity_infra        => 'aws:///zone/aws-id',
-        :labels                => [],
-        :tags                  => [],
-        :lives_on_id           => nil,
-        :lives_on_type         => nil,
-        :max_container_groups  => nil,
-        :computer_system       => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace             => nil,
-        :resource_version      => '369104',
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" },
-                                   { :name => "key2", :value => "val2", :section => "additional_attributes" }]
-      }])
+      expect(parser.instance_variable_get(:@data)[:container_nodes]).to match(
+        [
+          a_hash_including(
+            :name                  => 'test-node',
+            :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" },
+                                       { :name => "key2", :value => "val2", :section => "additional_attributes" }]
+          )
+        ]
+      )
     end
 
     it "ignores custom attributes of a different node" do
@@ -1021,32 +985,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
       }
       parser.get_additional_attributes(inventory)
       parser.get_nodes(inventory)
-      expect(parser.instance_variable_get(:@data)[:container_nodes]).to eq([{
-        :name                  => 'test-node1',
-        :ems_ref               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-        :ems_created_on        => '2016-01-01T11:10:21Z',
-        :container_conditions  => [],
-        :identity_infra        => 'aws:///zone/aws-id',
-        :labels                => [],
-        :tags                  => [],
-        :lives_on_id           => nil,
-        :lives_on_type         => nil,
-        :max_container_groups  => nil,
-        :computer_system       => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace             => nil,
-        :resource_version      => '369104',
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" }]
-      }])
+      expect(parser.instance_variable_get(:@data)[:container_nodes]).to match(
+        [
+          a_hash_including(
+            :name                  => 'test-node1',
+            :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" }]
+          )
+        ]
+      )
     end
   end
 

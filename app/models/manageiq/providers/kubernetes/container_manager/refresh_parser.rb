@@ -137,6 +137,11 @@ module ManageIQ::Providers::Kubernetes
       key = path_for_entity("persistent_volume")
       process_collection(inventory["persistent_volume"], key) { |n| parse_persistent_volume(n) }
       @data[key].each do |pv|
+        pvc_ref = pv.delete(:persistent_volume_claim_ref)
+        pv[:persistent_volume_claim] = pvc_ref && @data_index.fetch_path(
+          path_for_entity("persistent_volume_claim"),
+          :by_namespace_and_name, pvc_ref[:namespace], pvc_ref[:name]
+        )
         @data_index.store_path(key, :by_name, pv[:name], pv)
       end
     end
@@ -669,21 +674,21 @@ module ManageIQ::Providers::Kubernetes
       new_result = parse_base_item(persistent_volume)
       new_result.merge!(parse_volume_source(persistent_volume.spec))
       new_result.merge!(
-        :type                    => 'PersistentVolume',
-        :capacity                => parse_resource_list(persistent_volume.spec.capacity.to_h),
-        :access_modes            => persistent_volume.spec.accessModes.join(','),
-        :reclaim_policy          => persistent_volume.spec.persistentVolumeReclaimPolicy,
-        :status_phase            => persistent_volume.status.phase,
-        :status_message          => persistent_volume.status.message,
-        :status_reason           => persistent_volume.status.reason,
-        :persistent_volume_claim => nil
+        :type                        => 'PersistentVolume',
+        :capacity                    => parse_resource_list(persistent_volume.spec.capacity.to_h),
+        :access_modes                => persistent_volume.spec.accessModes.join(','),
+        :reclaim_policy              => persistent_volume.spec.persistentVolumeReclaimPolicy,
+        :status_phase                => persistent_volume.status.phase,
+        :status_message              => persistent_volume.status.message,
+        :status_reason               => persistent_volume.status.reason,
+        :persistent_volume_claim_ref => nil,
       )
 
       unless persistent_volume.spec.claimRef.nil?
-        new_result[:persistent_volume_claim] = @data_index.fetch_path(path_for_entity("persistent_volume_claim"),
-                                                                      :by_namespace_and_name,
-                                                                      persistent_volume.spec.claimRef.namespace,
-                                                                      persistent_volume.spec.claimRef.name)
+        new_result[:persistent_volume_claim_ref] = {
+          :namespace => persistent_volume.spec.claimRef.namespace,
+          :name      => persistent_volume.spec.claimRef.name,
+        }
       end
 
       new_result

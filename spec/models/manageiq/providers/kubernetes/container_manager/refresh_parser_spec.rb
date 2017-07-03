@@ -480,7 +480,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
                :ems_created_on        => '2015-08-17T09:16:46Z',
                :resource_version      => '165339',
-               :project               => nil,
+               :namespace             => 'test-namespace',
                :container_quota_items => [
                  {
                    :resource       => "cpu",
@@ -508,7 +508,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
                :ems_created_on        => '2015-08-17T09:16:46Z',
                :resource_version      => '165339',
-               :project               => nil,
+               :namespace             => 'test-namespace',
                :container_quota_items => [])
     end
 
@@ -530,7 +530,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
                :ems_created_on        => '2015-08-17T09:16:46Z',
                :resource_version      => '165339',
-               :project               => nil,
+               :namespace             => 'test-namespace',
                :container_quota_items => [
                  {
                    :resource       => "cpu",
@@ -565,7 +565,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
         :ems_created_on        => '2015-08-17T09:16:46Z',
         :resource_version      => '2',
-        :project               => nil,
+        :namespace             => 'test-namespace',
         :container_limit_items => [
           {
             :item_type               => "Container",
@@ -606,7 +606,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
         :ems_created_on        => '2015-08-17T09:16:46Z',
         :resource_version      => '2',
-        :project               => nil,
+        :namespace             => 'test-namespace',
         :container_limit_items => []
       }
       ranges.each do |range|
@@ -805,7 +805,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :namespace                  => nil,
         :resource_version           => '369104',
         :type                       => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes      => nil
       })
     end
 
@@ -859,7 +858,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :namespace                  => nil,
         :resource_version           => '3691041',
         :type                       => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes      => nil
       })
     end
 
@@ -905,160 +903,95 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
           :namespace             => nil,
           :resource_version      => '369104',
           :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-          :additional_attributes => nil
         })
     end
+  end
+
+  describe "get_nodes" do
+    let(:test_node) do
+      RecursiveOpenStruct.new(
+        :metadata => {
+          :name              => 'test-node',
+          :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
+          :resourceVersion   => '369104',
+          :creationTimestamp => '2016-01-01T11:10:21Z'
+        },
+        :spec     => {
+          :providerID => 'aws:///zone/aws-id'
+        },
+        :status   => {
+          :capacity => {}
+        }
+      )
+    end
+    let(:test_node1) do
+      RecursiveOpenStruct.new(
+        :metadata => {
+          :name              => 'test-node1',
+          :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
+          :resourceVersion   => '369104',
+          :creationTimestamp => '2016-01-01T11:10:21Z'
+        },
+        :spec     => {
+          :providerID => 'aws:///zone/aws-id'
+        },
+        :status   => {
+          :capacity => {}
+        }
+      )
+    end
+
     it "handles node with single custom attribute" do
-      parser.get_additional_attributes(
-        "additional_attributes" => { "node/test-node/key" => "val" }
-      )
-
-      expect(
-        parser.send(
-          :parse_node,
-          RecursiveOpenStruct.new(
-            :metadata => {
-              :name              => 'test-node',
-              :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-              :resourceVersion   => '369104',
-              :creationTimestamp => '2016-01-01T11:10:21Z'
-            },
-            :spec     => {
-              :providerID => 'aws:///zone/aws-id'
-            },
-            :status   => {
-              :capacity => {}
-            }
-          ),
-        )
-      ).to eq(
-        :name                  => 'test-node',
-        :ems_ref               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-        :ems_created_on        => '2016-01-01T11:10:21Z',
-        :container_conditions  => [],
-        :identity_infra        => 'aws:///zone/aws-id',
-        :labels                => [],
-        :tags                  => [],
-        :lives_on_id           => nil,
-        :lives_on_type         => nil,
-        :max_container_groups  => nil,
-        :computer_system       => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace             => nil,
-        :resource_version      => '369104',
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes => [{ :name => "key", :value => "val", :section => "additional_attributes" }]
+      inventory = {
+        "additional_attributes" => { "node/test-node/key" => "val" },
+        "node"                  => [test_node]
+      }
+      parser.get_additional_attributes(inventory)
+      parser.get_nodes(inventory)
+      expect(parser.instance_variable_get(:@data)[:container_nodes]).to match(
+        [
+          a_hash_including(
+            :name                  => 'test-node',
+            :additional_attributes => [{ :name => "key", :value => "val", :section => "additional_attributes" }]
+          )
+        ]
       )
     end
+
     it "handles node with multiple custom attributes" do
-      parser.get_additional_attributes(
+      inventory = {
         "additional_attributes" => { "node/test-node/key1" => "val1",
-                                     "node/test-node/key2" => "val2"}
-      )
-
-      expect(
-        parser.send(
-          :parse_node,
-          RecursiveOpenStruct.new(
-            :metadata => {
-              :name              => 'test-node',
-              :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-              :resourceVersion   => '369104',
-              :creationTimestamp => '2016-01-01T11:10:21Z'
-            },
-            :spec     => {
-              :providerID => 'aws:///zone/aws-id'
-            },
-            :status   => {
-              :capacity => {}
-            }
-          ),
-        )
-      ).to eq(
-        :name                  => 'test-node',
-        :ems_ref               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-        :ems_created_on        => '2016-01-01T11:10:21Z',
-        :container_conditions  => [],
-        :identity_infra        => 'aws:///zone/aws-id',
-        :labels                => [],
-        :tags                  => [],
-        :lives_on_id           => nil,
-        :lives_on_type         => nil,
-        :max_container_groups  => nil,
-        :computer_system       => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace             => nil,
-        :resource_version      => '369104',
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" },
-                                   { :name => "key2", :value => "val2", :section => "additional_attributes" }]
+                                     "node/test-node/key2" => "val2"},
+        "node"                  => [test_node]
+      }
+      parser.get_additional_attributes(inventory)
+      parser.get_nodes(inventory)
+      expect(parser.instance_variable_get(:@data)[:container_nodes]).to match(
+        [
+          a_hash_including(
+            :name                  => 'test-node',
+            :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" },
+                                       { :name => "key2", :value => "val2", :section => "additional_attributes" }]
+          )
+        ]
       )
     end
-    it "ignores custom attributes of a different node" do
-      parser.get_additional_attributes(
-        "additional_attributes" => { "node/test-node1/key1" => "val1",
-                                     "node/test-node2/key2" => "val2"}
-      )
 
-      expect(
-        parser.send(
-          :parse_node,
-          RecursiveOpenStruct.new(
-            :metadata => {
-              :name              => 'test-node1',
-              :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-              :resourceVersion   => '369104',
-              :creationTimestamp => '2016-01-01T11:10:21Z'
-            },
-            :spec     => {
-              :providerID => 'aws:///zone/aws-id'
-            },
-            :status   => {
-              :capacity => {}
-            }
-          ),
-        )
-      ).to eq(
-        :name                  => 'test-node1',
-        :ems_ref               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
-        :ems_created_on        => '2016-01-01T11:10:21Z',
-        :container_conditions  => [],
-        :identity_infra        => 'aws:///zone/aws-id',
-        :labels                => [],
-        :tags                  => [],
-        :lives_on_id           => nil,
-        :lives_on_type         => nil,
-        :max_container_groups  => nil,
-        :computer_system       => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace             => nil,
-        :resource_version      => '369104',
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
-        :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" }]
+    it "ignores custom attributes of a different node" do
+      inventory = {
+        "additional_attributes" => { "node/test-node1/key1" => "val1",
+                                     "node/test-node2/key2" => "val2"},
+        "node"                  => [test_node1]
+      }
+      parser.get_additional_attributes(inventory)
+      parser.get_nodes(inventory)
+      expect(parser.instance_variable_get(:@data)[:container_nodes]).to match(
+        [
+          a_hash_including(
+            :name                  => 'test-node1',
+            :additional_attributes => [{ :name => "key1", :value => "val1", :section => "additional_attributes" }]
+          )
+        ]
       )
     end
   end
@@ -1125,40 +1058,40 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         )
       )).to eq(
         {
-          :name                    => 'test-volume',
-          :ems_ref                 => '66213621-80a1-11e5-b907-28d2447dcefe',
-          :ems_created_on          => '2015-12-06T11:10:21Z',
-          :namespace               => nil,
-          :resource_version        => '448015',
-          :type                    => 'PersistentVolume',
-          :status_phase            => 'Available',
-          :access_modes            => 'ReadWriteOnce',
-          :capacity                => {:storage => 10.gigabytes},
-          :claim_name              => nil,
-          :common_fs_type          => nil,
-          :common_partition        => nil,
-          :common_path             => '/tmp/data01',
-          :common_read_only        => nil,
-          :common_secret           => nil,
-          :common_volume_id        => nil,
-          :empty_dir_medium_type   => nil,
-          :gce_pd_name             => nil,
-          :git_repository          => nil,
-          :git_revision            => nil,
-          :glusterfs_endpoint_name => nil,
-          :iscsi_iqn               => nil,
-          :iscsi_lun               => nil,
-          :iscsi_target_portal     => nil,
-          :nfs_server              => nil,
-          :persistent_volume_claim => nil,
-          :rbd_ceph_monitors       => '',
-          :rbd_image               => nil,
-          :rbd_keyring             => nil,
-          :rbd_pool                => nil,
-          :rbd_rados_user          => nil,
-          :reclaim_policy          => nil,
-          :status_message          => nil,
-          :status_reason           => nil
+          :name                        => 'test-volume',
+          :ems_ref                     => '66213621-80a1-11e5-b907-28d2447dcefe',
+          :ems_created_on              => '2015-12-06T11:10:21Z',
+          :namespace                   => nil,
+          :resource_version            => '448015',
+          :type                        => 'PersistentVolume',
+          :status_phase                => 'Available',
+          :access_modes                => 'ReadWriteOnce',
+          :capacity                    => {:storage => 10.gigabytes},
+          :claim_name                  => nil,
+          :common_fs_type              => nil,
+          :common_partition            => nil,
+          :common_path                 => '/tmp/data01',
+          :common_read_only            => nil,
+          :common_secret               => nil,
+          :common_volume_id            => nil,
+          :empty_dir_medium_type       => nil,
+          :gce_pd_name                 => nil,
+          :git_repository              => nil,
+          :git_revision                => nil,
+          :glusterfs_endpoint_name     => nil,
+          :iscsi_iqn                   => nil,
+          :iscsi_lun                   => nil,
+          :iscsi_target_portal         => nil,
+          :nfs_server                  => nil,
+          :persistent_volume_claim_ref => nil,
+          :rbd_ceph_monitors           => '',
+          :rbd_image                   => nil,
+          :rbd_keyring                 => nil,
+          :rbd_pool                    => nil,
+          :rbd_rados_user              => nil,
+          :reclaim_policy              => nil,
+          :status_message              => nil,
+          :status_reason               => nil
         })
     end
   end

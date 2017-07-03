@@ -166,7 +166,7 @@ module ManageIQ::Providers::Kubernetes
 
     def get_resource_quotas(inventory)
       key = path_for_entity("resource_quota")
-      process_collection(inventory["resource_quota"], key) { |n| parse_quota(n) }
+      process_collection(inventory["resource_quota"], key) { |n| parse_resource_quota(n) }
       @data[key].each do |q|
         q[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, q.delete(:namespace))
       end
@@ -269,7 +269,7 @@ module ManageIQ::Providers::Kubernetes
       collection = @inv_collections[:container_quotas]
 
       inv["resource_quota"].each do |quota|
-        h = parse_quota(quota)
+        h = parse_resource_quota(quota)
 
         h[:container_project] = lazy_find_project(h.delete(:project))
 
@@ -732,13 +732,13 @@ module ManageIQ::Providers::Kubernetes
       new_result
     end
 
-    def parse_quota(resource_quota)
+    def parse_resource_quota(resource_quota)
       new_result = parse_base_item(resource_quota)
-      new_result[:container_quota_items] = parse_quota_items resource_quota
+      new_result[:container_quota_items] = parse_resource_quota_items resource_quota
       new_result
     end
 
-    def parse_quota_items(resource_quota)
+    def parse_resource_quota_items(resource_quota)
       new_result_h = Hash.new do |h, k|
         h[k] = {
           :resource       => k.to_s,

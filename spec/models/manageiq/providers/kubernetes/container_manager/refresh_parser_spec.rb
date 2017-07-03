@@ -453,7 +453,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
   describe "quota parsing" do
     it "handles simple data" do
       expect(parser.send(
-        :parse_quota,
+        :parse_resource_quota,
         RecursiveOpenStruct.new(
           :metadata => {
             :name              => 'test-quota',
@@ -493,7 +493,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     end
 
     it "handles quotas with no specification" do
-      expect(parser.send(:parse_quota,
+      expect(parser.send(:parse_resource_quota,
                          RecursiveOpenStruct.new(
                            :metadata => {
                              :name              => 'test-quota',
@@ -513,7 +513,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     end
 
     it "handles quotas with no status" do
-      expect(parser.send(:parse_quota,
+      expect(parser.send(:parse_resource_quota,
                          RecursiveOpenStruct.new(
                            :metadata => {
                              :name              => 'test-quota',

@@ -516,7 +516,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   def assert_disconnected(object)
     expect(object).not_to be_nil
     expect(object.deleted_on).not_to be_nil
-    expect(object.ext_management_system).to be_nil
-    expect(object.old_ems_id).to eq(@ems.id)
+    expect(object.archived?).to be true
   end
 end

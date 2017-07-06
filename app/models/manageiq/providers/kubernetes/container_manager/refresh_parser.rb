@@ -52,7 +52,7 @@ module ManageIQ::Providers::Kubernetes
       get_services_graph(inventory)
       get_component_statuses_graph(inventory)
 
-      @inv_collections.values
+      @collections.values
     end
 
     def get_nodes(inventory)
@@ -206,7 +206,7 @@ module ManageIQ::Providers::Kubernetes
     ## InventoryObject Refresh methods
 
     def get_nodes_graph(inv)
-      collection = @inv_collections[:container_nodes]
+      collection = @collections[:container_nodes]
 
       inv["node"].each do |data|
         h = parse_node(data)
@@ -233,7 +233,7 @@ module ManageIQ::Providers::Kubernetes
       hash[:managed_entity] = parent
       children = hash.extract!(:hardware, :operating_system)
 
-      computer_system = @inv_collections[:computer_systems].build(hash)
+      computer_system = @collections[:computer_systems].build(hash)
 
       get_node_computer_system_hardware_graph(computer_system, children[:hardware])
       get_node_computer_system_operating_system_graph(computer_system, children[:operating_system])
@@ -242,17 +242,17 @@ module ManageIQ::Providers::Kubernetes
     def get_node_computer_system_hardware_graph(parent, hash)
       return if hash.nil?
       hash[:computer_system] = parent
-      @inv_collections[:computer_system_hardwares].build(hash)
+      @collections[:computer_system_hardwares].build(hash)
     end
 
     def get_node_computer_system_operating_system_graph(parent, hash)
       return if hash.nil?
       hash[:computer_system] = parent
-      @inv_collections[:computer_system_operating_systems].build(hash)
+      @collections[:computer_system_operating_systems].build(hash)
     end
 
     def get_namespaces_graph(inv)
-      collection = @inv_collections[:container_projects]
+      collection = @collections[:container_projects]
 
       inv["namespace"].each do |ns|
         h = parse_namespace(ns)
@@ -266,7 +266,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_resource_quotas_graph(inv)
-      collection = @inv_collections[:container_quotas]
+      collection = @collections[:container_quotas]
 
       inv["resource_quota"].each do |quota|
         h = parse_resource_quota(quota)
@@ -281,15 +281,15 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_container_quota_items_graph(parent, hashes)
-      container_quota = @inv_collections[:container_quotas].lazy_find(parent[:ems_ref])
+      container_quota = @collections[:container_quotas].lazy_find(parent[:ems_ref])
       hashes.each do |hash|
         hash[:container_quota] = container_quota
-        @inv_collections[:container_quota_items].build(hash)
+        @collections[:container_quota_items].build(hash)
       end
     end
 
     def get_limit_ranges_graph(inv)
-      collection = @inv_collections[:container_limits]
+      collection = @collections[:container_limits]
 
       inv["limit_range"].each do |data|
         h = parse_range(data)
@@ -304,7 +304,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_limit_range_items_graph(parent, hashes)
-      collection = @inv_collections[:container_limit_items]
+      collection = @collections[:container_limit_items]
       hashes.each do |hash|
         hash[:container_limit] = parent
         collection.build(hash)
@@ -312,7 +312,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_replication_controllers_graph(inv)
-      collection = @inv_collections[:container_replicators]
+      collection = @collections[:container_replicators]
 
       inv["replication_controller"].each do |rc|
         h = parse_replication_controllers(rc)
@@ -327,7 +327,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_persistent_volume_claims_graph(inv)
-      collection = @inv_collections[:persistent_volume_claims]
+      collection = @collections[:persistent_volume_claims]
 
       inv["persistent_volume_claim"].each do |pvc|
         h = parse_persistent_volume_claim(pvc)
@@ -339,7 +339,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_persistent_volumes_graph(inv)
-      collection = @inv_collections[:persistent_volumes]
+      collection = @collections[:persistent_volumes]
 
       inv["persistent_volume"].each do |pv|
         h = parse_persistent_volume(pv)
@@ -351,7 +351,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_pods_graph(inv)
-      collection = @inv_collections[:container_groups]
+      collection = @collections[:container_groups]
 
       inv["pod"].each do |pod|
         h = parse_pod(pod)
@@ -371,7 +371,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_container_definitions_graph(parent, hashes)
-      collection = @inv_collections[:container_definitions]
+      collection = @collections[:container_definitions]
       hashes.each do |h|
         h[:container_group] = parent
         children = h.extract!(:container_port_configs, :container_env_vars, :security_context, :container)
@@ -386,7 +386,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_container_port_configs_graph(parent, hashes)
-      collection = @inv_collections[:container_port_configs]
+      collection = @collections[:container_port_configs]
       hashes.each do |h|
         h[:container_definition] = parent
         collection.build(h)
@@ -394,7 +394,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_container_env_vars_graph(parent, hashes)
-      collection = @inv_collections[:container_env_vars]
+      collection = @collections[:container_env_vars]
       hashes.each do |h|
         h[:container_definition] = parent
         collection.build(h)
@@ -402,13 +402,13 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_container_security_context_graph(parent, h)
-      collection = @inv_collections[:security_contexts]
+      collection = @collections[:security_contexts]
       h[:resource] = parent
       collection.build(h)
     end
 
     def get_containers_graph(parent, h)
-      collection = @inv_collections[:containers]
+      collection = @collections[:containers]
 
       h[:container_definition] = parent
 
@@ -418,7 +418,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_services_graph(inv)
-      collection = @inv_collections[:container_services]
+      collection = @collections[:container_services]
 
       inv["service"].each do |service|
         h = parse_service(service)
@@ -438,7 +438,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_component_statuses_graph(inv)
-      collection = @inv_collections[:container_component_statuses]
+      collection = @collections[:container_component_statuses]
 
       inv["component_status"].each do |cs|
         h = parse_component_status(cs)
@@ -1150,7 +1150,7 @@ module ManageIQ::Providers::Kubernetes
 
     def lazy_find_project(hash)
       return if hash.nil?
-      @inv_collections[:container_projects].lazy_find(hash[:ems_ref])
+      @collections[:container_projects].lazy_find(hash[:ems_ref])
     end
   end
 end

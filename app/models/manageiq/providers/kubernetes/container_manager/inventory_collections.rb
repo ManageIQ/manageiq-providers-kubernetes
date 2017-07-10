@@ -6,27 +6,28 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       :model_class    => ContainerProject,
       :parent         => ems,
       :builder_params => {:ems_id => ems.id},
-      :association    => :container_projects
+      :association    => :container_projects,
+      :secondary_refs => {:by_name => [:name]},
     )
     @inv_collections[:container_quotas] = ::ManagerRefresh::InventoryCollection.new(
-      :model_class    => ContainerQuota,
-      :parent         => ems,
-      :builder_params => {:ems_id => ems.id},
-      :association    => :container_quotas,
-      #:arel => ContainerQuota.joins(:container_project).where(:container_projects => {:ems_id => ems.id}),
+      :model_class          => ContainerQuota,
+      :parent               => ems,
+      :builder_params       => {:ems_id => ems.id},
+      :association          => :container_quotas,
+      :attributes_blacklist => [:namespace],
     )
     @inv_collections[:container_quota_items] = ::ManagerRefresh::InventoryCollection.new(
       :model_class => ContainerQuotaItem,
       :parent      => ems,
       :association => :container_quota_items,
-      #:arel => ContainerQuotaItem.joins(:container_quota => :container_project).where(:container_projects => {:ems_id => ems.id}),
       :manager_ref => [:container_quota, :resource],
     )
     @inv_collections[:container_limits] = ::ManagerRefresh::InventoryCollection.new(
-      :model_class    => ContainerLimit,
-      :parent         => ems,
-      :builder_params => {:ems_id => ems.id},
-      :association    => :container_limits,
+      :model_class          => ContainerLimit,
+      :parent               => ems,
+      :builder_params       => {:ems_id => ems.id},
+      :association          => :container_limits,
+      :attributes_blacklist => [:namespace],
     )
     @inv_collections[:container_limit_items] = ::ManagerRefresh::InventoryCollection.new(
       :model_class => ContainerLimitItem,
@@ -39,7 +40,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       :parent         => ems,
       :builder_params => {:ems_id => ems.id},
       :association    => :container_nodes,
+      :secondary_refs => {:by_name => [:name]},
     )
+    initialize_container_conditions_collection(ems.container_nodes)
+    initialize_custom_attributes_collections(ems.container_nodes, %w(labels additional_attributes))
 
     # polymorphic child of ContainerNode & ContainerImage,
     # but refresh only sets it on nodes.
@@ -79,16 +83,22 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :parent         => ems,
         :builder_params => {:ems_id => ems.id},
         :association    => :container_images,
-        :manager_ref    => [:image_ref, :container_image_registry],
+        # TODO: old save matches on [:image_ref, :container_image_registry_id]
+        # TODO: should match on digest when available
+        :manager_ref    => [:image_ref],
       )
 
     @inv_collections[:container_groups] =
       ::ManagerRefresh::InventoryCollection.new(
-        :model_class    => ContainerGroup,
-        :parent         => ems,
-        :builder_params => {:ems_id => ems.id},
-        :association    => :container_groups,
+        :model_class          => ContainerGroup,
+        :parent               => ems,
+        :builder_params       => {:ems_id => ems.id},
+        :association          => :container_groups,
+        :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+        :attributes_blacklist => [:namespace],
       )
+    initialize_container_conditions_collection(ems.container_groups)
+    initialize_custom_attributes_collections(ems.container_groups, %w(labels node_selectors))
     @inv_collections[:container_definitions] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class    => ContainerDefinition,
@@ -137,18 +147,25 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
 
     @inv_collections[:container_replicators] =
       ::ManagerRefresh::InventoryCollection.new(
-        :model_class    => ContainerReplicator,
-        :parent         => ems,
-        :builder_params => {:ems_id => ems.id},
-        :association    => :container_replicators,
+        :model_class          => ContainerReplicator,
+        :parent               => ems,
+        :builder_params       => {:ems_id => ems.id},
+        :association          => :container_replicators,
+        :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+        :attributes_blacklist => [:namespace],
       )
+    initialize_custom_attributes_collections(ems.container_replicators, %w(labels selectors))
+
     @inv_collections[:container_services] =
       ::ManagerRefresh::InventoryCollection.new(
-        :model_class    => ContainerService,
-        :parent         => ems,
-        :builder_params => {:ems_id => ems.id},
-        :association    => :container_services,
+        :model_class          => ContainerService,
+        :parent               => ems,
+        :builder_params       => {:ems_id => ems.id},
+        :association          => :container_services,
+        :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+        :attributes_blacklist => [:namespace],
       )
+    initialize_custom_attributes_collections(ems.container_services, %w(labels selectors))
     @inv_collections[:container_service_port_configs] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => ContainerServicePortConfig,
@@ -172,10 +189,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       )
     @inv_collections[:container_templates] =
       ::ManagerRefresh::InventoryCollection.new(
-        :model_class    => ContainerTemplate,
-        :parent         => ems,
-        :builder_params => {:ems_id => ems.id},
-        :association    => :container_templates,
+        :model_class          => ContainerTemplate,
+        :parent               => ems,
+        :builder_params       => {:ems_id => ems.id},
+        :association          => :container_templates,
+        :attributes_blacklist => [:namespace],
       )
     @inv_collections[:container_template_parameters] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -199,7 +217,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association    => :container_build_pods,
         # TODO: is this unique?  build pods do have uid that becomes ems_ref,
         # but we need lazy_find by name for lookup from container_group
-        # TODO rename namespace -> container_project column?
+        # TODO: rename namespace -> container_project column?
         :manager_ref    => [:namespace, :name],
       )
     @inv_collections[:persistent_volumes] =
@@ -216,5 +234,33 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :builder_params => {:ems_id => ems.id},
         :association    => :persistent_volume_claims,
       )
+  end
+
+  # ContainerCondition is polymorphic child of ContainerNode & ContainerGroup.
+  def initialize_container_conditions_collection(relation)
+    query = ContainerCondition.where(
+      :container_entity_type => relation.model.name,
+      :container_entity_id   => relation, # nested SELECT. TODO: compare to a JOIN.
+    )
+    @inv_collections[[:container_conditions_for, relation.model.name]] =
+      ::ManagerRefresh::InventoryCollection.new(
+        :model_class => ContainerCondition,
+        :arel        => query,
+        :manager_ref => [:container_entity, :name],
+      )
+  end
+
+  # CustomAttribute is polymorphic child of many models
+  def initialize_custom_attributes_collections(relation, sections)
+    sections.each do |section|
+      query = CustomAttribute.where(:resource_type => relation.model.name,
+                                    :resource_id   => relation,
+                                    :section       => section.to_s)
+      @inv_collections[[:custom_attributes_for, relation.model.name, section]] = ::ManagerRefresh::InventoryCollection.new(
+        :model_class => CustomAttribute,
+        :arel        => query,
+        :manager_ref => [:resource, :section, :name],
+      )
+    end
   end
 end

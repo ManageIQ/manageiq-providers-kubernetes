@@ -28,6 +28,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     )
   end
 
+  let(:check_tag_mapping) { true }
+
   def full_refresh_test
     3.times do # Run three times to verify that second & third runs with existing data do not change anything
       VCR.use_cassette(described_class.name.underscore) do # , :record => :new_episodes) do
@@ -59,17 +61,20 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     full_refresh_test
   end
 
-  it "will perform a full refresh with inventory_objects on k8s" do
-    stub_settings_merge(
-      :ems_refresh => {
-        :kubernetes => {
-          :inventory_object_refresh => true
-        }
-      }
-    )
+  describe "graph refresh" do
+    let(:check_tag_mapping) { false } # TODO: pending implementation
 
-    pending("full implementation of graph refresh")
-    full_refresh_test
+    it "will perform a full refresh with inventory_objects on k8s" do
+      stub_settings_merge(
+        :ems_refresh => {
+          :kubernetes => {
+            :inventory_object_refresh => true
+          }
+        }
+      )
+
+      full_refresh_test
+    end
   end
 
   def assert_table_counts
@@ -169,9 +174,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     expect(@containergroup.labels).to contain_exactly(
       label_with_name_value("name", "heapster")
     )
-    expect(@containergroup.tags).to contain_exactly(
-      tag_in_category_with_description(@name_category, "heapster")
-    )
+    if check_tag_mapping
+      expect(@containergroup.tags).to contain_exactly(
+        tag_in_category_with_description(@name_category, "heapster")
+      )
+    end
 
     # Check the relation to container node
     expect(@containergroup.container_node).not_to be_nil
@@ -306,9 +313,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     expect(@replicator.labels).to contain_exactly(
       label_with_name_value("name", "influxGrafana")
     )
-    expect(@replicator.tags).to contain_exactly(
-      tag_in_category_with_description(@name_category, "influxGrafana")
-    )
+    if check_tag_mapping
+      expect(@replicator.tags).to contain_exactly(
+        tag_in_category_with_description(@name_category, "influxGrafana")
+      )
+    end
     expect(@replicator.selector_parts.count).to eq(1)
 
     @group = ContainerGroup.where(:name => "monitoring-influx-grafana-controller-22icy").first

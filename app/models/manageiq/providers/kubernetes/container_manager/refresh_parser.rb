@@ -36,11 +36,14 @@ module ManageIQ::Providers::Kubernetes
       get_services(inventory)
       get_component_statuses(inventory)
       EmsRefresh.log_inv_debug_trace(@data, "data:")
+
+      # Returning a hash triggers save_inventory_container code path.
       @data
     end
 
     def ems_inv_to_inv_collections(ems, inventory, _options = Config::Options.new)
       initialize_inventory_collections(ems)
+      get_additional_attributes_graph(inventory) # TODO: untested?
       get_nodes_graph(inventory)
       get_namespaces_graph(inventory)
       get_resource_quotas_graph(inventory)
@@ -49,9 +52,14 @@ module ManageIQ::Providers::Kubernetes
       get_persistent_volume_claims_graph(inventory)
       get_persistent_volumes_graph(inventory)
       get_pods_graph(inventory)
-      get_services_graph(inventory)
+      get_endpoints_and_services_graph(inventory)
       get_component_statuses_graph(inventory)
+      # The following use images resulting from parsing pods, so must be called after.
+      # TODO: openshift images parsing will have to plug before this.
+      get_container_images_graph
+      get_container_image_registries_graph
 
+      # Returning an array triggers ManagerRefresh::SaveInventory code path.
       @inv_collections.values
     end
 
@@ -205,6 +213,16 @@ module ManageIQ::Providers::Kubernetes
 
     ## InventoryObject Refresh methods
 
+    def get_additional_attributes_graph(inv)
+      (inv["additional_attributes"] || {}).each do |aa|
+        h = parse_additional_attribute(aa)
+        next if h.empty? || h[:node].nil?
+
+        container_node = lazy_find_node(:name => h.delete(:node))
+        get_custom_attributes_graph(container_node, :additional_attributes => [h])
+      end
+    end
+
     def get_nodes_graph(inv)
       collection = @inv_collections[:container_nodes]
 
@@ -213,18 +231,15 @@ module ManageIQ::Providers::Kubernetes
 
         h.except!(:namespace, :tags)
 
-        _custom_attrs = h.extract!(:labels, :additional_attributes)
+        labels = h.delete(:labels)
         children = h.extract!(:container_conditions, :computer_system)
 
-        node = collection.build(h)
+        container_node = collection.build(h)
 
-        get_node_container_conditions_graph(node, children[:container_conditions])
-        get_node_computer_systems_graph(node, children[:computer_system])
+        get_container_conditions_graph(container_node, children[:container_conditions])
+        get_node_computer_systems_graph(container_node, children[:computer_system])
+        get_custom_attributes_graph(container_node, :labels => labels)
       end
-    end
-
-    def get_node_container_conditions_graph(parent, hashes)
-      # TODO
     end
 
     def get_node_computer_systems_graph(parent, hash)
@@ -258,10 +273,11 @@ module ManageIQ::Providers::Kubernetes
         h = parse_namespace(ns)
 
         h.except!(:tags)
+        custom_attrs = h.extract!(:labels)
 
-        _custom_attrs = h.extract!(:labels)
+        container_project = collection.build(h)
 
-        collection.build(h)
+        get_custom_attributes_graph(container_project, custom_attrs)
       end
     end
 
@@ -271,7 +287,7 @@ module ManageIQ::Providers::Kubernetes
       inv["resource_quota"].each do |quota|
         h = parse_resource_quota(quota)
 
-        h[:container_project] = lazy_find_project(h.delete(:project))
+        h[:container_project] = lazy_find_project(:name => h[:namespace])
 
         items = h.delete(:container_quota_items)
         get_container_quota_items_graph(h, items)
@@ -294,7 +310,7 @@ module ManageIQ::Providers::Kubernetes
       inv["limit_range"].each do |data|
         h = parse_range(data)
 
-        h[:container_project] = lazy_find_project(h.delete(:project))
+        h[:container_project] = lazy_find_project(:name => h[:namespace])
         items = h.delete(:container_limit_items)
 
         limit = collection.build(h)
@@ -317,12 +333,16 @@ module ManageIQ::Providers::Kubernetes
       inv["replication_controller"].each do |rc|
         h = parse_replication_controllers(rc)
 
-        h.except!(:namespace, :tags)
+        h.except!(:tags)
 
-        h[:container_project] = lazy_find_project(h.delete(:project))
-        _custom_attrs = h.extract!(:labels, :selector_parts)
+        h[:container_project] = lazy_find_project(:name => h[:namespace])
+        custom_attrs = h.extract!(:labels, :selector_parts)
 
-        collection.build(h)
+        container_replicator = collection.build(h)
+        get_custom_attributes_graph(container_replicator,
+                                    :labels    => custom_attrs[:labels],
+                                    # The actual section is "selectors"
+                                    :selectors => custom_attrs[:selector_parts])
       end
     end
 
@@ -344,8 +364,13 @@ module ManageIQ::Providers::Kubernetes
       inv["persistent_volume"].each do |pv|
         h = parse_persistent_volume(pv)
 
-        h.except!(:namespace)
+        h.except!(:namespace) # TODO: project untested?
 
+        _pvc_ref = h.delete(:persistent_volume_claim_ref)
+        #h[:persistent_volume_claim] = pvc_ref && @data_index.fetch_path(
+        #                                path_for_entity("persistent_volume_claim"),
+        #                                :by_namespace_and_name, pvc_ref[:namespace], pvc_ref[:name]
+        #                              )
         collection.build(h)
       end
     end
@@ -356,17 +381,32 @@ module ManageIQ::Providers::Kubernetes
       inv["pod"].each do |pod|
         h = parse_pod(pod)
 
-        h.except!(:tags, :namespace)
+        h.except!(:tags)
 
-        h[:container_project] = lazy_find_project(h.delete(:project))
-
+        h[:container_project] = lazy_find_project(:name => h[:namespace])
+        h[:container_node] = lazy_find_node(:name => h.delete(:container_node_name))
+        h[:container_replicator] = lazy_find_replicator(h.delete(:container_replicator_ref))
         _build_pod_name = h.delete(:build_pod_name)
-        _custom_attrs   = h.extract!(:labels, :node_selector_parts)
+        custom_attrs    = h.extract!(:labels, :node_selector_parts)
         children        = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
 
         container_group = collection.build(h)
 
         get_container_definitions_graph(container_group, children[:container_definitions])
+        get_container_conditions_graph(container_group, children[:container_conditions])
+        get_custom_attributes_graph(container_group,
+                                    :labels         => custom_attrs[:labels],
+                                    # The actual section is "node_selectors"
+                                    :node_selectors => custom_attrs[:node_selector_parts])
+      end
+    end
+
+    # polymorphic, relation disambiguates parent
+    def get_container_conditions_graph(parent, hashes)
+      model_name = parent.inventory_collection.model_class.name
+      hashes.to_a.each do |h|
+        h = h.merge(:container_entity => parent)
+        @inv_collections[[:container_conditions_for, model_name]].build(h)
       end
     end
 
@@ -411,29 +451,59 @@ module ManageIQ::Providers::Kubernetes
       collection = @inv_collections[:containers]
 
       h[:container_definition] = parent
-
-      _container_image = h.delete(:container_image)
+      h[:container_image] = lazy_find_image(h[:container_image])
 
       collection.build(h)
     end
 
-    def get_services_graph(inv)
+    # TODO: how would this work with partial refresh?
+    # TODO: can I write get_endpoints() that directly refreshes ContainerGroupsContainerServices join table?
+    def get_endpoints_and_services_graph(inv)
+      cgs_by_namespace_and_name = {}
+
+      # We don't save endpoints themselves, only parse for cross-linking services<->pods
+      inv["endpoint"].each do |endpoint|
+        ep = parse_endpoint(endpoint)
+
+        container_groups = []
+        ep.delete(:container_groups_refs).each do |ref|
+          next if ref.nil?
+          cg = lazy_find_container_group(:namespace => ref[:namespace], :name => ref[:name])
+          container_groups << cg unless cg.nil?
+        end
+        cgs_by_namespace_and_name.store_path(ep[:namespace], ep[:name], container_groups)
+      end
+
       collection = @inv_collections[:container_services]
 
       inv["service"].each do |service|
         h = parse_service(service)
 
-        h.except!(:tags, :namespace)
+        h[:container_project] = lazy_find_project(:name => h[:namespace]) # TODO: untested?
 
-        h[:container_project] = lazy_find_project(h.delete(:project))
+        custom_attrs = h.extract!(:labels, :selector_parts)
+        children     = h.extract!(:container_service_port_configs)
 
-        _custom_attrs = h.extract!(:labels, :selector_parts)
-        _children     = h.extract!(:container_service_port_configs)
+        _container_image_registry = h.delete(:container_image_registry) # TODO: derive from container_service_port_configs
 
-        _container_image_registry = h.delete(:container_image_registry)
-        _container_groups         = h.delete(:container_groups)
+        h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name])
 
-        collection.build(h)
+        h.except!(:tags)
+
+        container_service = collection.build(h)
+
+        get_container_service_port_configs_graph(container_service, children[:container_service_port_configs])
+        get_custom_attributes_graph(container_service,
+                                    :labels    => custom_attrs[:labels],
+                                    # The actual section is "selectors"
+                                    :selectors => custom_attrs[:selector_parts])
+      end
+    end
+
+    def get_container_service_port_configs_graph(container_service, hashes)
+      hashes.to_a.each do |h|
+        h = h.merge(:container_service => container_service)
+        @inv_collections[:container_service_port_configs].build(h)
       end
     end
 
@@ -443,6 +513,43 @@ module ManageIQ::Providers::Kubernetes
       inv["component_status"].each do |cs|
         h = parse_component_status(cs)
         collection.build(h)
+      end
+    end
+
+    # TODO: images & registries still rely on @data_index
+    def get_container_image_registries_graph
+      collection = @inv_collections[:container_image_registries]
+      # Resulting from previously parsed images
+      registries = @data_index.fetch_path(:container_image_registry, :by_host_and_port) || []
+      registries.each do |_host_port, ir|
+        collection.build(ir)
+      end
+    end
+
+    def get_container_images_graph
+      collection = @inv_collections[:container_images]
+      # Resulting from previously parsed images
+      images = @data_index.fetch_path(:container_image, :by_digest) || []
+      images.each do |_digest, im|
+        im = im.merge(:container_image_registry => lazy_find_image_registry(im[:container_image_registry]))
+        custom_attrs = im.extract!(:labels, :docker_labels)
+        container_image = collection.build(im)
+
+        get_custom_attributes_graph(container_image, custom_attrs)
+      end
+    end
+
+    def get_custom_attributes_graph(parent, hashes_by_section)
+      model_name = parent.inventory_collection.model_class.name
+      hashes_by_section.each do |section, hashes|
+        collection = @inv_collections[[:custom_attributes_for, model_name, section.to_s]]
+        hashes.to_a.each do |h|
+          h = h.merge(:resource => parent)
+          if h[:section].to_s != section.to_s
+            raise("unexpected hash with section #{h[:section]} under #{section}")
+          end
+          collection.build(h)
+        end
       end
     end
 
@@ -459,6 +566,8 @@ module ManageIQ::Providers::Kubernetes
       @data[key] << new_result
       new_result
     end
+
+    ## Shared parsing methods
 
     def map_labels(model_name, labels)
       ContainerLabelTagMapping.map_labels(@label_tag_mapping, model_name, labels)
@@ -1148,9 +1257,35 @@ module ManageIQ::Providers::Kubernetes
       resource_by_entity(entity).tableize.to_sym
     end
 
-    def lazy_find_project(hash)
-      return if hash.nil?
-      @inv_collections[:container_projects].lazy_find(hash[:ems_ref])
+    def lazy_find_project(name:)
+      return nil if name.nil?
+      @inv_collections[:container_projects].lazy_find(name, :ref => :by_name)
+    end
+
+    def lazy_find_node(name:)
+      return nil if name.nil?
+      @inv_collections[:container_nodes].lazy_find(name, :ref => :by_name)
+    end
+
+    def lazy_find_replicator(hash)
+      return nil if hash.nil?
+      @inv_collections[:container_replicators].lazy_find_by(hash, :ref => :by_namespace_and_name)
+    end
+
+    def lazy_find_container_group(hash)
+      return nil if hash.nil?
+      @inv_collections[:container_groups].lazy_find_by(hash, :ref => :by_namespace_and_name)
+    end
+
+    def lazy_find_image(hash)
+      return nil if hash.nil?
+      hash = hash.merge(:container_image_registry => lazy_find_image_registry(hash[:container_image_registry]))
+      @inv_collections[:container_images].lazy_find_by(hash)
+    end
+
+    def lazy_find_image_registry(hash)
+      return nil if hash.nil?
+      @inv_collections[:container_image_registries].lazy_find_by(hash)
     end
   end
 end

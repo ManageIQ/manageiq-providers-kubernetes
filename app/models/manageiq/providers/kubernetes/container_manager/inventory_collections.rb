@@ -87,6 +87,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         # TODO: should match on digest when available
         :manager_ref    => [:image_ref],
       )
+    initialize_custom_attributes_collections(ems.container_images, %w(labels docker_labels))
 
     @inv_collections[:container_groups] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -172,13 +173,17 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :parent      => ems,
         :association => :container_service_port_configs,
       )
+
     @inv_collections[:container_routes] =
       ::ManagerRefresh::InventoryCollection.new(
-        :model_class    => ContainerRoute,
-        :parent         => ems,
-        :builder_params => {:ems_id => ems.id},
-        :association    => :container_routes,
+        :model_class          => ContainerRoute,
+        :parent               => ems,
+        :builder_params       => {:ems_id => ems.id},
+        :association          => :container_routes,
+        :attributes_blacklist => [:namespace],
       )
+    initialize_custom_attributes_collections(ems.container_routes, %w(labels))
+
     @inv_collections[:container_component_statuses] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class    => ContainerComponentStatus,
@@ -187,6 +192,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association    => :container_component_statuses,
         :manager_ref    => [:name],
       )
+
     @inv_collections[:container_templates] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class          => ContainerTemplate,
@@ -195,6 +201,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association          => :container_templates,
         :attributes_blacklist => [:namespace],
       )
+    initialize_custom_attributes_collections(ems.container_templates, %w(labels))
     @inv_collections[:container_template_parameters] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class => ContainerTemplateParameter,
@@ -202,24 +209,28 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association => :container_template_parameters,
         :manager_ref => [:container_template, :name],
       )
+
     @inv_collections[:container_builds] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class    => ContainerBuild,
         :parent         => ems,
         :builder_params => {:ems_id => ems.id},
         :association    => :container_builds,
+        :secondary_refs => {:by_namespace_and_name => [:namespace, :name]},
       )
+    initialize_custom_attributes_collections(ems.container_builds, %w(labels))
     @inv_collections[:container_build_pods] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class    => ContainerBuildPod,
         :parent         => ems,
         :builder_params => {:ems_id => ems.id},
         :association    => :container_build_pods,
-        # TODO: is this unique?  build pods do have uid that becomes ems_ref,
-        # but we need lazy_find by name for lookup from container_group
-        # TODO: rename namespace -> container_project column?
+        # TODO: convert namespace column -> container_project_id?
         :manager_ref    => [:namespace, :name],
+        :secondary_refs => {:by_namespace_and_name => [:namespace, :name]},
       )
+    initialize_custom_attributes_collections(ems.container_build_pods, %w(labels))
+
     @inv_collections[:persistent_volumes] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class    => PersistentVolume,

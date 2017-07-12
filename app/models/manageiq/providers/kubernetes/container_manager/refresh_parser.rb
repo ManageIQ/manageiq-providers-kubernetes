@@ -41,8 +41,21 @@ module ManageIQ::Providers::Kubernetes
       @data
     end
 
-    def ems_inv_to_inv_collections(ems, inventory, _options = Config::Options.new)
+    def ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
       initialize_inventory_collections(ems)
+
+      ems_inv_populate_collections(inventory, options)
+
+      # The following take parsed hashes from @data_index, populated during
+      # parsing pods and possibly openshift images, so must be called at the end.
+      get_container_images_graph
+      get_container_image_registries_graph
+
+      # Returning an array triggers ManagerRefresh::SaveInventory code path.
+      @inv_collections.values
+    end
+
+    def ems_inv_populate_collections(inventory, _options)
       get_additional_attributes_graph(inventory) # TODO: untested?
       get_nodes_graph(inventory)
       get_namespaces_graph(inventory)
@@ -54,13 +67,6 @@ module ManageIQ::Providers::Kubernetes
       get_pods_graph(inventory)
       get_endpoints_and_services_graph(inventory)
       get_component_statuses_graph(inventory)
-      # The following use images resulting from parsing pods, so must be called after.
-      # TODO: openshift images parsing will have to plug before this.
-      get_container_images_graph
-      get_container_image_registries_graph
-
-      # Returning an array triggers ManagerRefresh::SaveInventory code path.
-      @inv_collections.values
     end
 
     def get_nodes(inventory)

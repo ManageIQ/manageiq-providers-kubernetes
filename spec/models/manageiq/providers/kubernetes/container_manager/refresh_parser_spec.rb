@@ -6,7 +6,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
   describe "parse_namespace" do
     it "handles simple data" do
       expect(parser.send(:parse_namespace,
-                         RecursiveOpenStruct.new(
+                         array_recursive_ostruct(
                            :metadata => {
                              :name              => "proj2",
                              :selfLink          => "/api/v1/namespaces/proj2",
@@ -210,7 +210,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
   describe "parse_volumes" do
     example_volumes = [
       {
-        :volume                => RecursiveOpenStruct.new(:name    => "example-volume1",
+        :volume                => array_recursive_ostruct(:name    => "example-volume1",
                                                           :gitRepo => {:repository => "default-git-repository"}),
         :name                  => "example-volume1",
         :git_repository        => "default-git-repository",
@@ -224,7 +224,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name     => "example-volume2",
+        :volume                => array_recursive_ostruct(:name     => "example-volume2",
                                                           :emptyDir => {:medium => "default-medium"}),
         :name                  => "example-volume2",
         :git_repository        => nil,
@@ -238,7 +238,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name              => "example-volume3",
+        :volume                => array_recursive_ostruct(:name              => "example-volume3",
                                                           :gcePersistentDisk => {:pdName => "example-pd-name",
                                                                                  :fsType => "default-fs-type"}),
         :name                  => "example-volume3",
@@ -253,7 +253,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name                 => "example-volume4",
+        :volume                => array_recursive_ostruct(:name                 => "example-volume4",
                                                           :awsElasticBlockStore => {:fsType => "example-fs-type"}),
         :name                  => "example-volume4",
         :git_repository        => nil,
@@ -267,7 +267,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name => "example-volume5",
+        :volume                => array_recursive_ostruct(:name => "example-volume5",
                                                           :nfs  => {:path     => "example-path",
                                                                     :readOnly => true}),
         :name                  => "example-volume5",
@@ -282,7 +282,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name     => "example-volume6",
+        :volume                => array_recursive_ostruct(:name     => "example-volume6",
                                                           :hostPath => {:path => "default-path"}),
         :name                  => "example-volume6",
         :git_repository        => nil,
@@ -296,7 +296,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name => "example-volume7",
+        :volume                => array_recursive_ostruct(:name => "example-volume7",
                                                           :rbd  => {:fsType   => "user-fs-type",
                                                                     :readOnly => false}),
         :name                  => "example-volume7",
@@ -311,7 +311,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name   => "example-volume8",
+        :volume                => array_recursive_ostruct(:name   => "example-volume8",
                                                           :secret => {:secretName => "example-secret"}),
         :name                  => "example-volume8",
         :git_repository        => nil,
@@ -325,7 +325,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name   => "example-volume9",
+        :volume                => array_recursive_ostruct(:name   => "example-volume9",
                                                           :cinder => {:volumeId => "example-id"}),
         :name                  => "example-volume9",
         :git_repository        => nil,
@@ -339,7 +339,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :common_partition      => nil
       },
       {
-        :volume                => RecursiveOpenStruct.new(:name              => "example-volume10",
+        :volume                => array_recursive_ostruct(:name              => "example-volume10",
                                                           :gcePersistentDisk => {:partition => "default-partition"}),
         :name                  => "example-volume10",
         :git_repository        => nil,
@@ -354,7 +354,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
       }
     ]
 
-    pod = RecursiveOpenStruct.new(
+    pod = array_recursive_ostruct(
       :metadata => {
         :name              => 'test-pod',
         :namespace         => 'test-namespace',
@@ -390,14 +390,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
   describe "parse_component_statuses" do
     example_component_statuses = [
       {
-        :component_status => RecursiveOpenStruct.new(
+        :component_status => array_recursive_ostruct(
           :metadata   => {:name => "example-component-status1"},
           :conditions => [
-            RecursiveOpenStruct.new(
+            {
               :type    => "Healthy",
               :status  => "True",
               :message => "{'health': 'true'}"
-            )
+            },
           ]),
         :name             => "example-component-status1",
         :condition        => "Healthy",
@@ -406,14 +406,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :error            => nil
       },
       {
-        :component_status => RecursiveOpenStruct.new(
+        :component_status => array_recursive_ostruct(
           :metadata   => {:name => "example-component-status2"},
           :conditions => [
-            RecursiveOpenStruct.new(
+            {
               :type   => "Healthy",
               :status => "Unknown",
               :error  => "Get http://127.0.0.1:10251/healthz: dial tcp 127.0.0.1:10251: connection refused"
-            )
+            },
           ]),
         :name             => "example-component-status2",
         :condition        => "Healthy",
@@ -454,7 +454,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "handles simple data" do
       expect(parser.send(
         :parse_resource_quota,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-quota',
             :namespace         => 'test-namespace',
@@ -494,7 +494,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
 
     it "handles quotas with no specification" do
       expect(parser.send(:parse_resource_quota,
-                         RecursiveOpenStruct.new(
+                         array_recursive_ostruct(
                            :metadata => {
                              :name              => 'test-quota',
                              :namespace         => 'test-namespace',
@@ -514,7 +514,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
 
     it "handles quotas with no status" do
       expect(parser.send(:parse_resource_quota,
-                         RecursiveOpenStruct.new(
+                         array_recursive_ostruct(
                            :metadata => {
                              :name              => 'test-quota',
                              :namespace         => 'test-namespace',
@@ -582,7 +582,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         from_k8s[:spec][:limits][0][k8s_name.to_sym] = {:cpu => '512Mi'}
         parsed[:container_limit_items][0][k8s_name.underscore.to_sym] = '512Mi'
         # note each iteration ADDS ANOTHER limit type to data & result
-        expect(parser.send(:parse_range, RecursiveOpenStruct.new(from_k8s))).to eq(parsed)
+        expect(parser.send(:parse_range, array_recursive_ostruct(from_k8s))).to eq(parsed)
       end
     end
 
@@ -610,7 +610,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         :container_limit_items => []
       }
       ranges.each do |range|
-        expect(parser.send(:parse_range, RecursiveOpenStruct.new(range)))
+        expect(parser.send(:parse_range, array_recursive_ostruct(range)))
           .to eq(parsed)
       end
     end
@@ -759,7 +759,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "handles node without capacity" do
       expect(parser.send(
         :parse_node,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-node',
             :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
@@ -811,7 +811,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "handles node without providerID, memory, cpu and pods" do
       expect(parser.send(
         :parse_node,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-node',
             :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
@@ -864,7 +864,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "handles node without nodeInfo" do
       expect(parser.send(
         :parse_node,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-node',
             :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
@@ -909,7 +909,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
 
   describe "get_nodes" do
     let(:test_node) do
-      RecursiveOpenStruct.new(
+      array_recursive_ostruct(
         :metadata => {
           :name              => 'test-node',
           :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
@@ -925,7 +925,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
       )
     end
     let(:test_node1) do
-      RecursiveOpenStruct.new(
+      array_recursive_ostruct(
         :metadata => {
           :name              => 'test-node1',
           :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
@@ -1036,7 +1036,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "tests parent type" do
       expect(parser.send(
         :parse_persistent_volume,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-volume',
             :uid               => '66213621-80a1-11e5-b907-28d2447dcefe',
@@ -1100,7 +1100,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "tests pending persistent volume claim" do
       expect(parser.send(
         :parse_persistent_volume_claim,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-claim',
             :uid               => '1577c5ba-a3f6-11e5-9845-28d2447dcefe',
@@ -1136,7 +1136,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     it "tests bounded persistent volume claim" do
       expect(parser.send(
         :parse_persistent_volume_claim,
-        RecursiveOpenStruct.new(
+        array_recursive_ostruct(
           :metadata => {
             :name              => 'test-claim',
             :uid               => '1577c5ba-a3f6-11e5-9845-28d2447dcefe',

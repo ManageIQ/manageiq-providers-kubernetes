@@ -1144,7 +1144,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
             :creationTimestamp => '2015-12-06T11:11:21Z'
           },
           :spec     => {
-            :accessModes => %w('ReadWriteOnce', 'ReadWriteMany'),
+            :accessModes => %w(ReadWriteOnce ReadWriteMany),
             :resources   => {
               :requests => {
                 :storage => '3Gi'
@@ -1153,7 +1153,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
           },
           :status   => {
             :phase       => 'Bound',
-            :accessModes => %w('ReadWriteOnce', 'ReadWriteMany'),
+            :accessModes => %w(ReadWriteOnce ReadWriteMany),
             :capacity    => {
               :storage => '10Gi'
             }
@@ -1166,9 +1166,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
           :ems_created_on       => '2015-12-06T11:11:21Z',
           :namespace            => nil,
           :resource_version     => '448015',
-          :desired_access_modes => %w('ReadWriteOnce', 'ReadWriteMany'),
+          :desired_access_modes => %w(ReadWriteOnce ReadWriteMany),
           :phase                => 'Bound',
-          :actual_access_modes  => %w('ReadWriteOnce', 'ReadWriteMany'),
+          :actual_access_modes  => %w(ReadWriteOnce ReadWriteMany),
           :capacity             => {:storage => 10.gigabytes}
         })
     end

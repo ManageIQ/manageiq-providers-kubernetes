@@ -124,6 +124,8 @@ module ManageIQ::Providers::Kubernetes
           path_for_entity("replication_controller"), :by_namespace_and_name,
           replicator_ref[:namespace], replicator_ref[:name]
         )
+        # Note: save_container_groups_inventory also links build_pod by :build_pod_name.
+
         @data_index.store_path(key, :by_namespace_and_name,
                                cg[:namespace], cg[:name], cg)
       end
@@ -392,7 +394,9 @@ module ManageIQ::Providers::Kubernetes
         h[:container_project] = lazy_find_project(:name => h[:namespace])
         h[:container_node] = lazy_find_node(:name => h.delete(:container_node_name))
         h[:container_replicator] = lazy_find_replicator(h.delete(:container_replicator_ref))
-        _build_pod_name = h.delete(:build_pod_name)
+        h[:container_build_pod] = lazy_find_build_pod(:namespace => h[:namespace],
+                                                      :name      => h.delete(:build_pod_name))
+
         custom_attrs    = h.extract!(:labels, :node_selector_parts)
         children        = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
 
@@ -1292,6 +1296,11 @@ module ManageIQ::Providers::Kubernetes
     def lazy_find_image_registry(hash)
       return nil if hash.nil?
       @inv_collections[:container_image_registries].lazy_find_by(hash)
+    end
+
+    # overridden in openshift parser
+    def lazy_find_build_pod(_hash)
+      nil
     end
   end
 end

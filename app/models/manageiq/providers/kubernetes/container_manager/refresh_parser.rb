@@ -491,10 +491,17 @@ module ManageIQ::Providers::Kubernetes
 
         h[:container_project] = lazy_find_project(:name => h[:namespace]) # TODO: untested?
 
+        # TODO: with multiple ports, how can I match any of them to known registries,
+        # like https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/57 ?
+        if h[:container_service_port_configs].any?
+          registry_port = h[:container_service_port_configs].last[:port]
+          h[:container_image_registry] = lazy_find_image_registry(
+            :host => h[:portal_ip], :port => registry_port
+          )
+        end
+
         custom_attrs = h.extract!(:labels, :selector_parts)
         children     = h.extract!(:container_service_port_configs)
-
-        _container_image_registry = h.delete(:container_image_registry) # TODO: derive from container_service_port_configs
 
         h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name])
 

@@ -5,6 +5,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   extend ActiveSupport::Concern
 
   DEFAULT_PORT = 6443
+  METRICS_ROLES = %w(prometheus hawkular).freeze
+
   included do
     default_value_for :port do |provider|
       # port is not a column on this table, it's delegated to endpoint.
@@ -15,7 +17,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   end
 
   def supports_metrics?
-    connection_configurations.hawkular != nil
+    endpoints.where(:role => METRICS_ROLES).exists?
   end
 
   module ClassMethods

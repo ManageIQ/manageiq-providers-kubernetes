@@ -9,6 +9,59 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     expect(described_class.raw_api_endpoint("::1", 123).to_s).to eq "https://[::1]:123"
   end
 
+  context "#supports_metrics?" do
+    before(:each) do
+      EvmSpecHelper.local_miq_server(:zone => Zone.seed)
+    end
+
+    it "regular provider has no metrics support" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          Endpoint.new(:role => 'default', :hostname => 'hostname')
+        ]
+      )
+
+      expect(ems.supports_metrics?).to be_falsey
+    end
+
+    it "provider with hawkular endpoint has metrics support" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          Endpoint.new(:role => 'default', :hostname => 'hostname'),
+          Endpoint.new(:role => 'hawkular')
+        ]
+      )
+
+      expect(ems.supports_metrics?).to be_truthy
+    end
+
+    it "provider with prometheus endpoint has metrics support" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          Endpoint.new(:role => 'default', :hostname => 'hostname'),
+          Endpoint.new(:role => 'prometheus')
+        ]
+      )
+
+      expect(ems.supports_metrics?).to be_truthy
+    end
+
+    it "provider with some role endpoint has no metrics support" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          Endpoint.new(:role => 'default', :hostname => 'hostname'),
+          Endpoint.new(:role => 'some_role')
+        ]
+      )
+
+      expect(ems.supports_metrics?).to be_falsey
+    end
+  end
+
   context "#verify_ssl_mode" do
     let(:ems) { FactoryGirl.build(:ems_kubernetes) }
 

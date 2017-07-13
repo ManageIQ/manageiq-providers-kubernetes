@@ -321,14 +321,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     end
   end
 
-  def pod_health_poll(client, health_url, http_opts)
-    Net::HTTP.start(health_url.host, health_url.port, http_opts) do |http|
-      request = Net::HTTP::Get.new(health_url.path)
-      client.headers.each { |k, v| request[k.to_s] = v }
-      return http.request(request)
-    end
-  end
-
   def pod_proxy_url(client, path = "")
     # TODO: change proxy_url in kubeclient to return URI
     pod_proxy = client.proxy_url(:pod,

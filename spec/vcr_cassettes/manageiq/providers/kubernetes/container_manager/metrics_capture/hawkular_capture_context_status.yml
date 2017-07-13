@@ -26,8 +26,6 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
-      Connection:
-      - keep-alive
       X-Powered-By:
       - Undertow/1
       Server:
@@ -37,13 +35,18 @@ http_interactions:
       Content-Length:
       - '154'
       Date:
-      - Thu, 22 Jun 2017 18:57:34 GMT
+      - Thu, 06 Jul 2017 10:58:11 GMT
+      Set-Cookie:
+      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
     http_version: 
-  recorded_at: Thu, 22 Jun 2017 18:57:34 GMT
+  recorded_at: Thu, 06 Jul 2017 10:58:11 GMT
 - request:
     method: get
     uri: https://capture.context.com/hawkular/metrics/status
@@ -70,8 +73,6 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
-      Connection:
-      - keep-alive
       X-Powered-By:
       - Undertow/1
       Server:
@@ -81,11 +82,16 @@ http_interactions:
       Content-Length:
       - '154'
       Date:
-      - Thu, 22 Jun 2017 18:57:35 GMT
+      - Thu, 06 Jul 2017 10:58:11 GMT
+      Set-Cookie:
+      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
     http_version: 
-  recorded_at: Thu, 22 Jun 2017 18:57:35 GMT
+  recorded_at: Thu, 06 Jul 2017 10:58:11 GMT
 recorded_with: VCR 3.0.3

@@ -81,16 +81,20 @@ module ManageIQ::Providers::Kubernetes
           :container_groups
         )
         se[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, se[:namespace])
-
-        # TODO: this loop only uses last port config - BUG?
-        se[:container_service_port_configs].each do |pc|
-          se[:container_image_registry] = @data_index.fetch_path(
-            :container_image_registry, :by_host_and_port, "#{se[:portal_ip]}:#{pc[:port]}"
-          )
-        end
+        se[:container_image_registry] = find_service_registry(se[:container_service_port_configs], se[:portal_ip])
 
         @data_index.store_path(key, :by_namespace_and_name, se[:namespace], se[:name], se)
       end
+    end
+
+    def find_service_registry(port_configs, portal_ip)
+      port_configs.each do |pc|
+        registry = @data_index.fetch_path(
+          :container_image_registry, :by_host_and_port, "#{portal_ip}:#{pc[:port]}"
+        )
+        return registry if registry
+      end
+      nil
     end
 
     def get_replication_controllers(inventory)

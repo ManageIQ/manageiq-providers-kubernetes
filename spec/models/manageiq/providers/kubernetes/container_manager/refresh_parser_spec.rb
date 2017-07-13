@@ -1227,5 +1227,44 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         )
       end
     end
+
+    describe "find_service_registry" do
+      it "handles no ports" do
+        expect(parser.send(:find_service_registry, [], "1.2.3.4")).to be nil
+      end
+
+      it "returns nil for no match" do
+        parser.send(:parse_container_image,
+                    "#10.20.30.40:1010/red-dragon/nodejs-ex@sha256:1234",
+                    "docker://sha256:5678")
+        port_configs = [
+          {:name => "1111-tcp", :protocol => "TCP", :port => 1111, :targetPort => 5000},
+        ]
+        expect(parser.send(:find_service_registry, port_configs, "1.2.3.4")).to be nil
+      end
+
+      it "finds first match" do
+        host = "172.30.185.88"
+        # pretend there exist registries on same host ports 5000 and 6000
+        parser.send(:parse_container_image,
+                    "#{host}:5000/red-dragon/nodejs-ex@sha256:1234",
+                    "docker://sha256:5678")
+        parser.send(:parse_container_image,
+                    "#{host}:6000/red-dragon/ruby-ex@sha256:2345",
+                    "docker://sha256:6789")
+        port_configs = [
+          {:name => "unrelated", :protocol => "TCP", :port => 4000, :targetPort => 5000},
+          {:name => "5000-tcp", :protocol => "TCP", :port => 5000, :targetPort => 5000},
+          {:name => "6000-tcp", :protocol => "TCP", :port => 6000, :targetPort => 5000},
+          {:name => "unrelated2", :protocol => "TCP", :port => 7000, :targetPort => 5000},
+        ]
+        expect(parser.send(:find_service_registry, port_configs, host)).to match(
+          a_hash_including(
+            :host => host,
+            :port => "5000",
+          )
+        )
+      end
+    end
   end
 end

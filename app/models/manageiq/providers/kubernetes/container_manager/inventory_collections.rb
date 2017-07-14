@@ -19,7 +19,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     }
   end
 
-  def initialize_inventory_collections(ems)
+  def initialize_inventory_collections
+    # TODO rename, remove
+    ems = manager
+
     # TODO: Targeted refreshes will require adjusting the associations / arels. (duh)
     @collections = @inv_collections = {}
     @inv_collections[:container_projects] = ::ManagerRefresh::InventoryCollection.new(shared_options.merge(
@@ -29,6 +32,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       :association    => :container_projects,
       :secondary_refs => {:by_name => [:name]},
     ))
+    initialize_custom_attributes_collections(ems.container_projects, %w(labels additional_attributes))
+
     @inv_collections[:container_quotas] = ::ManagerRefresh::InventoryCollection.new(shared_options.merge(
       :model_class          => ContainerQuota,
       :parent               => ems,
@@ -106,6 +111,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         # TODO: old save matches on [:image_ref, :container_image_registry_id]
         # TODO: should match on digest when available
         :manager_ref    => [:image_ref],
+        :use_ar_object  => true
       ))
     initialize_custom_attributes_collections(ems.container_images, %w(labels docker_labels))
 
@@ -148,6 +154,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :model_class => ContainerPortConfig,
         :parent      => ems,
         :association => :container_port_configs,
+        :manager_ref => [:container_definition, :ems_ref]
         # parser sets :ems_ref => "#{pod_id}_#{container_name}_#{port_config.containerPort}_#{port_config.hostPort}_#{port_config.protocol}"
       ))
     @inv_collections[:container_env_vars] =
@@ -185,6 +192,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association          => :container_services,
         :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
         :attributes_blacklist => [:namespace],
+        :saver_strategy       => :default # TODO(lsmola) can't use batch strategy because of usage of M:N container_groups relation
       ))
     initialize_custom_attributes_collections(ems.container_services, %w(labels selectors))
     @inv_collections[:container_service_port_configs] =
@@ -192,6 +200,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :model_class => ContainerServicePortConfig,
         :parent      => ems,
         :association => :container_service_port_configs,
+        :manager_ref => [:container_service, :ems_ref, :protocol]
       ))
 
     @inv_collections[:container_routes] =
@@ -200,7 +209,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :parent               => ems,
         :builder_params       => {:ems_id => ems.id},
         :association          => :container_routes,
-        :attributes_blacklist => [:namespace],
+        :attributes_blacklist => [:namespace, :tags],
       ))
     initialize_custom_attributes_collections(ems.container_routes, %w(labels))
 
@@ -264,6 +273,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :parent         => ems,
         :builder_params => {:ems_id => ems.id},
         :association    => :persistent_volume_claims,
+        :use_ar_object  => true
       ))
   end
 

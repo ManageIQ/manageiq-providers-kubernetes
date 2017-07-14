@@ -2,11 +2,13 @@ class ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManagerStr
   ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager
 
   def targeted
-    true
+    # true
+    false
   end
 
   def strategy
-    :local_db_find_missing_references
+    # :local_db_find_missing_references
+    nil
   end
 
   def saver_strategy

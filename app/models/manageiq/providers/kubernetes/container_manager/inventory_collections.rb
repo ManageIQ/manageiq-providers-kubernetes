@@ -267,11 +267,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       query = CustomAttribute.where(:resource_type => relation.model.name,
                                     :resource_id   => relation,
                                     :section       => section.to_s)
-      @inv_collections[[:custom_attributes_for, relation.model.name, section]] = ::ManagerRefresh::InventoryCollection.new(
-        :model_class => CustomAttribute,
-        :arel        => query,
-        :manager_ref => [:resource, :section, :name],
-      )
+      @inv_collections[[:custom_attributes_for, relation.model.name, section.to_s]] =
+        ::ManagerRefresh::InventoryCollection.new(
+          :model_class => CustomAttribute,
+          :arel        => query,
+          :manager_ref => [:resource, :section, :name],
+        )
     end
   end
 end

@@ -559,7 +559,9 @@ module ManageIQ::Providers::Kubernetes
     def get_custom_attributes_graph(parent, hashes_by_section)
       model_name = parent.inventory_collection.model_class.name
       hashes_by_section.each do |section, hashes|
-        collection = @inv_collections[[:custom_attributes_for, model_name, section.to_s]]
+        key = [:custom_attributes_for, model_name, section.to_s]
+        collection = @inv_collections[key]
+        raise("can't save: missing @inv_collections[#{key}]") if collection.nil?
         hashes.to_a.each do |h|
           h = h.merge(:resource => parent)
           if h[:section].to_s != section.to_s

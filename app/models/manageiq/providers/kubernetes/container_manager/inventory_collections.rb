@@ -9,6 +9,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       :association    => :container_projects,
       :secondary_refs => {:by_name => [:name]},
     )
+    initialize_custom_attributes_collections(ems.container_projects, %w(labels additional_attributes))
+
     @inv_collections[:container_quotas] = ::ManagerRefresh::InventoryCollection.new(
       :model_class          => ContainerQuota,
       :parent               => ems,

@@ -285,7 +285,7 @@ module ManageIQ::Providers::Kubernetes
 
         container_project = collection.build(h)
 
-        get_custom_attributes_graph(container_project, custom_attrs)
+        get_custom_attributes_graph(container_project, custom_attrs) # TODO: untested
       end
     end
 

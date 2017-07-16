@@ -1,6 +1,8 @@
 require 'MiqContainerGroup/MiqContainerGroup'
 
 class MockKubeClient
+  include ArrayRecursiveOpenStruct
+
   def create_pod(*_args)
     nil
   end
@@ -14,7 +16,7 @@ class MockKubeClient
   end
 
   def get_pod(*_args)
-    RecursiveOpenStruct.new(
+    array_recursive_ostruct(
       :metadata => {
         :annotations => {
           'manageiq.org/jobid' => '5'
@@ -29,12 +31,12 @@ class MockKubeClient
   end
 
   def get_service_account(*_args)
-    RecursiveOpenStruct.new(
+    array_recursive_ostruct(
       :metadata         => {
         :name => 'inspector-admin'
       },
       :imagePullSecrets => [
-        OpenStruct.new(:name => 'inspector-admin-dockercfg-blabla')
+        { :name => 'inspector-admin-dockercfg-blabla' }
       ]
     )
   end

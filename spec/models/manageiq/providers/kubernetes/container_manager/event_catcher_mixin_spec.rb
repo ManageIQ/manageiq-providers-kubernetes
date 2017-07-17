@@ -79,7 +79,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           :container_namespace  => 'openshift-infra',
           :event_type           => 'CONTAINER_KILLING'
         }
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        event = array_recursive_ostruct(:object => kubernetes_event)
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)
       end
     end
@@ -164,7 +164,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           :container_namespace       => 'proj',
           :event_type                => 'REPLICATOR_SUCCESSFULCREATE'
         }
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        event = array_recursive_ostruct(:object => kubernetes_event)
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)
       end
     end
@@ -218,7 +218,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       end
 
       it 'given good uid extracts NODE_REBOOTED event data' do
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        event = array_recursive_ostruct(:object => kubernetes_event)
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)
       end
 
@@ -227,7 +227,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       context 'given useless/missing uid' do
         # We've seen events with both missing uid and uid == name.
         let(:bad_uid_event) do
-          RecursiveOpenStruct.new(:object => kubernetes_event.merge(
+          array_recursive_ostruct(:object => kubernetes_event.merge(
             'involvedObject' => {
               'kind' => 'Node',
               'name' => 'vm-test-03.example.com',
@@ -237,7 +237,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         end
 
         let(:missing_uid_event) do
-          RecursiveOpenStruct.new(:object => kubernetes_event.merge(
+          array_recursive_ostruct(:object => kubernetes_event.merge(
             'involvedObject' => {
               'kind' => 'Node',
               'name' => 'vm-test-03.example.com'

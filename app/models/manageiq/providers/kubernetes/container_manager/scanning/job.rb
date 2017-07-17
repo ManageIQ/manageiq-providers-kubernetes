@@ -14,6 +14,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   IMAGE_INSPECTOR_SA = 'inspector-admin'
   INSPECTOR_ADMIN_SECRET_PATH = '/var/run/secrets/kubernetes.io/inspector-admin-secret-'
   PROXY_ENV_VARIABLES = %w(no_proxy http_proxy https_proxy)
+  INSPECTOR_AUTH_TOKEN = "INSPECTOR_AUTH_TOKEN".freeze
 
   def load_transitions
     self.state ||= 'initializing'
@@ -53,7 +54,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
       :image_full_name => image.full_name,
       :pod_name        => "manageiq-img-scan-#{guid[0..4]}",
       :pod_port        => INSPECTOR_PORT,
-      :pod_namespace   => namespace
+      :pod_namespace   => namespace,
+      :auth_token      => SecureRandom.hex
     ))
 
     _log.info("Getting inspector-admin secret for pod [#{pod_full_name}]")
@@ -136,7 +138,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
       :pod_namespace => options[:pod_namespace],
       :pod_name      => options[:pod_name],
       :pod_port      => options[:pod_port],
-      :guest_os      => IMAGES_GUEST_OS
+      :guest_os      => IMAGES_GUEST_OS,
+      :auth_token    => auth_token
     }
 
     verify_error = verify_scanned_image_id(image_inspector_client.fetch_metadata)
@@ -287,7 +290,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
         :verify_ssl => ext_management_system.verify_ssl_mode,
         :cert_store => ext_management_system.ssl_cert_store
       },
-      :auth_options   => kubeclient.auth_options,
+      :auth_options   => kubeclient.auth_options.merge(:auth_token => auth_token),
       :http_proxy_uri => kubeclient.http_proxy_uri
     )
   end
@@ -351,6 +354,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   end
 
   def pod_definition(inspector_admin_secret_name)
+    pod_env = inspector_proxy_env_variables << { :name  => INSPECTOR_AUTH_TOKEN,
+                                                 :value => auth_token }
     pod_def = {
       :apiVersion => "v1",
       :kind       => "Pod",
@@ -391,13 +396,17 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
                 :name      => "docker-socket"
               }
             ],
-            :env             => inspector_proxy_env_variables,
+            :env             => pod_env,
             :readinessProbe  => {
               "initialDelaySeconds" => 15,
               "periodSeconds"       => 5,
               "httpGet"             => {
-                "path" => "/healthz",
-                "port" => options[:pod_port]
+                "path"        => "/healthz",
+                "port"        => options[:pod_port],
+                "httpHeaders" => {
+                  "name"  => "X-Auth-Token",
+                  "value" => auth_token
+                },
               }
             }
           }
@@ -448,5 +457,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     if ems_image_inspector_options.key?(:cve_url)
       pod_def[:spec][:containers][0][:command].append("--cve-url=#{ems_image_inspector_options[:cve_url]}")
     end
+  end
+
+  def auth_token
+    options[:auth_token]
   end
 end

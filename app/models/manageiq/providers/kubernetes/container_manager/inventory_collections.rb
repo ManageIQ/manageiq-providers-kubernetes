@@ -8,6 +8,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       :builder_params => {:ems_id => ems.id},
       :association    => :container_projects,
       :secondary_refs => {:by_name => [:name]},
+      :delete_method  => :disconnect_inv,
     )
     initialize_custom_attributes_collections(ems.container_projects, %w(labels additional_attributes))
 
@@ -88,6 +89,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         # TODO: old save matches on [:image_ref, :container_image_registry_id]
         # TODO: should match on digest when available
         :manager_ref    => [:image_ref],
+        :delete_method  => :disconnect_inv,
       )
     initialize_custom_attributes_collections(ems.container_images, %w(labels docker_labels))
 
@@ -99,6 +101,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association          => :container_groups,
         :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
         :attributes_blacklist => [:namespace],
+        :delete_method        => :disconnect_inv,
       )
     initialize_container_conditions_collection(ems.container_groups)
     initialize_custom_attributes_collections(ems.container_groups, %w(labels node_selectors))
@@ -109,6 +112,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :builder_params => {:ems_id => ems.id},
         :association    => :container_definitions,
         # parser sets :ems_ref => "#{pod_id}_#{container_def.name}_#{container_def.image}"
+        :delete_method  => :disconnect_inv,
       )
     @inv_collections[:container_volumes] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -124,6 +128,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :builder_params => {:ems_id => ems.id},
         :association    => :containers,
         # parser sets :ems_ref => "#{pod_id}_#{container.name}_#{container.image}"
+        :delete_method  => :disconnect_inv,
       )
     @inv_collections[:container_port_configs] =
       ::ManagerRefresh::InventoryCollection.new(

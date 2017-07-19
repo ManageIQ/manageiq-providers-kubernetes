@@ -21,3 +21,4 @@ RSpec.configure do |c|
 end
 
 Dir[Rails.root.join("spec/shared/**/*.rb")].each { |f| require f }
+Dir[ManageIQ::Providers::Kubernetes::Engine.root.join("spec/support/**/*.rb")].each { |f| require f }

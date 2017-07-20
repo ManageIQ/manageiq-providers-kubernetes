@@ -41,8 +41,24 @@ module ManageIQ::Providers::Kubernetes
       @data
     end
 
-    def ems_inv_to_inv_collections(ems, inventory, _options = Config::Options.new)
-      initialize_inventory_collections(ems)
+    def ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
+      # persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager.new(ems)
+      persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManagerStream.new(ems)
+      # TODO rename, remove
+      @inv_collections = persister.collections
+
+      ems_inv_populate_collections(inventory, options)
+
+      # The following take parsed hashes from @data_index, populated during
+      # parsing pods and possibly openshift images, so must be called at the end.
+      get_container_images_graph
+      get_container_image_registries_graph
+
+      # Returning an array triggers ManagerRefresh::SaveInventory code path.
+      persister.inventory_collections
+    end
+
+    def ems_inv_populate_collections(inventory, _options)
       get_additional_attributes_graph(inventory) # TODO: untested?
       get_nodes_graph(inventory)
       get_namespaces_graph(inventory)
@@ -54,13 +70,6 @@ module ManageIQ::Providers::Kubernetes
       get_pods_graph(inventory)
       get_endpoints_and_services_graph(inventory)
       get_component_statuses_graph(inventory)
-      # The following use images resulting from parsing pods, so must be called after.
-      # TODO: openshift images parsing will have to plug before this.
-      get_container_images_graph
-      get_container_image_registries_graph
-
-      # Returning an array triggers ManagerRefresh::SaveInventory code path.
-      @inv_collections.values
     end
 
     def get_nodes(inventory)
@@ -118,6 +127,8 @@ module ManageIQ::Providers::Kubernetes
           path_for_entity("replication_controller"), :by_namespace_and_name,
           replicator_ref[:namespace], replicator_ref[:name]
         )
+        # Note: save_container_groups_inventory also links build_pod by :build_pod_name.
+
         @data_index.store_path(key, :by_namespace_and_name,
                                cg[:namespace], cg[:name], cg)
       end
@@ -386,7 +397,9 @@ module ManageIQ::Providers::Kubernetes
         h[:container_project] = lazy_find_project(:name => h[:namespace])
         h[:container_node] = lazy_find_node(:name => h.delete(:container_node_name))
         h[:container_replicator] = lazy_find_replicator(h.delete(:container_replicator_ref))
-        _build_pod_name = h.delete(:build_pod_name)
+        h[:container_build_pod] = lazy_find_build_pod(:namespace => h[:namespace],
+                                                      :name      => h.delete(:build_pod_name))
+
         custom_attrs    = h.extract!(:labels, :node_selector_parts)
         children        = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
 
@@ -481,10 +494,17 @@ module ManageIQ::Providers::Kubernetes
 
         h[:container_project] = lazy_find_project(:name => h[:namespace]) # TODO: untested?
 
+        # TODO: with multiple ports, how can I match any of them to known registries,
+        # like https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/57 ?
+        if h[:container_service_port_configs].any?
+          registry_port = h[:container_service_port_configs].last[:port]
+          h[:container_image_registry] = lazy_find_image_registry(
+            :host => h[:portal_ip], :port => registry_port
+          )
+        end
+
         custom_attrs = h.extract!(:labels, :selector_parts)
         children     = h.extract!(:container_service_port_configs)
-
-        _container_image_registry = h.delete(:container_image_registry) # TODO: derive from container_service_port_configs
 
         h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name])
 
@@ -1286,6 +1306,11 @@ module ManageIQ::Providers::Kubernetes
     def lazy_find_image_registry(hash)
       return nil if hash.nil?
       @inv_collections[:container_image_registries].lazy_find_by(hash)
+    end
+
+    # overridden in openshift parser
+    def lazy_find_build_pod(_hash)
+      nil
     end
   end
 end

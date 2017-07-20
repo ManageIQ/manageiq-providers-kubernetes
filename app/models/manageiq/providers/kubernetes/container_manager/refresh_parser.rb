@@ -42,7 +42,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
-      initialize_inventory_collections(ems)
+      initialize_inventory_collections(ems, options)
 
       ems_inv_populate_collections(inventory, options)
 

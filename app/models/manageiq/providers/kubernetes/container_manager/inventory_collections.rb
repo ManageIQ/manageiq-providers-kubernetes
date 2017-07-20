@@ -1,5 +1,5 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
-  def initialize_inventory_collections(ems)
+  def initialize_inventory_collections(ems, _options)
     # TODO: Targeted refreshes will require adjusting the associations / arels. (duh)
     @inv_collections = {}
     @inv_collections[:container_projects] = ::ManagerRefresh::InventoryCollection.new(
@@ -91,7 +91,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :manager_ref    => [:image_ref],
         :delete_method  => :disconnect_inv,
       )
-    initialize_custom_attributes_collections(ems.container_images, %w(labels docker_labels))
+    # images have custom_attributes but that's done conditionally in openshift parser
 
     @inv_collections[:container_groups] =
       ::ManagerRefresh::InventoryCollection.new(

@@ -1,4 +1,7 @@
-describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
+# instantiated at the end, for both classical and graph refresh
+shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
+  let(:check_tag_mapping) { check_tag_mapping }
+
   before(:each) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
     auth = AuthToken.new(:name => "test", :auth_key => "valid-token")
@@ -27,8 +30,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       :label_name => 'name', :tag => @name_category.tag
     )
   end
-
-  let(:check_tag_mapping) { true }
 
   def full_refresh_test
     3.times do # Run three times to verify that second & third runs with existing data do not change anything
@@ -59,22 +60,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
 
   it "will perform a full refresh on k8s" do
     full_refresh_test
-  end
-
-  describe "graph refresh" do
-    let(:check_tag_mapping) { false } # TODO: pending implementation
-
-    it "will perform a full refresh with inventory_objects on k8s" do
-      stub_settings_merge(
-        :ems_refresh => {
-          :kubernetes => {
-            :inventory_object_refresh => true
-          }
-        }
-      )
-
-      full_refresh_test
-    end
   end
 
   def assert_table_counts
@@ -526,5 +511,32 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     expect(object).not_to be_nil
     expect(object.deleted_on).not_to be_nil
     expect(object.archived?).to be true
+  end
+end
+
+describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
+  context "classical refresh" do
+    before(:each) do
+      stub_settings_merge(
+        :ems_refresh => {:kubernetes => {:inventory_object_refresh => false}}
+      )
+
+      expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_inv_collections)
+    end
+
+    include_examples "kubernetes refresher VCR tests"
+  end
+
+  context "graph refresh" do
+    before(:each) do
+      stub_settings_merge(
+        :ems_refresh => {:kubernetes => {:inventory_object_refresh => true}}
+      )
+
+      expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
+    end
+
+    # TODO: pending graph tag mapping implementation
+    include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
   end
 end

@@ -51,6 +51,7 @@
 :ems_refresh:
   :kubernetes:
     :refresh_interval: 15.minutes
+    :inventory_object_refresh: false
 :workers:
   :worker_base:
     :event_catcher:

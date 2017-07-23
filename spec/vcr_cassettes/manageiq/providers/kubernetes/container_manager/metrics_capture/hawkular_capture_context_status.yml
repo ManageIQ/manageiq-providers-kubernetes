@@ -45,7 +45,7 @@ http_interactions:
       encoding: ASCII-8BIT
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version: 
+    http_version:
   recorded_at: Thu, 06 Jul 2017 10:58:11 GMT
 - request:
     method: get
@@ -92,6 +92,6 @@ http_interactions:
       encoding: ASCII-8BIT
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version: 
+    http_version:
   recorded_at: Thu, 06 Jul 2017 10:58:11 GMT
 recorded_with: VCR 3.0.3

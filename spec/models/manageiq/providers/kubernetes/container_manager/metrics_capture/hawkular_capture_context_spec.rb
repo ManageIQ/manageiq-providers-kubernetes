@@ -7,8 +7,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
     token = 'theToken'
 
     @ems = FactoryGirl.create(
-      :ems_openshift,
-      :name                      => 'OpenShiftProvider',
+      :ems_kubernetes,
+      :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
                                                           :hostname   => hostname,
                                                           :port       => "8443",

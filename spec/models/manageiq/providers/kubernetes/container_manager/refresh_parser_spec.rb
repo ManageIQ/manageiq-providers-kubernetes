@@ -1173,4 +1173,59 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         })
     end
   end
+
+  context "services" do
+    let(:service) do
+      array_recursive_ostruct(
+        :metadata => {
+          :name              => "docker-registry",
+          :namespace         => "default",
+          :selfLink          => "/api/v1/namespaces/default/services/docker-registry",
+          :uid               => "13d3bcf7-e6f9-11e6-a348-001a4a162683",
+          :resourceVersion   => "651",
+          :creationTimestamp => "2017-01-30T14:33:33Z",
+          :labels            => {:"docker-registry" => "default"},
+        },
+        :spec     => {
+          :ports           => [
+            {:name => "5000-tcp", :protocol => "TCP", :port => 5000, :targetPort => 5000},
+          ],
+          :selector        => {:"docker-registry" => "default"},
+          :portalIP        => "172.30.185.88",
+          :clusterIP       => "172.30.185.88",
+          :type            => "ClusterIP",
+          :sessionAffinity => "ClientIP",
+        },
+        :status   => {
+          :loadBalancer => {}
+        },
+      )
+    end
+
+    describe "parse_service" do
+      it "handles simple data" do
+        expect(parser.parse_service(service)).to eq(
+          :ems_ref                        => "13d3bcf7-e6f9-11e6-a348-001a4a162683",
+          :name                           => "docker-registry",
+          :namespace                      => "default",
+          :ems_created_on                 => "2017-01-30T14:33:33Z",
+          :resource_version               => "651",
+          :portal_ip                      => "172.30.185.88",
+          :session_affinity               => "ClientIP",
+          :service_type                   => "ClusterIP",
+          :labels                         => [
+            {:section => "labels", :source => "kubernetes", :name => "docker-registry", :value => "default"},
+          ],
+          :tags                           => [],
+          :selector_parts                 => [
+            {:section => "selectors", :source => "kubernetes", :name => "docker-registry", :value => "default"},
+          ],
+          :container_service_port_configs => [
+            {:ems_ref => "13d3bcf7-e6f9-11e6-a348-001a4a162683_5000_5000",
+             :name => "5000-tcp", :protocol => "TCP", :port => 5000, :target_port => 5000, :node_port => nil},
+          ]
+        )
+      end
+    end
+  end
 end

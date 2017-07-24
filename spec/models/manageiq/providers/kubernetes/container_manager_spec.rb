@@ -173,4 +173,30 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       described_class.raw_connect(hostname, port, options)
     end
   end
+
+  # Test MonitoringManager functionality related to ContainerManager
+  context "MonitoringManager" do
+    it "Creates a monitoring manager when container manager is created with a prometheus_alert endpoint" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
+        ]
+      )
+      expect(ems.monitoring_manager).not_to be_nil
+      expect(ems.monitoring_manager.parent_manager).to eq(ems)
+    end
+
+    it "Does not create a monitoring manager when there is no prometheus_alert endpoint" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host2'),
+          FactoryGirl.create(:endpoint, :role => 'hawkular', :hostname => 'host2'),
+        ]
+      )
+      expect(ems.monitoring_manager).to be_nil
+    end
+  end
 end

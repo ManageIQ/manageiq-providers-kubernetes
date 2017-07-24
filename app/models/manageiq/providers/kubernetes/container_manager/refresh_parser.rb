@@ -419,9 +419,13 @@ module ManageIQ::Providers::Kubernetes
     # polymorphic, relation disambiguates parent
     def get_container_conditions_graph(parent, hashes)
       model_name = parent.inventory_collection.model_class.base_class.name
+      key = [:container_conditions_for, model_name]
+      collection = @inv_collections[key]
+      raise("can't save: missing @inv_collections[#{key}]") if collection.nil?
+
       hashes.to_a.each do |h|
         h = h.merge(:container_entity => parent)
-        @inv_collections[[:container_conditions_for, model_name]].build(h)
+        collection.build(h)
       end
     end
 

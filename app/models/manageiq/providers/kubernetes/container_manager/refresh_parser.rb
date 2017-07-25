@@ -42,7 +42,9 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
-      initialize_inventory_collections(ems, options)
+      persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager.new(ems)
+      # TODO expose Persistor and use that
+      @inv_collections = persister.collections
 
       ems_inv_populate_collections(inventory, options)
 
@@ -52,7 +54,7 @@ module ManageIQ::Providers::Kubernetes
       get_container_image_registries_graph
 
       # Returning an array triggers ManagerRefresh::SaveInventory code path.
-      @inv_collections.values
+      persister.inventory_collections
     end
 
     def ems_inv_populate_collections(inventory, _options)

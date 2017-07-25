@@ -53,7 +53,7 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
       assert_specific_container_limit
       assert_specific_container_image_and_registry
       assert_specific_container_component_status
-      assert_specific_persistent_volume
+      # Volumes, PVs, and PVCs are tested in _before_deletions VCR.
     end
   end
 
@@ -379,18 +379,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     )
   end
 
-  def assert_specific_persistent_volume
-    @persistent_volume = PersistentVolume.find_by(:name => "pv0001")
-    expect(@persistent_volume).to have_attributes(
-      :type         => "PersistentVolume",
-      :common_path  => "/tmp/data01",
-      :status_phase => "Available",
-      :parent_type  => "ExtManagementSystem"
-    )
-    expect(@ems.persistent_volumes.count).to eq(1)
-    expect(@persistent_volume.parent.class).to eq(ManageIQ::Providers::Kubernetes::ContainerManager)
-  end
-
   def label_with_name_value(name, value)
     an_object_having_attributes(
       :section => 'labels', :source => 'kubernetes',
@@ -422,7 +410,73 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
       expect(ContainerQuotaItem.count).to eq(15)
       expect(ContainerLimit.count).to eq(3)
       expect(ContainerLimitItem.count).to eq(12)
+
+      expect(@ems.container_volumes.count).to eq(22)
+      expect(@ems.persistent_volumes.count).to eq(2)
+      expect(PersistentVolume.count).to eq(2)
+      expect(ContainerVolume.count).to eq(@ems.container_volumes.count +
+                                          @ems.persistent_volumes.count)
       expect(PersistentVolumeClaim.count).to eq(4)
+      assert_specific_container_volume
+      assert_specific_persistent_volume
+      assert_specific_persistent_volume_claim
+    end
+
+    def assert_specific_container_volume
+      # Not in template but typical.  TODO: add CV to template.
+      @container_volume = ContainerVolume.find_by(:name => "cassandra-data")
+      expect(@container_volume).to have_attributes(
+        :type       => "ContainerVolume",
+        :name       => "cassandra-data",
+        :claim_name => "metrics-cassandra-1",
+      )
+      expect(@container_volume.persistent_volume_claim).to eq(
+        PersistentVolumeClaim.find_by(:name => "metrics-cassandra-1")
+      )
+      expect(@container_volume.parent_type).to eq('ContainerGroup')
+      expect(@container_volume.parent.name).to match(/hawkular-cassandra-1-...../)
+    end
+
+    def assert_specific_persistent_volume
+      # Not in template but typical.  TODO: add PV to template.
+      @persistent_volume = PersistentVolume.find_by(:name => "metrics-volume")
+      expect(@persistent_volume).to have_attributes(
+        :type         => "PersistentVolume",
+        :common_path  => "/exports/metrics",
+        :status_phase => "Bound",
+        :capacity     => {:storage => 10.gigabytes},
+      )
+      expect(@persistent_volume.parent).to eq(@ems)
+      expect(@persistent_volume.persistent_volume_claim.name).to eq("metrics-cassandra-1")
+
+      # through shortcuts: PV -> PVC -> CVs -> ContainerGroups
+      expect(@persistent_volume.container_volumes).to eq(
+        [ContainerVolume.find_by(:name => "cassandra-data")]
+      )
+      expect(@persistent_volume.container_groups.size).to eq(1)
+      expect(@persistent_volume.container_groups[0].name).to match(/hawkular-cassandra-1-...../)
+    end
+
+    def assert_specific_persistent_volume_claim
+      # Pending PVC (in template):
+      @pending_pvc = PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-0")
+      expect(@pending_pvc).to have_attributes(
+        :phase    => "Pending",
+        :capacity => {}, # requested 8Gi but not bound to PV => no capacity
+      )
+      expect(@pending_pvc.container_volumes.count).to eq(0)
+      expect(@pending_pvc.persistent_volume).to eq(nil)
+
+      # Bound PVC (TODO: not in template but typical):
+      @bound_pvc = PersistentVolumeClaim.find_by(:name => "metrics-cassandra-1")
+      expect(@bound_pvc).to have_attributes(
+        :phase    => "Bound",
+        :capacity => {:storage => 10.gigabytes},
+      )
+      pv = PersistentVolume.find_by(:name => "metrics-volume")
+      cv = ContainerVolume.find_by(:name => "cassandra-data", :type => "ContainerVolume")
+      expect(@bound_pvc.container_volumes).to contain_exactly(pv, cv)
+      expect(@bound_pvc.persistent_volume).to eq(pv)
     end
 
     context "when refreshing non empty DB" do

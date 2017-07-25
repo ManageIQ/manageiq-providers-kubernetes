@@ -129,6 +129,13 @@ module ManageIQ::Providers::Kubernetes
           path_for_entity("replication_controller"), :by_namespace_and_name,
           replicator_ref[:namespace], replicator_ref[:name]
         )
+        cg[:container_volumes].each do |cv|
+          pvc_ref = cv.delete(:persistent_volume_claim_ref)
+          cv[:persistent_volume_claim] = pvc_ref && @data_index.fetch_path(
+            path_for_entity("persistent_volume_claim"),
+            :by_namespace_and_name, pvc_ref[:namespace], pvc_ref[:name]
+          )
+        end
         # Note: save_container_groups_inventory also links build_pod by :build_pod_name.
 
         @data_index.store_path(key, :by_namespace_and_name,
@@ -425,6 +432,14 @@ module ManageIQ::Providers::Kubernetes
 
       hashes.to_a.each do |h|
         h = h.merge(:container_entity => parent)
+        collection.build(h)
+      end
+    end
+
+    def get_container_volumes_graph(parent, hashes)
+      collection = @inv_collections[:container_volumes]
+      hashes.to_a.each do |h|
+        h = h.merge(:parent => parent)
         collection.build(h)
       end
     end
@@ -1233,14 +1248,17 @@ module ManageIQ::Providers::Kubernetes
 
     def parse_volumes(pod)
       pod.spec.volumes.to_a.collect do |volume|
-        {
-          :type                    => 'ContainerVolume',
-          :name                    => volume.name,
-          :persistent_volume_claim => @data_index.fetch_path(path_for_entity("persistent_volume_claim"),
-                                                             :by_namespace_and_name,
-                                                             pod.metadata.namespace,
-                                                             volume.persistentVolumeClaim.try(:claimName))
+        new_result = {
+          :type => 'ContainerVolume',
+          :name => volume.name,
         }.merge!(parse_volume_source(volume))
+        if volume.persistentVolumeClaim.try(:claimName)
+          new_result[:persistent_volume_claim_ref] = {
+            :namespace => pod.metadata.namespace,
+            :name      => volume.persistentVolumeClaim.claimName,
+          }
+        end
+        new_result
       end
     end
 

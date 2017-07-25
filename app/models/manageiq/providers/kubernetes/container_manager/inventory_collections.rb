@@ -7,16 +7,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     nil
   end
 
-  def saver_strategy
-    :default
-  end
-
   def shared_options
-    {
-      :strategy       => strategy,
-      :targeted       => targeted,
-      :saver_strategy => saver_strategy
-    }
+    settings_options = options[:inventory_collections].try(:to_hash) || {}
+
+    settings_options.merge(
+      :strategy => strategy,
+      :targeted => targeted,
+    )
   end
 
   def initialize_inventory_collections

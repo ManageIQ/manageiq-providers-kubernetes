@@ -518,15 +518,44 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   end
 
   context "graph refresh" do
-    before(:each) do
-      stub_settings_merge(
-        :ems_refresh => {:kubernetes => {:inventory_object_refresh => true}}
-      )
+    context "with :default saver" do
+      before(:each) do
+        stub_settings_merge(
+          :ems_refresh => {
+            :kubernetes => {
+              :inventory_object_refresh => true,
+              :inventory_collections    => {
+                :saver_strategy => :default,
+              }
+            }
+          }
+        )
 
-      expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
+        expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
+      end
+
+      # TODO: pending graph tag mapping implementation
+      include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
     end
 
-    # TODO: pending graph tag mapping implementation
-    include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+    context "with :batch saver" do
+      before(:each) do
+        stub_settings_merge(
+          :ems_refresh => {
+            :kubernetes => {
+              :inventory_object_refresh => true,
+              :inventory_collections    => {
+                :saver_strategy => :batch,
+              }
+            }
+          }
+        )
+
+        expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
+      end
+
+      # TODO: pending graph tag mapping implementation
+      include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+    end
   end
 end

@@ -5,7 +5,8 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   included do
     delegate :authentications,
              :endpoints,
-             :to => :parent_manager
+             :to        => :parent_manager,
+             :allow_nil => true
 
     default_value_for :port do |manager|
       manager.port || DEFAULT_PORT
@@ -19,7 +20,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   end
 
   def default_endpoint
-    endpoints.detect { |x| x.role == ENDPOINT_ROLE.to_s }
+    endpoints && endpoints.detect { |x| x.role == ENDPOINT_ROLE.to_s }
   end
 
   def supports_port?

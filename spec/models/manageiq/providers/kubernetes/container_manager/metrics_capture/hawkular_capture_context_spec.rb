@@ -29,9 +29,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
       VCR.use_cassette("#{described_class.name.underscore}_refresh",
                        :match_requests_on => [:path,]) do # , :record => :new_episodes) do
         EmsRefresh.refresh(@ems)
-        @node = @ems.container_nodes.first
-        pod = @ems.container_groups.first
-        container = @ems.containers.first
+        @ems.reload
+
+        @node = @ems.container_nodes.find_by(:name => "capture.context.com")
+        pod = @ems.container_groups.find_by(:name => "docker-registry-1-w23wd")
+        container = pod.containers.find_by(:name => "registry")
 
         @targets = [['node', @node], ['pod', pod], ['container', container]]
       end

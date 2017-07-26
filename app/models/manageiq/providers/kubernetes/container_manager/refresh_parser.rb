@@ -398,11 +398,11 @@ module ManageIQ::Providers::Kubernetes
                                                       :name      => h.delete(:build_pod_name))
 
         custom_attrs    = h.extract!(:labels, :node_selector_parts)
-        children        = h.extract!(:container_definitions, :containers, :container_conditions, :container_volumes)
+        children        = h.extract!(:containers, :container_conditions, :container_volumes)
 
         container_group = collection.build(h)
 
-        get_container_definitions_graph(container_group, children[:container_definitions])
+        get_containers_graph(container_group, children[:containers])
         get_container_conditions_graph(container_group, children[:container_conditions])
         get_custom_attributes_graph(container_group,
                                     :labels         => custom_attrs[:labels],
@@ -420,25 +420,10 @@ module ManageIQ::Providers::Kubernetes
       end
     end
 
-    def get_container_definitions_graph(parent, hashes)
-      collection = @inv_collections[:container_definitions]
-      hashes.each do |h|
-        h[:container_group] = parent
-        children = h.extract!(:container_port_configs, :container_env_vars, :security_context, :container)
-
-        container_definition = collection.build(h)
-
-        get_container_port_configs_graph(container_definition, children[:container_port_configs])
-        get_container_env_vars_graph(container_definition, children[:container_env_vars])
-        get_container_security_context_graph(container_definition, children[:security_context]) if children[:security_context]
-        get_containers_graph(container_definition, children[:container]) if children[:container]
-      end
-    end
-
     def get_container_port_configs_graph(parent, hashes)
       collection = @inv_collections[:container_port_configs]
       hashes.each do |h|
-        h[:container_definition] = parent
+        h[:container] = parent
         collection.build(h)
       end
     end
@@ -446,7 +431,7 @@ module ManageIQ::Providers::Kubernetes
     def get_container_env_vars_graph(parent, hashes)
       collection = @inv_collections[:container_env_vars]
       hashes.each do |h|
-        h[:container_definition] = parent
+        h[:container] = parent
         collection.build(h)
       end
     end
@@ -457,13 +442,20 @@ module ManageIQ::Providers::Kubernetes
       collection.build(h)
     end
 
-    def get_containers_graph(parent, h)
+    def get_containers_graph(parent, hashes)
       collection = @inv_collections[:containers]
 
-      h[:container_definition] = parent
-      h[:container_image] = lazy_find_image(h[:container_image])
+      hashes.each do |h|
+        h[:container_group] = parent
+        h[:container_image] = lazy_find_image(h[:container_image])
+        children = h.extract!(:container_port_configs, :container_env_vars, :security_context)
 
-      collection.build(h)
+        container = collection.build(h)
+
+        get_container_port_configs_graph(container, children[:container_port_configs])
+        get_container_env_vars_graph(container, children[:container_env_vars])
+        get_container_security_context_graph(container, children[:security_context]) if children[:security_context]
+      end
     end
 
     # TODO: how would this work with partial refresh?
@@ -729,32 +721,32 @@ module ManageIQ::Providers::Kubernetes
       new_result = parse_base_item(pod)
 
       new_result.merge!(
-        :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup',
-        :restart_policy        => pod.spec.restartPolicy,
-        :dns_policy            => pod.spec.dnsPolicy,
-        :ipaddress             => pod.status.podIP,
-        :phase                 => pod.status.phase,
-        :message               => pod.status.message,
-        :reason                => pod.status.reason,
-        :container_node_name   => pod.spec.nodeName,
-        :container_definitions => [],
-        :build_pod_name        => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
+        :type                => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup',
+        :restart_policy      => pod.spec.restartPolicy,
+        :dns_policy          => pod.spec.dnsPolicy,
+        :ipaddress           => pod.status.podIP,
+        :phase               => pod.status.phase,
+        :message             => pod.status.message,
+        :reason              => pod.status.reason,
+        :container_node_name => pod.spec.nodeName,
+        :containers          => [],
+        :build_pod_name      => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
       )
 
       # TODO, map volumes
       # TODO, podIP
       containers_index = {}
       containers = pod.spec.containers
-      unless pod.status.nil? || pod.status.containerStatuses.nil?
-        pod.status.containerStatuses.each do |cn|
-          containers_index[cn.name] = parse_container(cn, pod.metadata.uid)
-        end
+      containers.each do |container_spec|
+        containers_index[container_spec.name] = parse_container_spec(container_spec, pod.metadata.uid)
+        new_result[:containers] << containers_index[container_spec.name]
       end
 
-      new_result[:container_definitions] = containers.collect do |container_def|
-        parse_container_definition(container_def, pod.metadata.uid).merge(
-          :container => containers_index[container_def.name]
-        )
+      unless pod.status.nil? || pod.status.containerStatuses.nil?
+        pod.status.containerStatuses.each do |cn|
+          containers_index[cn.name] ||= {}
+          containers_index[cn.name].merge!(parse_container_status(cn, pod.metadata.uid))
+        end
       end
 
       new_result[:container_replicator_ref] = nil
@@ -1018,28 +1010,28 @@ module ManageIQ::Providers::Kubernetes
       end
     end
 
-    def parse_container_definition(container_def, pod_id)
+    def parse_container_spec(container_spec, pod_id)
       new_result = {
-        :ems_ref           => "#{pod_id}_#{container_def.name}_#{container_def.image}",
-        :name              => container_def.name,
-        :image             => container_def.image,
-        :image_pull_policy => container_def.imagePullPolicy,
-        :command           => container_def.command ? Shellwords.join(container_def.command) : nil,
-        :memory            => container_def.memory,
+        :ems_ref           => "#{pod_id}_#{container_spec.name}_#{container_spec.image}",
+        :name              => container_spec.name,
+        :image             => container_spec.image,
+        :image_pull_policy => container_spec.imagePullPolicy,
+        :command           => container_spec.command ? Shellwords.join(container_spec.command) : nil,
+        :memory            => container_spec.memory,
         # https://github.com/GoogleCloudPlatform/kubernetes/blob/0b801a91b15591e2e6e156cf714bfb866807bf30/pkg/api/v1beta3/types.go#L815
-        :cpu_cores         => container_def.cpu.to_f / 1000,
-        :capabilities_add  => container_def.securityContext.try(:capabilities).try(:add).to_a.join(','),
-        :capabilities_drop => container_def.securityContext.try(:capabilities).try(:drop).to_a.join(','),
-        :privileged        => container_def.securityContext.try(:privileged),
-        :run_as_user       => container_def.securityContext.try(:runAsUser),
-        :run_as_non_root   => container_def.securityContext.try(:runAsNonRoot),
-        :security_context  => parse_security_context(container_def.securityContext)
+        :cpu_cores         => container_spec.cpu.to_f / 1000,
+        :capabilities_add  => container_spec.securityContext.try(:capabilities).try(:add).to_a.join(','),
+        :capabilities_drop => container_spec.securityContext.try(:capabilities).try(:drop).to_a.join(','),
+        :privileged        => container_spec.securityContext.try(:privileged),
+        :run_as_user       => container_spec.securityContext.try(:runAsUser),
+        :run_as_non_root   => container_spec.securityContext.try(:runAsNonRoot),
+        :security_context  => parse_security_context(container_spec.securityContext)
       }
-      ports = container_def.ports
+      ports = container_spec.ports
       new_result[:container_port_configs] = Array(ports).collect do |port_entry|
-        parse_container_port_config(port_entry, pod_id, container_def.name)
+        parse_container_port_config(port_entry, pod_id, container_spec.name)
       end
-      env = container_def.env
+      env = container_spec.env
       new_result[:container_env_vars] = Array(env).collect do |env_var|
         parse_container_env_var(env_var)
       end
@@ -1047,11 +1039,9 @@ module ManageIQ::Providers::Kubernetes
       new_result
     end
 
-    def parse_container(container, pod_id)
+    def parse_container_status(container, pod_id)
       h = {
         :type            => 'ManageIQ::Providers::Kubernetes::ContainerManager::Container',
-        :ems_ref         => "#{pod_id}_#{container.name}_#{container.image}",
-        :name            => container.name,
         :restart_count   => container.restartCount,
         :backing_ref     => container.containerID,
         :container_image => parse_container_image(container.image, container.imageID)

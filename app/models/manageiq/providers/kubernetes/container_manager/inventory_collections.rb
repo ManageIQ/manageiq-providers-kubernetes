@@ -131,7 +131,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     # images have custom_attributes but that's done conditionally in openshift parser
-    initialize_custom_attributes_collections(manager.container_images, %w(labels docker_labels))
 
     @collections[:container_groups] =
       ::ManagerRefresh::InventoryCollection.new(

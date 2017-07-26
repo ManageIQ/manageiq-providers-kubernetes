@@ -239,7 +239,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :container_routes,
-          :attributes_blacklist => [:namespace],
+          :attributes_blacklist => [:namespace, :tags],
         )
       )
     initialize_custom_attributes_collections(manager.container_routes, %w(labels))
@@ -278,11 +278,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     @collections[:container_builds] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
-          :model_class    => ContainerBuild,
-          :parent         => manager,
-          :builder_params => {:ems_id => manager.id},
-          :association    => :container_builds,
-          :secondary_refs => {:by_namespace_and_name => [:namespace, :name]},
+          :model_class          => ContainerBuild,
+          :parent               => manager,
+          :builder_params       => {:ems_id => manager.id},
+          :association          => :container_builds,
+          :attributes_blacklist => [:tags],
+          :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
         )
       )
     initialize_custom_attributes_collections(manager.container_builds, %w(labels))

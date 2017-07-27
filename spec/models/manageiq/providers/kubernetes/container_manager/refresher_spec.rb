@@ -526,7 +526,26 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
     end
 
-    # TODO: pending graph tag mapping implementation
-    include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+    context "with :default saver" do
+      before(:each) do
+        stub_settings_merge(
+          :ems_refresh => {:kubernetes => {:inventory_collections => {:saver_strategy => :default}}}
+        )
+      end
+
+      # TODO: pending graph tag mapping implementation
+      include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+    end
+
+    context "with :batch saver" do
+      before(:each) do
+        stub_settings_merge(
+          :ems_refresh => {:kubernetes => {:inventory_collections => {:saver_strategy => :batch}}}
+        )
+      end
+
+      # TODO: pending graph tag mapping implementation
+      include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+    end
   end
 end

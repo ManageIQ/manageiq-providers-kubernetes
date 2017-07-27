@@ -4,7 +4,6 @@ module ManageIQ::Providers::Kubernetes
   class ContainerManager::RefreshParser
     include Vmdb::Logging
     include ContainerManager::EntitiesMapping
-    include ContainerManager::InventoryCollections
 
     def self.ems_inv_to_hashes(inventory, options = Config::Options.new)
       new(options).ems_inv_to_hashes(inventory, options)
@@ -41,8 +40,14 @@ module ManageIQ::Providers::Kubernetes
       @data
     end
 
+    def persister_class
+      ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager
+    end
+
     def ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
-      initialize_inventory_collections(ems, options)
+      persister = persister_class.new(ems)
+      # TODO expose Persistor and use that
+      @inv_collections = persister.collections
 
       ems_inv_populate_collections(inventory, options)
 
@@ -52,7 +57,7 @@ module ManageIQ::Providers::Kubernetes
       get_container_image_registries_graph
 
       # Returning an array triggers ManagerRefresh::SaveInventory code path.
-      @inv_collections.values
+      persister.inventory_collections
     end
 
     def ems_inv_populate_collections(inventory, _options)

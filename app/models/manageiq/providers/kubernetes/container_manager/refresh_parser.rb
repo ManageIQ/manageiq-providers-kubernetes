@@ -1017,22 +1017,27 @@ module ManageIQ::Providers::Kubernetes
 
     def parse_container_spec(container_spec, pod_id)
       new_result = {
-        :ems_ref           => "#{pod_id}_#{container_spec.name}_#{container_spec.image}",
-        :name              => container_spec.name,
-        :image             => container_spec.image,
-        :image_pull_policy => container_spec.imagePullPolicy,
-        :command           => container_spec.command ? Shellwords.join(container_spec.command) : nil,
-        :memory            => container_spec.memory,
+        :ems_ref              => "#{pod_id}_#{container_spec.name}_#{container_spec.image}",
+        :name                 => container_spec.name,
+        :image                => container_spec.image,
+        :image_pull_policy    => container_spec.imagePullPolicy,
+        :command              => container_spec.command ? Shellwords.join(container_spec.command) : nil,
+        :memory               => container_spec.memory,
         # https://github.com/GoogleCloudPlatform/kubernetes/blob/0b801a91b15591e2e6e156cf714bfb866807bf30/pkg/api/v1beta3/types.go#L815
-        :cpu_cores         => container_spec.cpu.to_f / 1000,
-        :capabilities_add  => container_spec.securityContext.try(:capabilities).try(:add).to_a.join(','),
-        :capabilities_drop => container_spec.securityContext.try(:capabilities).try(:drop).to_a.join(','),
-        :privileged        => container_spec.securityContext.try(:privileged),
-        :run_as_user       => container_spec.securityContext.try(:runAsUser),
-        :run_as_non_root   => container_spec.securityContext.try(:runAsNonRoot),
-        :security_context  => parse_security_context(container_spec.securityContext)
+        :cpu_cores            => container_spec.cpu.to_f / 1000,
+        :capabilities_add     => container_spec.securityContext.try(:capabilities).try(:add).to_a.join(','),
+        :capabilities_drop    => container_spec.securityContext.try(:capabilities).try(:drop).to_a.join(','),
+        :privileged           => container_spec.securityContext.try(:privileged),
+        :run_as_user          => container_spec.securityContext.try(:runAsUser),
+        :run_as_non_root      => container_spec.securityContext.try(:runAsNonRoot),
+        :security_context     => parse_security_context(container_spec.securityContext),
+        :limit_cpu_cores      => parse_quantity(container_spec.try(:resources).try(:limits).try(:cpu)),
+        :limit_memory_bytes   => parse_quantity(container_spec.try(:resources).try(:limits).try(:memory)),
+        :request_cpu_cores    => parse_quantity(container_spec.try(:resources).try(:requests).try(:cpu)),
+        :request_memory_bytes => parse_quantity(container_spec.try(:resources).try(:requests).try(:memory))
       }
       ports = container_spec.ports
+
       new_result[:container_port_configs] = Array(ports).collect do |port_entry|
         parse_container_port_config(port_entry, pod_id, container_spec.name)
       end
@@ -1042,6 +1047,16 @@ module ManageIQ::Providers::Kubernetes
       end
 
       new_result
+    end
+
+    def parse_quantity(resource) # parse a string with a suffix into a int\float
+      return nil if resource.nil?
+
+      begin
+        resource.iec_60027_2_to_i
+      rescue
+        resource.decimal_si_to_f
+      end
     end
 
     def parse_container_status(container, pod_id)

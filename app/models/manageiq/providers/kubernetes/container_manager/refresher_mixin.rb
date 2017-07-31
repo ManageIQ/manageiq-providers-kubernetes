@@ -39,7 +39,7 @@ module ManageIQ
               :class_name  => "ContainerImage",
               :method_name => 'raise_creation_event',
               :args        => [container_images_ids],
-              :priority    => MiqQueue::MIN_PRIORITY
+              :priority    => MiqQueue::HIGH_PRIORITY
             )
           end
         end

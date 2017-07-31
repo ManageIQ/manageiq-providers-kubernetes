@@ -37,7 +37,7 @@ module ManageIQ
             container_images_ids = batch.collect { |x| x[:id] }
             MiqQueue.submit_job(
               :class_name  => "ContainerImage",
-              :method_name => 'raise_creation_event',
+              :method_name => 'raise_creation_events',
               :args        => [container_images_ids],
               :priority    => MiqQueue::HIGH_PRIORITY
             )

@@ -1,0 +1,53 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://alerts-prometheus.example.com/topics/alerts?fromIndex=0&generationID=
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Authorization:
+      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZzRscDciLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImQxOWUzMDk4LTZmOGUtMTFlNy04YTQ1LTAwMWE0YTE2MjY4YyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.m4ckxIoTj__rCFA25V8lurlapNgL6doCpP51Z0JA5VgiU9mRxdk8KGyCe6w_mhrh5xPO9UuiK_pYIIMPQ-lAijRaQrKITZ-smRMEcsqKU0uP10UliJIj7ICGxn7c2zDYQuxMOQwI4ELWPv4xBHVXkF0hBKhVCPWRmdnIwADIfQi4RqoN_1gQf8S2O8C_eDS-A1f5SUf1Bvhexs997NWFBVyKEUQKxdqAlHf59V3Zt2VaE2HUme_ppYvp5L9QSa-CEZU_XxmUwNeCzcgbzts8OMujuHB_8lwKcLy9H0k3_oh-EcOn4CvzVz6pTfh8HPDoFhqpnBHfLB4pnsRkoHbDrA
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Mon, 24 Jul 2017 13:19:37 GMT
+      Transfer-Encoding:
+      - chunked
+      Set-Cookie:
+      - c759c0b2a0d44d9df5e74669f11b00a8=7fb77c5caec4d06d794dc96d2debe3cc; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
+    body:
+      encoding: UTF-8
+      string: '{"generationID":"5fc161f4-dc12-4010-b2d2-4938f5a500bd","messages":[{"index":1,"timestamp":"2017-07-23T14:12:30.466299633Z","data":{"alerts":[{"annotations":{"description":"ocp-compute01.10.35.48.142.nip.io
+        is down_d","message":"ocp-compute01.10.35.48.142.nip.io is down","miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://prometheus-1018048397-82bqm:9090/graph?g0.expr=up%7Bjob%3D%22kubernetes-nodes%22%7D+%3D%3D+0\u0026g0.tab=0","labels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","instance":"ocp-compute01.10.35.48.142.nip.io","job":"kubernetes-nodes","kubernetes_io_hostname":"ocp-compute01.10.35.48.142.nip.io","logging_infra_fluentd":"true","region":"primary","zone":"default"},"startsAt":"2017-07-23T14:12:00.457008968Z","status":"firing"},{"annotations":{"description":"ocp-compute03.10.35.48.144.nip.io
+        is down_d","message":"ocp-compute03.10.35.48.144.nip.io is down","miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://prometheus-1018048397-82bqm:9090/graph?g0.expr=up%7Bjob%3D%22kubernetes-nodes%22%7D+%3D%3D+0\u0026g0.tab=0","labels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","instance":"ocp-compute03.10.35.48.144.nip.io","job":"kubernetes-nodes","kubernetes_io_hostname":"ocp-compute03.10.35.48.144.nip.io","logging_infra_fluentd":"true","region":"primary","zone":"default"},"startsAt":"2017-07-23T14:12:00.457008968Z","status":"firing"}],"commonAnnotations":{"miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"commonLabels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","job":"kubernetes-nodes","logging_infra_fluentd":"true","region":"primary","zone":"default"},"externalURL":"http://alerts-2194883993-nv3g5:9093","groupKey":"{}:{}","groupLabels":{},"receiver":"message-buffer-wh","status":"firing","version":"4"}},{"index":2,"timestamp":"2017-07-23T14:17:30.479782098Z","data":{"alerts":[{"annotations":{"description":"ocp-compute01.10.35.48.142.nip.io
+        is down_d","message":"ocp-compute01.10.35.48.142.nip.io is down","miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"endsAt":"2017-07-23T14:16:00.457019118Z","generatorURL":"http://prometheus-1018048397-82bqm:9090/graph?g0.expr=up%7Bjob%3D%22kubernetes-nodes%22%7D+%3D%3D+0\u0026g0.tab=0","labels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","instance":"ocp-compute01.10.35.48.142.nip.io","job":"kubernetes-nodes","kubernetes_io_hostname":"ocp-compute01.10.35.48.142.nip.io","logging_infra_fluentd":"true","region":"primary","zone":"default"},"startsAt":"2017-07-23T14:12:00.457008968Z","status":"resolved"},{"annotations":{"description":"ocp-compute03.10.35.48.144.nip.io
+        is down_d","message":"ocp-compute03.10.35.48.144.nip.io is down","miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://prometheus-1018048397-82bqm:9090/graph?g0.expr=up%7Bjob%3D%22kubernetes-nodes%22%7D+%3D%3D+0\u0026g0.tab=0","labels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","instance":"ocp-compute03.10.35.48.144.nip.io","job":"kubernetes-nodes","kubernetes_io_hostname":"ocp-compute03.10.35.48.144.nip.io","logging_infra_fluentd":"true","region":"primary","zone":"default"},"startsAt":"2017-07-23T14:12:00.457008968Z","status":"firing"}],"commonAnnotations":{"miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"commonLabels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","job":"kubernetes-nodes","logging_infra_fluentd":"true","region":"primary","zone":"default"},"externalURL":"http://alerts-2194883993-nv3g5:9093","groupKey":"{}:{}","groupLabels":{},"receiver":"message-buffer-wh","status":"firing","version":"4"}},{"index":3,"timestamp":"2017-07-23T14:42:30.480798476Z","data":{"alerts":[{"annotations":{"description":"ocp-compute03.10.35.48.144.nip.io
+        is down_d","message":"ocp-compute03.10.35.48.144.nip.io is down","miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"endsAt":"2017-07-23T14:38:00.457049678Z","generatorURL":"http://prometheus-1018048397-82bqm:9090/graph?g0.expr=up%7Bjob%3D%22kubernetes-nodes%22%7D+%3D%3D+0\u0026g0.tab=0","labels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","instance":"ocp-compute03.10.35.48.144.nip.io","job":"kubernetes-nodes","kubernetes_io_hostname":"ocp-compute03.10.35.48.144.nip.io","logging_infra_fluentd":"true","region":"primary","zone":"default"},"startsAt":"2017-07-23T14:12:00.457008968Z","status":"resolved"}],"commonAnnotations":{"description":"ocp-compute03.10.35.48.144.nip.io
+        is down_d","message":"ocp-compute03.10.35.48.144.nip.io is down","miqTarget":"ContainerNode","severity":"HIGH","url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"commonLabels":{"alertname":"Node
+        Down","beta_kubernetes_io_arch":"amd64","beta_kubernetes_io_os":"linux","instance":"ocp-compute03.10.35.48.144.nip.io","job":"kubernetes-nodes","kubernetes_io_hostname":"ocp-compute03.10.35.48.144.nip.io","logging_infra_fluentd":"true","region":"primary","zone":"default"},"externalURL":"http://alerts-2194883993-nv3g5:9093","groupKey":"{}:{}","groupLabels":{},"receiver":"message-buffer-wh","status":"resolved","version":"4"}}]}'
+    http_version: 
+  recorded_at: Mon, 24 Jul 2017 13:19:37 GMT
+recorded_with: VCR 3.0.3

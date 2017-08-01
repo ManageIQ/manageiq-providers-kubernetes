@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://alerts-prometheus.10.35.48.34.nip.io/topics/alerts
+    uri: https://alerts-prometheus.example.com/topics/alerts
     body:
       encoding: US-ASCII
       string: ''

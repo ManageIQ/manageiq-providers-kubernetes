@@ -77,6 +77,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     client.prometheus_try_connect
   end
 
+  def verify_prometheus_alerts_credentials
+    ensure_monitoring_manager
+    monitoring_manager.verify_credentials
+  end
+
   # UI methods for determining availability of fields
   def supports_port?
     true
@@ -131,6 +136,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     at = [:bearer]
     at << :hawkular if has_authentication_type?(:hawkular)
     at << :prometheus if has_authentication_type?(:prometheus)
+    at << :prometheus_alerts if has_authentication_type?(:prometheus_alerts)
     at
   end
 
@@ -148,6 +154,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       verify_hawkular_credentials
     elsif options[:auth_type].to_s == "prometheus"
       verify_prometheus_credentials
+    elsif options[:auth_type].to_s == "prometheus_alerts"
+      verify_prometheus_alerts_credentials
     else
       with_provider_connection(options, &:api_valid?)
     end
@@ -166,7 +174,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   end
 
   def supported_auth_types
-    %w(default password bearer hawkular prometheus)
+    %w(default password bearer hawkular prometheus prometheus_alerts)
   end
 
   def supports_authentication?(authtype)

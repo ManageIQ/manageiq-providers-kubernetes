@@ -1,5 +1,7 @@
 module ManageIQ::Providers
   class Kubernetes::MonitoringManager < ManageIQ::Providers::MonitoringManager
+    require_nested :EventCatcher
+
     include ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
 
     belongs_to :parent_manager,
@@ -13,6 +15,10 @@ module ManageIQ::Providers
 
     def self.description
       @description ||= "Kubernetes Monitor".freeze
+    end
+
+    def self.event_monitor_class
+      ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher
     end
   end
 end

@@ -61,6 +61,8 @@
     :event_catcher:
       :event_catcher_kubernetes:
         :poll: 1.seconds
+      :event_catcher_prometheus:
+        :poll: 20.seconds
     :queue_worker_base:
         :ems_metrics_collector_worker:
           :ems_metrics_collector_worker_kubernetes:

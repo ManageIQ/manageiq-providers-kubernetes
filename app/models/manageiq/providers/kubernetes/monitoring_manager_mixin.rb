@@ -1,16 +1,19 @@
 module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   extend ActiveSupport::Concern
+
   ENDPOINT_ROLE = :prometheus_alerts
-  DEFAULT_PORT = 9093
+
   included do
-    delegate :authentications,
+    delegate :authentication_check,
+             :authentication_for_summary,
+             :authentication_status,
+             :authentication_status_ok,
+             :authentication_token,
+             :authentications,
              :endpoints,
+             :zone,
              :to        => :parent_manager,
              :allow_nil => true
-
-    default_value_for :port do |manager|
-      manager.port || DEFAULT_PORT
-    end
   end
 
   module ClassMethods
@@ -19,52 +22,44 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
     end
   end
 
-  def default_endpoint
-    endpoints && endpoints.detect { |x| x.role == ENDPOINT_ROLE.to_s }
+  def prometheus_alerts_endpoint
+    connection_configurations.prometheus_alerts.try(:endpoint)
   end
 
-  def supports_port?
-    true
+  def verify_credentials(_auth_type = nil, _options = {})
+    with_provider_connection do |conn|
+      conn.get.body.key?('generationID')
+    end
+  rescue OpenSSL::X509::CertificateError => err
+    raise MiqException::MiqInvalidCredentialsError, "SSL Error: #{err.message}"
+  rescue Faraday::ParsingError
+    raise MiqException::MiqUnreachableError, 'Unexpected Response'
+  rescue Faraday::ClientError => err
+    raise MiqException::MiqUnreachableError, err.message
+  rescue StandardError => err
+    raise MiqException::MiqUnreachableError, err.message, err.backtrace
   end
 
-  # Authentication related methods, see AuthenticationMixin
-  def authentications_to_validate
-    [ENDPOINT_ROLE]
-  end
-
-  def required_credential_fields(_type)
-    [:auth_key]
+  def connect(options = {})
+    self.class.raw_connect(
+      options[:hostname] || prometheus_alerts_endpoint.hostname,
+      options[:port] || prometheus_alerts_endpoint.port,
+      :bearer     => options[:bearer] || authentication_token, # goes to the default endpoint
+      :verify_ssl => options[:verify_ssl] || verify_ssl,
+      :cert_store => options[:cert_store] || ssl_cert_store
+    )
   end
 
   def default_authentication_type
     ENDPOINT_ROLE
   end
 
-  def verify_credentials(auth_type = nil, options = {})
-    with_provider_connection(options.merge(:auth_type => auth_type)) do |conn|
-      # TODO: move to a client method, once we have one
-      conn.get.body.key?('generationID')
-    end
-  rescue Faraday::ClientError => err
-    raise MiqException::MiqUnreachableError, err.message, err.backtrace
-  end
-
-  def connect(options = {})
-    self.class.raw_connect(
-      options[:hostname] || hostname,
-      options[:port] || port,
-      :bearer     => options[:bearer] || authentication_token(options[:auth_type] || 'bearer'),
-      :verify_ssl => options[:verify_ssl] || verify_ssl,
-      :cert_store => options[:cert_store] || ssl_cert_store
-    )
-  end
-
   def ssl_cert_store
     # nil === use system CA bundle
-    default_endpoint.try(:ssl_cert_store)
+    prometheus_alerts_endpoint.try(:ssl_cert_store)
   end
 
   def verify_ssl
-    default_endpoint.verify_ssl?
+    prometheus_alerts_endpoint.verify_ssl?
   end
 end

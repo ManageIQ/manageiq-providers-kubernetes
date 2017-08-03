@@ -2,6 +2,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   require_nested :Container
   require_nested :ContainerGroup
   require_nested :ContainerNode
+  require_nested :ContainerTemplate
   require_nested :EventCatcher
   require_nested :EventCatcherMixin
   require_nested :EventParser

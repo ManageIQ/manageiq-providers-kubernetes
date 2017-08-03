@@ -418,7 +418,7 @@ module ManageIQ::Providers::Kubernetes
 
     # polymorphic, relation disambiguates parent
     def get_container_conditions_graph(parent, hashes)
-      model_name = parent.inventory_collection.model_class.name
+      model_name = parent.inventory_collection.model_class.base_class.name
       hashes.to_a.each do |h|
         h = h.merge(:container_entity => parent)
         @inv_collections[[:container_conditions_for, model_name]].build(h)
@@ -554,7 +554,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def get_custom_attributes_graph(parent, hashes_by_section)
-      model_name = parent.inventory_collection.model_class.name
+      model_name = parent.inventory_collection.model_class.base_class.name
       hashes_by_section.each do |section, hashes|
         key = [:custom_attributes_for, model_name, section.to_s]
         collection = @inv_collections[key]

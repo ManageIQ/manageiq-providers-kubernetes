@@ -325,10 +325,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
   # ContainerCondition is polymorphic child of ContainerNode & ContainerGroup.
   def initialize_container_conditions_collection(relation)
     query = ContainerCondition.where(
-      :container_entity_type => relation.model.name,
+      :container_entity_type => relation.model.base_class.name,
       :container_entity_id   => relation, # nested SELECT. TODO: compare to a JOIN.
     )
-    @collections[[:container_conditions_for, relation.model.name]] =
+    @collections[[:container_conditions_for, relation.model.base_class.name]] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
           :model_class => ContainerCondition,
@@ -342,11 +342,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
   def initialize_custom_attributes_collections(relation, sections)
     sections.each do |section|
       query = CustomAttribute.where(
-        :resource_type => relation.model.name,
+        :resource_type => relation.model.base_class.name,
         :resource_id   => relation,
         :section       => section.to_s
       )
-      @collections[[:custom_attributes_for, relation.model.name, section.to_s]] =
+      @collections[[:custom_attributes_for, relation.model.base_class.name, section.to_s]] =
         ::ManagerRefresh::InventoryCollection.new(
           shared_options.merge(
             :model_class => CustomAttribute,

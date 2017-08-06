@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_cpu_usage_seconds_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22yzamir-centos7-3.eng.lab.tlv.redhat.com%22,job=%22kubernetes-nodes%22%7D)%20*%201e9&start=1499841622&step=20s
+    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_cpu_usage_seconds_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22%7D)%20*%201e9&start=1499841622&step=20s
     body:
       encoding: US-ASCII
       string: ''
@@ -46,7 +46,7 @@ http_interactions:
   recorded_at: Wed, 12 Jul 2017 10:27:26 GMT
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22%22,id=%22/%22,instance=%22yzamir-centos7-3.eng.lab.tlv.redhat.com%22,job=%22kubernetes-nodes%22%7D)&start=1499841622&step=20s
+    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22%7D)&start=1499841622&step=20s
     body:
       encoding: US-ASCII
       string: ''
@@ -90,7 +90,7 @@ http_interactions:
   recorded_at: Wed, 12 Jul 2017 10:27:26 GMT
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_network_transmit_bytes_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22yzamir-centos7-3.eng.lab.tlv.redhat.com%22,job=%22kubernetes-nodes%22,interface=~%22eth.*%22%7D)&start=1499841622&step=20s
+    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_network_transmit_bytes_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22,interface=~%22eth.*%22%7D)&start=1499841622&step=20s
     body:
       encoding: US-ASCII
       string: ''
@@ -134,7 +134,7 @@ http_interactions:
   recorded_at: Wed, 12 Jul 2017 10:27:26 GMT
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_network_receive_bytes_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22yzamir-centos7-3.eng.lab.tlv.redhat.com%22,job=%22kubernetes-nodes%22,interface=~%22eth.*%22%7D)&start=1499841622&step=20s
+    uri: https://capture.context.com/api/v1/query_range?end=1499852742&query=sum(container_network_receive_bytes_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22,interface=~%22eth.*%22%7D)&start=1499841622&step=20s
     body:
       encoding: US-ASCII
       string: ''

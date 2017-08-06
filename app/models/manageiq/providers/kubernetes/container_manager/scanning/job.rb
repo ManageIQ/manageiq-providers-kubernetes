@@ -13,7 +13,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   ERRCODE_NOTFOUND = 404
   IMAGE_INSPECTOR_SA = 'inspector-admin'
   INSPECTOR_ADMIN_SECRET_PATH = '/var/run/secrets/kubernetes.io/inspector-admin-secret-'
-  ATTRIBUTE_SECTION = 'cluster_settings'
   PROXY_ENV_VARIABLES = %w(no_proxy http_proxy https_proxy)
 
   def load_transitions
@@ -347,6 +346,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     return nil
   end
 
+  def ems_image_inspector_options
+    @provider_options ||= ext_management_system.options.try(:fetch_path, :image_inspector_options) || {}
+  end
+
   def pod_definition(inspector_admin_secret_name)
     pod_def = {
       :apiVersion => "v1",
@@ -409,6 +412,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     }
 
     add_secret_to_pod_def(pod_def, inspector_admin_secret_name) unless inspector_admin_secret_name.blank?
+    add_cve_url(pod_def)
     Kubeclient::Resource.new(pod_def)
   end
 
@@ -425,17 +429,24 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   end
 
   def inspector_image
-    registry = ::Settings.ems.ems_kubernetes.image_inspector_registry
-    repo = ::Settings.ems.ems_kubernetes.image_inspector_repository
-    "#{registry}/#{repo}:#{INSPECTOR_IMAGE_TAG}"
+    registry = ems_image_inspector_options.fetch_path(:registry) || ::Settings.ems.ems_kubernetes.image_inspector_registry
+    repo = ems_image_inspector_options.fetch_path(:repository) || ::Settings.ems.ems_kubernetes.image_inspector_repository
+    tag = ems_image_inspector_options.fetch_path(:image_tag) || INSPECTOR_IMAGE_TAG
+    "#{registry}/#{repo}:#{tag}"
   end
 
   def inspector_proxy_env_variables
-    settings = ext_management_system.custom_attributes
-    settings.where(:section => ATTRIBUTE_SECTION,
-                   :name    => PROXY_ENV_VARIABLES).each_with_object([]) do |att, env|
-      env << {:name  => att.name.upcase,
-              :value => att.value} unless att.value.blank?
+    PROXY_ENV_VARIABLES.each_with_object([]) do |var_name, env|
+      next unless ems_image_inspector_options.key?(var_name.to_sym)
+      var_value = ems_image_inspector_options[var_name.to_sym]
+      env << {:name  => var_name.upcase,
+              :value => var_value}
+    end
+  end
+
+  def add_cve_url(pod_def)
+    if ems_image_inspector_options.key?(:cve_url)
+      pod_def[:spec][:containers][0][:command].append("--cve-url=#{ems_image_inspector_options[:cve_url]}")
     end
   end
 end

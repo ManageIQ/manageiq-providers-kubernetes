@@ -13,6 +13,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   require_nested :RefreshWorker
   require_nested :Refresher
   require_nested :Scanning
+  require_nested :Options
 
   include ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options

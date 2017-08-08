@@ -10,6 +10,10 @@ describe ContainerImage do
       :containers => [FactoryGirl.create(:container, :name => "container_a", :container_group => group),
                       FactoryGirl.create(:container, :name => "container_b", :container_group => group)]
     ).container_nodes.count).to eq(1)
+    expect(FactoryGirl.create(
+      :container_image,
+      :containers => [FactoryGirl.create(:container, :name => "container_a", :container_group => group),
+                      FactoryGirl.create(:container, :name => "container_b", :container_group => group)]
+    ).number_of_containers).to eq(2)
     end
 end
-

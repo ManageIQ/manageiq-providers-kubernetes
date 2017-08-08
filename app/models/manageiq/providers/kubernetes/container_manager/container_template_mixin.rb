@@ -1,18 +1,6 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::ContainerTemplateMixin
   extend ActiveSupport::Concern
-
-  MIQ_ENTITY_MAPPING = {
-    "Route"                 => ContainerRoute,
-    "Build"                 => ContainerBuildPod,
-    "BuildConfig"           => ContainerBuild,
-    "Template"              => ContainerTemplate,
-    "ResourceQuota"         => ContainerQuota,
-    "LimitRange"            => ContainerLimit,
-    "ReplicationController" => ContainerReplicator,
-    "PersistentVolumeClaim" => PersistentVolumeClaim,
-    "Pod"                   => ContainerGroup,
-    "Service"               => ContainerService,
-  }.freeze
+  include ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
 
   def instantiate(params, project = nil)
     project ||= container_project.name
@@ -24,7 +12,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::ContainerTemplateMixin
                                           :objects    => objects,
                                           :parameters => params)
     create_objects(processed_template['objects'], project)
-    @created_objects.each { |obj| obj[:miq_class] = MIQ_ENTITY_MAPPING[obj[:kind]] }
+    @created_objects.each { |obj| obj[:miq_class] = model_by_entity(obj[:kind].underscore) }
   end
 
   def process_template(client, template)

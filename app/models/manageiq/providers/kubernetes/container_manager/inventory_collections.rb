@@ -313,11 +313,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     @collections[:persistent_volume_claims] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
-          :model_class    => PersistentVolumeClaim,
-          :parent         => manager,
-          :builder_params => {:ems_id => manager.id},
-          :association    => :persistent_volume_claims,
-          :use_ar_object  => true # serialized :capacity attr
+          :model_class          => PersistentVolumeClaim,
+          :parent               => manager,
+          :builder_params       => {:ems_id => manager.id},
+          :association          => :persistent_volume_claims,
+          :use_ar_object        => true, # serialized :capacity attr
+          :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+          :attributes_blacklist => [:namespace],
         )
       )
   end

@@ -30,4 +30,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
   def entity_by_resource(entity)
     MAPPING.key(entity)
   end
+
+  def model_by_entity(entity)
+    resource_by_entity(entity).try(:constantize)
+  end
 end

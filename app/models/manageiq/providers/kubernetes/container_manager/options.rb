@@ -57,7 +57,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::Options
       }
     end
 
-    def provider_settings
+    def options_description
       {
         :proxy_settings    => {
           :label     => N_('Proxy Settings'),

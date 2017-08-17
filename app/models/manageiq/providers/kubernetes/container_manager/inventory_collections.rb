@@ -127,7 +127,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           # TODO: should match on digest when available
           :manager_ref    => [:image_ref],
           :delete_method  => :disconnect_inv,
-          :use_ar_object  => true, # several serialized attributes
         )
       )
     # images have custom_attributes but that's done conditionally in openshift parser
@@ -251,7 +250,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :builder_params => {:ems_id => manager.id},
           :association    => :container_component_statuses,
           :manager_ref    => [:name],
-          :use_ar_object  => true, # TODO(perf) :message has #<Kubeclient::ComponentStatus health="true"> stringified
         )
       )
 
@@ -307,7 +305,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent         => manager,
           :builder_params => {:parent => manager},
           :association    => :persistent_volumes,
-          :use_ar_object  => true # serialized :storage attr
         )
       )
     @collections[:persistent_volume_claims] =
@@ -317,7 +314,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :persistent_volume_claims,
-          :use_ar_object        => true, # serialized :capacity attr
           :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
           :attributes_blacklist => [:namespace],
         )

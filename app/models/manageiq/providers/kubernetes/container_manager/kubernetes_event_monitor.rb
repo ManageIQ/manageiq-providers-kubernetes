@@ -13,7 +13,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::KubernetesEventMonitor
   end
 
   def start
-    trap(:TERM) { $kube_log.info('EventMonitor#start: ignoring SIGTERM') }
     @inventory = nil
     @watcher = nil
   end

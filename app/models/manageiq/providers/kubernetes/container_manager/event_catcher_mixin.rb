@@ -42,6 +42,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       # asynchronously when available.
       @queue.enq event
     end
+  rescue SignalException => e
+    if e.message == "SIGTERM"
+      $kube_log.info("#{self.class.name}##{__method__}: ignoring SIGTERM")
+    else
+      raise
+    end
   ensure
     reset_event_monitor_handle
   end

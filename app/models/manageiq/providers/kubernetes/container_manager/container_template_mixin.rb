@@ -2,15 +2,17 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::ContainerTemplateMixin
   extend ActiveSupport::Concern
   include ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
 
-  def instantiate(params, project = nil)
+  def instantiate(params, project = nil, labels = nil)
     project ||= container_project.name
+    labels  ||= object_labels
     processed_template = process_template(ext_management_system.connect,
                                           :metadata   => {
                                             :name      => name,
                                             :namespace => project
                                           },
                                           :objects    => objects,
-                                          :parameters => params.collect(&:instantiation_attributes))
+                                          :parameters => params.collect(&:instantiation_attributes),
+                                          :labels     => labels)
     create_objects(processed_template['objects'], project)
     @created_objects.each { |obj| obj[:miq_class] = model_by_entity(obj[:kind].underscore) }
   end

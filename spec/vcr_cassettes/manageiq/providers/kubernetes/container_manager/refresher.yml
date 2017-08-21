@@ -1,3 +1,5 @@
+# Note: this cassette has been manually edited, probably more than once,
+# and doesn't necessarily represent ground truth.
 ---
 http_interactions:
 - request:
@@ -602,7 +604,7 @@ http_interactions:
       encoding: UTF-8
       string: '{"kind":"ComponentStatusList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/componentstatuses"},"items":[{"metadata":{"name":"controller-manager","selfLink":"/api/v1/namespaces/componentstatuses/controller-manager","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"Unknown","error":"Get
         http://127.0.0.1:10252/healthz: dial tcp 127.0.0.1:10252: connection refused"}]},{"metadata":{"name":"scheduler","selfLink":"/api/v1/namespaces/componentstatuses/scheduler","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"Unknown","error":"Get
-        http://127.0.0.1:10251/healthz: dial tcp 127.0.0.1:10251: connection refused"}]},{"metadata":{"name":"etcd-0","selfLink":"/api/v1/namespaces/componentstatuses/etcd-0","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"True","message":{"health":"true"},"error":"nil"}]}]}'
+        http://127.0.0.1:10251/healthz: dial tcp 127.0.0.1:10251: connection refused"}]},{"metadata":{"name":"etcd-0","selfLink":"/api/v1/namespaces/componentstatuses/etcd-0","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"True","message":"{\"health\":\"true\"}","error":"nil"}]}]}'
     http_version:
   recorded_at: Tue, 13 Oct 2015 13:03:20 GMT
 recorded_with: VCR 2.9.3

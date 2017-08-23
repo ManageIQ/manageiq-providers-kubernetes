@@ -10,7 +10,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::ContainerTemplateMixin
                                             :namespace => project
                                           },
                                           :objects    => objects,
-                                          :parameters => params)
+                                          :parameters => params.collect(&:instantiation_attributes))
     create_objects(processed_template['objects'], project)
     @created_objects.each { |obj| obj[:miq_class] = model_by_entity(obj[:kind].underscore) }
   end

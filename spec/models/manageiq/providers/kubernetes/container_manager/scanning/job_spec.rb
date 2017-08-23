@@ -57,17 +57,38 @@ class MockImageInspectorClient
   end
 
   def fetch_metadata(*_args)
-    if @repo_digest
-      OpenStruct.new('Id' => @for_id, 'RepoDigests' => ["123456677899987765543322", @repo_digest])
-    else
-      OpenStruct.new('Id' => @for_id)
-    end
+    meta = if @repo_digest
+             OpenStruct.new('Id' => @for_id, 'RepoDigests' => ["123456677899987765543322", @repo_digest])
+           else
+             OpenStruct.new('Id' => @for_id)
+           end
+    meta["OpenSCAP"] = OpenStruct.new("Status" => @status)
+    meta
   end
 
   def fetch_oscap_arf
     File.read(
       File.expand_path(File.join(File.dirname(__FILE__), "ssg-fedora-ds-arf.xml"))
     ).encode("UTF-8")
+  end
+end
+
+class MockFailedImageInspectorClient < MockImageInspectorClient
+  def initialize(status, msg, *args)
+    super(*args)
+    @status = status
+    @msg = msg
+  end
+
+  def fetch_metadata(*_args)
+    os = super
+    os["OpenSCAP"] = OpenStruct.new("Status"       => @status,
+                                    "ErrorMessage" => @msg)
+    os
+  end
+
+  def fetch_oscap_arf
+    raise ImageInspectorClient::InspectorClientException.new(404, "test error message")
   end
 end
 
@@ -347,6 +368,38 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         expect(@job.status).to eq 'error'
         expect(@job.message).to eq "cannot analyze image #{IMAGE_NAME} with id #{IMAGE_ID[0..11]}:"\
                                    " detected ids were #{MODIFIED_IMAGE_ID[0..11]}"
+      end
+    end
+
+    context 'reading openscap messages' do
+      OSCAP_ERROR_MSG = 'Unable to run OpenSCAP: Unable to get RHEL dist number'.freeze
+      OSCAP_SUCCESS_MSG = 'image analysis completed successfully'.freeze
+
+      before(:each) do
+        # Expecting to raise from MockFailedImageInspectorClient before getting to use openscap binary
+        allow(OpenscapResult).to receive_messages(:openscap_available? => true)
+      end
+
+      it 'set the ok status from image-inspector OSCAP' do
+        allow_any_instance_of(described_class).to receive_messages(
+          :image_inspector_client => MockFailedImageInspectorClient.new("Success", "", IMAGE_ID)
+        )
+        @job.signal(:start)
+        expect(@job.state).to eq 'finished'
+        expect(@job.status).to eq 'ok'
+        expect(@job.message).to eq OSCAP_SUCCESS_MSG
+        expect(@image.last_scan_result.scan_result_message).to eq OSCAP_SUCCESS_MSG
+      end
+
+      it 'set the warn status from image-inspector OSCAP' do
+        allow_any_instance_of(described_class).to receive_messages(
+          :image_inspector_client => MockFailedImageInspectorClient.new("Error", OSCAP_ERROR_MSG, IMAGE_ID)
+        )
+        @job.signal(:start)
+        expect(@job.state).to eq 'finished'
+        expect(@job.status).to eq 'warn'
+        expect(@job.message).to eq OSCAP_ERROR_MSG
+        expect(@image.last_scan_result.scan_result_message).to eq OSCAP_ERROR_MSG
       end
     end
 

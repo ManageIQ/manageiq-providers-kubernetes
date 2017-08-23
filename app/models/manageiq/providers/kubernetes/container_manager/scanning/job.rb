@@ -139,13 +139,24 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
       :guest_os      => IMAGES_GUEST_OS
     }
 
-    verify_error = verify_scanned_image_id(image_inspector_client.fetch_metadata)
+    begin
+      inspector_metadata = image_inspector_client.fetch_metadata
+    rescue ImageInspectorClient::InspectorClientException => e
+      _log.error("analyzing image-inspector metadata for #{options[:docker_image_id]} failed with error: #{e}")
+    end
+
+    verify_error = verify_scanned_image_id(inspector_metadata)
     if verify_error
       _log.error(verify_error)
       return queue_signal(:abort_job, verify_error, 'error')
     end
 
-    collect_compliance_data(image)
+    if inspector_metadata.OpenSCAP.Status == 'Error'
+      update!(:options => options.merge(:scan_status         => inspector_metadata.OpenSCAP.Status,
+                                        :scan_result_message => inspector_metadata.OpenSCAP.ErrorMessage))
+    else
+      collect_compliance_data(image)
+    end
 
     image.scan_metadata(SCAN_CATEGORIES,
                         "taskid" => jobid,
@@ -155,7 +166,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
 
   def collect_compliance_data(image)
     unless OpenscapResult.openscap_available?
-      _log.warn "OpenSCAP Binary missing, skipping scan"
+      _log.warn("OpenSCAP Binary missing, skipping scan")
       return nil
     end
     _log.info "collecting compliance data for #{options[:docker_image_id]}"
@@ -230,12 +241,32 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
 
     delete_pod
 
+    set_image_scan_status unless %w(aborting canceling).include?(self.state)
+
   ensure
     case self.state
     when 'aborting' then process_abort(*args)
     when 'canceling' then process_cancel(*args)
-    else queue_signal(:finish, 'image analysis completed successfully', 'ok')
+    else
+      queue_signal(:finish,
+                   target_entity.last_scan_result.scan_result_message,
+                   target_entity.last_scan_result.scan_status)
     end
+  end
+
+  def set_image_scan_status
+    return unless target_entity
+    target_entity.update(
+      :last_scan_result => ScanResult.create(
+        :scan_type           => "OpenSCAP",
+        :scan_status         => options[:scan_status] == 'Error' ? 'warn' : 'ok',
+        :scan_result_message => if options[:scan_status] == 'Error'
+                                  options[:scan_result_message]
+                                else
+                                  'image analysis completed successfully'.freeze
+                                end
+      )
+    )
   end
 
   def finish(*args)

@@ -1,0 +1,179 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://capture.context.com/api/v1/query_range?end=1499841942&query=sum(container_cpu_usage_seconds_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22%7D)%20*%201e9&start=1499841622&step=20s
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Authorization:
+      - Bearer theToken
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Headers:
+      - Accept, Authorization, Content-Type, Origin
+      Access-Control-Allow-Methods:
+      - GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Date
+      Content-Length:
+      - '614'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 12 Jul 2017 10:27:21 GMT
+      Set-Cookie:
+      - bd337c9bdedd23361d6a22bfc4876b73=a26b6652b3b173de5a3f07cffd745bb1; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
+    body:
+      encoding: UTF-8
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1499841622,"168086952000296"],[1499841642,"168105778521872"],[1499841662,"168105778521872"],[1499841682,"168105778521872"],[1499841702,"168122669736096"],[1499841722,"168122669736096"],[1499841742,"168122669736096"],[1499841762,"168141881129482"],[1499841782,"168141881129482"],[1499841802,"168141881129482"],[1499841822,"168161302434028"],[1499841842,"168161302434028"],[1499841862,"168161302434028"],[1499841882,"168180562577278"],[1499841902,"168180562577278"],[1499841922,"168180562577278"],[1499841942,"168200442705493"]]}]}}'
+    http_version: 
+  recorded_at: Wed, 12 Jul 2017 10:27:21 GMT
+- request:
+    method: get
+    uri: https://capture.context.com/api/v1/query_range?end=1499841942&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22%7D)&start=1499841622&step=20s
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Authorization:
+      - Bearer theToken
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Headers:
+      - Accept, Authorization, Content-Type, Origin
+      Access-Control-Allow-Methods:
+      - GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Date
+      Content-Length:
+      - '529'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 12 Jul 2017 10:27:21 GMT
+      Set-Cookie:
+      - bd337c9bdedd23361d6a22bfc4876b73=a26b6652b3b173de5a3f07cffd745bb1; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
+    body:
+      encoding: UTF-8
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1499841622,"3526918144"],[1499841642,"3530473472"],[1499841662,"3530473472"],[1499841682,"3530473472"],[1499841702,"3528142848"],[1499841722,"3528142848"],[1499841742,"3528142848"],[1499841762,"3529007104"],[1499841782,"3529007104"],[1499841802,"3529007104"],[1499841822,"3532517376"],[1499841842,"3532517376"],[1499841862,"3532517376"],[1499841882,"3531689984"],[1499841902,"3531689984"],[1499841922,"3531689984"],[1499841942,"3533135872"]]}]}}'
+    http_version: 
+  recorded_at: Wed, 12 Jul 2017 10:27:21 GMT
+- request:
+    method: get
+    uri: https://capture.context.com/api/v1/query_range?end=1499841942&query=sum(container_network_transmit_bytes_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22,interface=~%22eth.*%22%7D)&start=1499841622&step=20s
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Authorization:
+      - Bearer theToken
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Headers:
+      - Accept, Authorization, Content-Type, Origin
+      Access-Control-Allow-Methods:
+      - GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Date
+      Content-Length:
+      - '495'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 12 Jul 2017 10:27:21 GMT
+      Set-Cookie:
+      - bd337c9bdedd23361d6a22bfc4876b73=a26b6652b3b173de5a3f07cffd745bb1; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
+    body:
+      encoding: UTF-8
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1499841622,"32852605"],[1499841642,"33525626"],[1499841662,"33525626"],[1499841682,"33525626"],[1499841702,"33527728"],[1499841722,"33527728"],[1499841742,"33527728"],[1499841762,"33529680"],[1499841782,"33529680"],[1499841802,"33529680"],[1499841822,"33531803"],[1499841842,"33531803"],[1499841862,"33531803"],[1499841882,"33536064"],[1499841902,"33536064"],[1499841922,"33536064"],[1499841942,"34208876"]]}]}}'
+    http_version: 
+  recorded_at: Wed, 12 Jul 2017 10:27:21 GMT
+- request:
+    method: get
+    uri: https://capture.context.com/api/v1/query_range?end=1499841942&query=sum(container_network_receive_bytes_total%7Bcontainer_name=%22%22,id=%22/%22,instance=%22capture.context.com%22,job=%22kubernetes-nodes%22,interface=~%22eth.*%22%7D)&start=1499841622&step=20s
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Authorization:
+      - Bearer theToken
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Headers:
+      - Accept, Authorization, Content-Type, Origin
+      Access-Control-Allow-Methods:
+      - GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Date
+      Content-Length:
+      - '512'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 12 Jul 2017 10:27:21 GMT
+      Set-Cookie:
+      - bd337c9bdedd23361d6a22bfc4876b73=a26b6652b3b173de5a3f07cffd745bb1; path=/;
+        HttpOnly; Secure
+      Cache-Control:
+      - private
+    body:
+      encoding: UTF-8
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1499841622,"469076129"],[1499841642,"469181946"],[1499841662,"469181946"],[1499841682,"469181946"],[1499841702,"469223586"],[1499841722,"469223586"],[1499841742,"469223586"],[1499841762,"469267231"],[1499841782,"469267231"],[1499841802,"469267231"],[1499841822,"469309896"],[1499841842,"469309896"],[1499841862,"469309896"],[1499841882,"469358573"],[1499841902,"469358573"],[1499841922,"469358573"],[1499841942,"469467124"]]}]}}'
+    http_version: 
+  recorded_at: Wed, 12 Jul 2017 10:27:21 GMT
+recorded_with: VCR 3.0.3

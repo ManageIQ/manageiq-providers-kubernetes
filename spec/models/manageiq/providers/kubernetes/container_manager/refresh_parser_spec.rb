@@ -464,15 +464,21 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
           },
           :spec     => {
             :hard => {
-              :cpu => '30'
+              :cpu    => '30',
+              :pods   => '100',
+              :memory => '10M'
             }
           },
           :status   => {
             :hard => {
-              :cpu => '30'
+              :cpu    => '30',
+              :pods   => '50',
+              :memory => '100Mi'
             },
             :used => {
-              :cpu => '100m'
+              :cpu    => '100m',
+              :pods   => '50',
+              :memory => '1.3e5'
             }
           }
         )
@@ -484,9 +490,21 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                :container_quota_items => [
                  {
                    :resource       => "cpu",
-                   :quota_desired  => "30",
-                   :quota_enforced => "30",
-                   :quota_observed => "100m"
+                   :quota_desired  => 30,
+                   :quota_enforced => 30,
+                   :quota_observed => 0.1
+                 },
+                 {
+                   :resource       => "pods",
+                   :quota_desired  => 100,
+                   :quota_enforced => 50,
+                   :quota_observed => 50
+                 },
+                 {
+                   :resource       => "memory",
+                   :quota_desired  => 10_000_000,
+                   :quota_enforced => 104_857_600,
+                   :quota_observed => 130_000
                  }
                ]
               )
@@ -534,7 +552,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                :container_quota_items => [
                  {
                    :resource       => "cpu",
-                   :quota_desired  => "30",
+                   :quota_desired  => 30,
                    :quota_enforced => nil,
                    :quota_observed => nil
                  }

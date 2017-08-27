@@ -891,15 +891,15 @@ module ManageIQ::Providers::Kubernetes
       end
 
       resource_quota.spec.hard.to_h.each do |resource_name, quota|
-        new_result_h[resource_name][:quota_desired] = quota
+        new_result_h[resource_name][:quota_desired] = parse_quantity(quota)
       end
 
       resource_quota.status.hard.to_h.each do |resource_name, quota|
-        new_result_h[resource_name][:quota_enforced] = quota
+        new_result_h[resource_name][:quota_enforced] = parse_quantity(quota)
       end
 
       resource_quota.status.used.to_h.each do |resource_name, quota|
-        new_result_h[resource_name][:quota_observed] = quota
+        new_result_h[resource_name][:quota_observed] = parse_quantity(quota)
       end
 
       new_result_h.values

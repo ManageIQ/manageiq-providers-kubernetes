@@ -766,8 +766,14 @@ module ManageIQ::Providers::Kubernetes
 
       unless pod.status.nil? || pod.status.containerStatuses.nil?
         pod.status.containerStatuses.each do |cn|
+          container_status = parse_container_status(cn, pod.metadata.uid)
+          if container_status.nil?
+            _log.error("Invalid container status: pod - [#{pod.metadata.uid}] container - [#{cn}] [#{containers_index[cn.name]}]")
+            next
+          end
+
           containers_index[cn.name] ||= {}
-          containers_index[cn.name].merge!(parse_container_status(cn, pod.metadata.uid))
+          containers_index[cn.name].merge!(container_status)
         end
       end
 
@@ -1077,11 +1083,14 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def parse_container_status(container, pod_id)
+      container_image = parse_container_image(container.image, container.imageID)
+      return if container_image.nil?
+
       h = {
         :type            => 'ManageIQ::Providers::Kubernetes::ContainerManager::Container',
         :restart_count   => container.restartCount,
         :backing_ref     => container.containerID,
-        :container_image => parse_container_image(container.image, container.imageID)
+        :container_image => container_image
       }
       state_attributes = parse_container_state container.lastState
       state_attributes.each { |key, val| h[key.to_s.prepend('last_').to_sym] = val } if state_attributes
@@ -1103,6 +1112,8 @@ module ManageIQ::Providers::Kubernetes
     # may return nil if store_new_images = false
     def parse_container_image(image, imageID, store_new_images: true)
       container_image, container_image_registry = parse_image_name(image, imageID)
+      return if container_image.nil?
+
       host_port = nil
 
       unless container_image_registry.nil?
@@ -1201,8 +1212,18 @@ module ManageIQ::Providers::Kubernetes
             (?<digest>(sha256:)?.+)?
         \z
       }x
+
       image_parts = docker_pullable_re.match(image)
+      if image_parts.nil?
+        _log.error("Invalid image #{image}")
+        return
+      end
+
       image_ref_parts = docker_pullable_re.match(image_ref) || docker_daemon_re.match(image_ref)
+      if image_ref_parts.nil?
+        _log.error("Invalid image_ref #{image_ref}")
+        return
+      end
 
       if image_ref.start_with?(ContainerImage::DOCKER_PULLABLE_PREFIX)
         hostname = image_ref_parts[:host] || image_ref_parts[:host2]

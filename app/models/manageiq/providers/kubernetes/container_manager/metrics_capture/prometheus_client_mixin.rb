@@ -52,12 +52,18 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_try_connect
-    body = prometheus_client.get("query", :query => "ALL").body
-    data = JSON.parse(body)
+    begin
+      response = prometheus_client.get("query", :query => "ALL")
+    rescue StandardError => err
+      raise MiqException::MiqUnreachableError, err.message, err.backtrace
+    end
+
+    begin
+      data = JSON.parse(response.body)
+    rescue StandardError => err # if auth_proxy fail it returns an html doc
+      raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
+    end
+
     data.kind_of?(Hash)
-  rescue Faraday::SSLError => err
-    raise MiqException::MiqUnreachableError, err.message, err.backtrace
-  rescue StandardError => err
-    raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
   end
 end

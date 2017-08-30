@@ -28,7 +28,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_endpoint
-    @ext_management_system.endpoints.find_by(:role => "prometheus")
+    @ext_management_system.connection_configurations.prometheus.endpoint
   end
 
   def prometheus_uri
@@ -52,6 +52,18 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_try_connect
-    prometheus_client.get("query").kind_of?(Hash)
+    begin
+      response = prometheus_client.get("query", :query => "ALL")
+    rescue StandardError => err
+      raise MiqException::MiqUnreachableError, err.message, err.backtrace
+    end
+
+    begin
+      data = JSON.parse(response.body)
+    rescue StandardError => err # if auth_proxy fail it returns an html doc
+      raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
+    end
+
+    data.kind_of?(Hash)
   end
 end

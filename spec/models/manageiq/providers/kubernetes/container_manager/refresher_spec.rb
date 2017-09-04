@@ -473,6 +473,8 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
         :phase    => "Bound",
         :capacity => {:storage => 10.gigabytes},
       )
+      expect(@bound_pvc.container_project.name).to eq("openshift-infra")
+
       pv = PersistentVolume.find_by(:name => "metrics-volume")
       cv = ContainerVolume.find_by(:name => "cassandra-data", :type => "ContainerVolume")
       expect(@bound_pvc.container_volumes).to contain_exactly(pv, cv)

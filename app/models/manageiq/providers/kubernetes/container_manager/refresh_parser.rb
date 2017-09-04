@@ -189,6 +189,7 @@ module ManageIQ::Providers::Kubernetes
       process_collection(inventory["persistent_volume_claim"], key) { |n| parse_persistent_volume_claim(n) }
       @data[key].each do |pvc|
         @data_index.store_path(key, :by_namespace_and_name, pvc[:namespace], pvc[:name], pvc)
+        pvc[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, pvc[:namespace])
       end
     end
 
@@ -371,6 +372,7 @@ module ManageIQ::Providers::Kubernetes
 
       inv["persistent_volume_claim"].each do |pvc|
         h = parse_persistent_volume_claim(pvc)
+        h[:container_project] = lazy_find_project(:name => h[:namespace])
 
         collection.build(h)
       end

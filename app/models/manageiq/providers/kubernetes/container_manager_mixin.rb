@@ -130,6 +130,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   def authentications_to_validate
     at = [:bearer]
     at << :hawkular if has_authentication_type?(:hawkular)
+    at << :prometheus if has_authentication_type?(:prometheus)
     at
   end
 
@@ -165,7 +166,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   end
 
   def supported_auth_types
-    %w(default password bearer)
+    %w(default password bearer hawkular prometheus)
   end
 
   def supports_authentication?(authtype)

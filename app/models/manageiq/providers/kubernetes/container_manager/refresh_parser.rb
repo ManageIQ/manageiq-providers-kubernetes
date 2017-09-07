@@ -586,6 +586,8 @@ module ManageIQ::Providers::Kubernetes
       end
     end
 
+    ## Helpers for @data / @data_index
+
     def process_collection(collection, key, &block)
       @data[key] ||= []
       collection.each { |item| process_collection_item(item, key, &block) }
@@ -598,6 +600,15 @@ module ManageIQ::Providers::Kubernetes
 
       @data[key] << new_result
       new_result
+    end
+
+    def find_or_store_data(data_index_path, data_key, new_result)
+      @data_index.fetch_path(*data_index_path) ||
+        begin
+          @data_index.store_path(*data_index_path, new_result)
+          process_collection_item(new_result, data_key) { |x| x }
+          new_result
+        end
     end
 
     ## Shared parsing methods
@@ -1114,37 +1125,16 @@ module ManageIQ::Providers::Kubernetes
       container_image, container_image_registry = parse_image_name(image, imageID)
       return if container_image.nil?
 
-      host_port = nil
+      stored_container_image_registry = find_or_store_container_image_registry(container_image_registry)
 
-      unless container_image_registry.nil?
-        host_port = "#{container_image_registry[:host]}:#{container_image_registry[:port]}"
-
-        stored_container_image_registry = @data_index.fetch_path(
-          :container_image_registry, :by_host_and_port,  host_port)
-        if stored_container_image_registry.nil?
-          @data_index.store_path(
-            :container_image_registry, :by_host_and_port, host_port, container_image_registry)
-          process_collection_item(container_image_registry, :container_image_registries) { |r| r }
-          stored_container_image_registry = container_image_registry
-        end
+      if store_new_images
+        stored_container_image = find_or_store_container_image(container_image)
+      else
+        stored_container_image = @data_index.fetch_path(index_path_for_container_image(container_image))
+        return if stored_container_image.nil?
       end
 
-      # if a digest exists then it is more identifiying than the image name/repo/tag
-      # as one image might have many names/repos/tags.
-      container_image_identity = container_image[:digest] || container_image[:image_ref]
-      stored_container_image = @data_index.fetch_path(
-        :container_image, :by_digest, container_image_identity)
-
-      if stored_container_image.nil?
-        return nil unless store_new_images
-        @data_index.store_path(
-          :container_image, :by_digest,
-          container_image_identity, container_image
-        )
-        process_collection_item(container_image, :container_images) { |img| img }
-        stored_container_image = container_image
-      end
-
+      # TODO: should this linking be done for previously stored images too?
       stored_container_image[:container_image_registry] = stored_container_image_registry
       stored_container_image
     end
@@ -1327,6 +1317,26 @@ module ManageIQ::Providers::Kubernetes
 
     def path_for_entity(entity)
       resource_by_entity(entity).tableize.to_sym
+    end
+
+    def find_or_store_container_image_registry(container_image_registry)
+      return nil if container_image_registry.nil?
+
+      host_port = "#{container_image_registry[:host]}:#{container_image_registry[:port]}"
+      path = [:container_image_registry, :by_host_and_port, host_port]
+      find_or_store_data(path, :container_image_registries, container_image_registry)
+    end
+
+    def find_or_store_container_image(container_image)
+      find_or_store_data(index_path_for_container_image(container_image), :container_images, container_image)
+    end
+
+    def index_path_for_container_image(container_image)
+      # If a digest exists then it is more identifiying than the image name/repo/tag
+      # as one image might have many names/repos/tags.
+      container_image_identity = container_image[:digest] || container_image[:image_ref]
+      # TODO: "by_digest" is not precise.
+      [:container_image, :by_digest, container_image_identity]
     end
 
     def lazy_find_project(name:)

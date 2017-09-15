@@ -52,6 +52,8 @@
     :password:
     :port:
     :user:
+:log:
+  :level_kube: info
 :ems_refresh:
   :kubernetes:
     :refresh_interval: 15.minutes

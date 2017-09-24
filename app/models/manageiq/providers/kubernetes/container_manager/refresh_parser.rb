@@ -885,6 +885,8 @@ module ManageIQ::Providers::Kubernetes
       new_result = parse_base_item(claim)
       new_result.merge!(
         :desired_access_modes => claim.spec.accessModes,
+        :requests             => parse_resource_list(claim.spec.resources.requests.to_h),
+        :limits               => parse_resource_list(claim.spec.resources.limits.to_h),
         :phase                => claim.status.phase,
         :actual_access_modes  => claim.status.accessModes,
         :capacity             => parse_resource_list(claim.status.capacity.to_h),

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+
+## Unreleased as of Sprint 69 ending 2017-09-18
+
+### Fixed
+- Add mising metrics authentication [(#109)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/109)
+
 ## Unreleased as of Sprint 68 ending 2017-09-04
 
 ### Added

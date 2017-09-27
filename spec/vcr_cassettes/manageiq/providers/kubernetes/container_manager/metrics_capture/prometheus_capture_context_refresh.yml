@@ -408,47 +408,6 @@ http_interactions:
   recorded_at: Wed, 12 Jul 2017 10:27:14 GMT
 - request:
     method: get
-    uri: https://capture.context.com:8443/api/v1/componentstatuses
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - "*/*"
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Authorization:
-      - Bearer theToken
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Cache-Control:
-      - no-store
-      Content-Type:
-      - application/json
-      Date:
-      - Wed, 12 Jul 2017 10:27:14 GMT
-      Content-Length:
-      - '919'
-    body:
-      encoding: UTF-8
-      string: '{"kind":"ComponentStatusList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/componentstatuses"},"items":[{"metadata":{"name":"controller-manager","selfLink":"/api/v1/componentstatusescontroller-manager","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"False","message":"Get
-        http://127.0.0.1:10252/healthz: dial tcp 127.0.0.1:10252: getsockopt: connection
-        refused"}]},{"metadata":{"name":"scheduler","selfLink":"/api/v1/componentstatusesscheduler","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"False","message":"Get
-        http://127.0.0.1:10251/healthz: dial tcp 127.0.0.1:10251: getsockopt: connection
-        refused"}]},{"metadata":{"name":"etcd-0","selfLink":"/api/v1/componentstatusesetcd-0","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"False","message":"Get
-        https://capture.context.com:4001/health: remote error:
-        tls: bad certificate"}]}]}
-
-'
-    http_version: 
-  recorded_at: Wed, 12 Jul 2017 10:27:14 GMT
-- request:
-    method: get
     uri: https://capture.context.com:8443/oapi/v1
     body:
       encoding: US-ASCII

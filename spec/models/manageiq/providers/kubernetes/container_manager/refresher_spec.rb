@@ -52,7 +52,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
       assert_specific_container_quota
       assert_specific_container_limit
       assert_specific_container_image_and_registry
-      assert_specific_container_component_status
       # Volumes, PVs, and PVCs are tested in _before_deletions VCR.
     end
   end
@@ -74,7 +73,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     expect(ContainerLimit.count).to eq(3)
     expect(ContainerImage.count).to eq(3)
     expect(ContainerImageRegistry.count).to eq(1)
-    expect(ContainerComponentStatus.count).to eq(3)
     expect(PersistentVolume.count).to eq(1)
   end
 
@@ -369,14 +367,6 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
       :port => "1234",
     )
     expect(@image.container_nodes.count).to eq(1)
-  end
-
-  def assert_specific_container_component_status
-    @component_status = ContainerComponentStatus.find_by(:name => "etcd-0")
-    expect(@component_status).to have_attributes(
-      :condition => "Healthy",
-      :status    => "True"
-    )
   end
 
   def label_with_name_value(name, value)

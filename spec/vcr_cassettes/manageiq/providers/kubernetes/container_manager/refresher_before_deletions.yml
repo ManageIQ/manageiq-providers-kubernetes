@@ -401,48 +401,7 @@ http_interactions:
       string: '{"kind":"PersistentVolumeClaimList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/persistentvolumeclaims","resourceVersion":"2123778"},"items":[{"metadata":{"name":"my-persistentvolumeclaim-0","namespace":"my-project-0","selfLink":"/api/v1/namespaces/my-project-0/persistentvolumeclaims/my-persistentvolumeclaim-0","uid":"efdc4a5a-50ed-11e7-9a6c-001a4a162683","resourceVersion":"2123332","creationTimestamp":"2017-06-14T10:40:51Z"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"8Gi"}}},"status":{"phase":"Pending"}},{"metadata":{"name":"my-persistentvolumeclaim-1","namespace":"my-project-1","selfLink":"/api/v1/namespaces/my-project-1/persistentvolumeclaims/my-persistentvolumeclaim-1","uid":"f01701c8-50ed-11e7-9a6c-001a4a162683","resourceVersion":"2123381","creationTimestamp":"2017-06-14T10:40:52Z"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"8Gi"}}},"status":{"phase":"Pending"}},{"metadata":{"name":"my-persistentvolumeclaim-2","namespace":"my-project-2","selfLink":"/api/v1/namespaces/my-project-2/persistentvolumeclaims/my-persistentvolumeclaim-2","uid":"f05028a5-50ed-11e7-9a6c-001a4a162683","resourceVersion":"2123427","creationTimestamp":"2017-06-14T10:40:52Z"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"8Gi"}}},"status":{"phase":"Pending"}},{"metadata":{"name":"metrics-cassandra-1","namespace":"openshift-infra","selfLink":"/api/v1/namespaces/openshift-infra/persistentvolumeclaims/metrics-cassandra-1","uid":"e21379dd-e6f9-11e6-a348-001a4a162683","resourceVersion":"973","creationTimestamp":"2017-01-30T14:39:19Z","labels":{"metrics-infra":"hawkular-cassandra"},"annotations":{"pv.kubernetes.io/bind-completed":"yes","pv.kubernetes.io/bound-by-controller":"yes"}},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"10Gi"}},"volumeName":"metrics-volume"},"status":{"phase":"Bound","accessModes":["ReadWriteOnce"],"capacity":{"storage":"10Gi"}}}]}
 
 '
-    http_version: 
-  recorded_at: Wed, 14 Jun 2017 10:50:37 GMT
-- request:
-    method: get
-    uri: https://host.example.com:8443/api/v1/componentstatuses
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - "*/*"
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.3.3p222
-      Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tOHhlb2siLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjI3Zjc0NTNlLWU2ZjgtMTFlNi1hMzQ4LTAwMWE0YTE2MjY4MyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.bPi4TnBvEHQ5URSYZ9pfhebq5KLSJBAgJCeQ3I4UATpxwvy-WkF1uy_E_k2nc_GKRIOTzHjxjxBwvwL4KFyyM-By-RQHSb1Uux4qU077n9c67drbaeeYZ3MJVdoxDANqDu96g00YnVxxODx7DSep36dr9mLzWlP_k2NwAyxBV5NukYULdGunCjvWuv7wEyPHmUMRN4xntbhd5EhZThpN93PD6AhzcYy-OV9ZUB41L7bslnZEPU0kpG9oQbvj9hRoKJR7FyRPnHaUqJD7riOXwYjB57vk7lTCaxzsQs1i21dlQvdetu83drMTdV-02V_XuB5zucYPvaCUx7v-PUUy3A
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Cache-Control:
-      - no-store
-      Content-Type:
-      - application/json
-      Date:
-      - Wed, 14 Jun 2017 10:49:03 GMT
-      Content-Length:
-      - '915'
-    body:
-      encoding: UTF-8
-      string: '{"kind":"ComponentStatusList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/componentstatuses"},"items":[{"metadata":{"name":"scheduler","selfLink":"/api/v1/componentstatuses/scheduler","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"False","message":"Get
-        http://127.0.0.1:10251/healthz: dial tcp 127.0.0.1:10251: getsockopt: connection
-        refused"}]},{"metadata":{"name":"controller-manager","selfLink":"/api/v1/componentstatuses/controller-manager","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"False","message":"Get
-        http://127.0.0.1:10252/healthz: dial tcp 127.0.0.1:10252: getsockopt: connection
-        refused"}]},{"metadata":{"name":"etcd-0","selfLink":"/api/v1/componentstatuses/etcd-0","creationTimestamp":null},"conditions":[{"type":"Healthy","status":"False","message":"Get
-        https://host.example.com:4001/health: remote error: tls: bad
-        certificate"}]}]}
-
-'
-    http_version: 
+    http_version:
   recorded_at: Wed, 14 Jun 2017 10:50:38 GMT
 - request:
     method: get

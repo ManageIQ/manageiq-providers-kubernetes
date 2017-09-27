@@ -5,9 +5,7 @@ module ManageIQ
         KUBERNETES_ENTITIES = [
           {:name => 'pods'}, {:name => 'services'}, {:name => 'replication_controllers'}, {:name => 'nodes'},
           {:name => 'endpoints'}, {:name => 'namespaces'}, {:name => 'resource_quotas'}, {:name => 'limit_ranges'},
-          {:name => 'persistent_volumes'}, {:name => 'persistent_volume_claims'},
-          # workaround for: https://github.com/openshift/origin/issues/5865
-          {:name => 'component_statuses', :default => []}
+          {:name => 'persistent_volumes'}, {:name => 'persistent_volume_claims'}
         ]
 
         def fetch_entities(client, entities)

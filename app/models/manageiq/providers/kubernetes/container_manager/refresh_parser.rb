@@ -33,7 +33,6 @@ module ManageIQ::Providers::Kubernetes
       get_pods(inventory)
       get_endpoints(inventory)
       get_services(inventory)
-      get_component_statuses(inventory)
       EmsRefresh.log_inv_debug_trace(@data, "data:")
 
       # Returning a hash triggers save_inventory_container code path.
@@ -71,7 +70,6 @@ module ManageIQ::Providers::Kubernetes
       get_persistent_volumes_graph(inventory)
       get_pods_graph(inventory)
       get_endpoints_and_services_graph(inventory)
-      get_component_statuses_graph(inventory)
     end
 
     def get_nodes(inventory)
@@ -206,16 +204,6 @@ module ManageIQ::Providers::Kubernetes
       process_collection(inventory["limit_range"], key) { |n| parse_range(n) }
       @data[key].each do |r|
         r[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, r.delete(:namespace))
-      end
-    end
-
-    def get_component_statuses(inventory)
-      key = path_for_entity("component_status")
-      process_collection(inventory["component_status"], key) do |cs|
-        parse_component_status(cs)
-      end
-      @data[key].each do |cs|
-        @data_index.store_path(key, :by_name, cs[:name], cs)
       end
     end
 
@@ -537,15 +525,6 @@ module ManageIQ::Providers::Kubernetes
       hashes.to_a.each do |h|
         h = h.merge(:container_service => container_service)
         @inv_collections[:container_service_port_configs].build(h)
-      end
-    end
-
-    def get_component_statuses_graph(inv)
-      collection = @inv_collections[:container_component_statuses]
-
-      inv["component_status"].each do |cs|
-        h = parse_component_status(cs)
-        collection.build(h)
       end
     end
 
@@ -987,26 +966,6 @@ module ManageIQ::Providers::Kubernetes
         :tags             => map_labels('ContainerReplicator', labels),
         :selector_parts   => parse_selector_parts(container_replicator)
       )
-      new_result
-    end
-
-    def parse_component_status(container_component_status)
-      new_result = {}
-
-      # At this point components statuses use only one condition.
-      # In the case of a future change, this will need to be modified accordingly.
-      component_condition = container_component_status.conditions.first
-
-      new_result.merge!(
-        :name      => container_component_status.metadata.name,
-        :condition => component_condition.type,
-        :status    => component_condition.status,
-        :message   => component_condition.message,
-        # workaround for handling Kubernetes issue: "nil" string is returned in component status error
-        # https://github.com/kubernetes/kubernetes/issues/16721
-        :error     => (component_condition.error unless component_condition.error == "nil")
-      )
-
       new_result
     end
 

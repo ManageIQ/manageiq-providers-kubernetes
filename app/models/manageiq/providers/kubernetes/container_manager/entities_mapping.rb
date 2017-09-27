@@ -10,7 +10,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
     'persistent_volume'       => 'PersistentVolume',
     'pod'                     => 'ContainerGroup',
     'service'                 => 'ContainerService',
-    'component_status'        => 'ContainerComponentStatus',
     'project'                 => 'ContainerProject',
     'route'                   => 'ContainerRoute',
     'build_config'            => 'ContainerBuild',

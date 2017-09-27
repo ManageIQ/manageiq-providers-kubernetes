@@ -182,12 +182,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   end
 
   def raw_scan_job_create(target_class, target_id = nil, userid = nil, target_name = nil)
-    # maintain backward compatibility pre https://github.com/ManageIQ/manageiq/pull/13722
-    if target_class.kind_of?(ContainerImage)
-      target_id = target_class.id
-      target_name = target_class.name
-      target_class = target_class.class.name
-    end
+    raise MiqException::Error, _("target_class must be a class not an instance") if target_class.kind_of?(ContainerImage)
     userid ||= User.current_user.userid
     Job.create_job(
       "ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job",

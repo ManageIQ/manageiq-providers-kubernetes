@@ -92,19 +92,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         )
       end
 
-      it "Is backward compatible with #13722" do
-        # https://github.com/ManageIQ/manageiq/pull/13722
+      it "It should raise an error when creating a job with instance of Container Image" do
         image = FactoryGirl.create(:container_image, :ext_management_system => @ems)
         User.current_user = FactoryGirl.create(:user, :userid => "bob")
-        job = @ems.raw_scan_job_create(image)
-        expect(job).to have_attributes(
-          :dispatch_status => "pending",
-          :state           => "waiting_to_start",
-          :status          => "ok",
-          :message         => "process initiated",
-          :target_class    => "ContainerImage",
-          :userid          => "bob"
-        )
+        expect { @ems.raw_scan_job_create(image) }
+          .to raise_error(MiqException::Error, "target_class must be a class not an instance")
       end
 
       it "Is backward compatible with #54" do

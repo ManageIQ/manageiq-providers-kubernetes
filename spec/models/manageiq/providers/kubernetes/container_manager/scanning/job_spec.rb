@@ -190,7 +190,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       end
     end
 
-    context "using provider options" do
+    context "using provider options and settings" do
       def create_pod_definition
         allow_any_instance_of(described_class).to receive_messages(:kubernetes_client => MockKubeClient.new)
         kc = @job.kubernetes_client
@@ -207,12 +207,43 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         expect(pod[:spec][:containers][0][:env][0][:value]).to eq(my_value)
       end
 
-      it 'should send cve_url from options' do
+      it 'should send cve_url from options over global' do
+        stub_settings_merge(:ems => {:ems_kubernetes => {:image_inspector_cve_url => "from_global" }})
         cve_url_value = "get_cve_from_here.com"
         @ems.update(:options => { :image_inspector_options => {:cve_url => cve_url_value} })
         pod = create_pod_definition
         expect(pod[:spec][:containers][0][:command]
           .select { |cmd| cmd.starts_with?("--cve-url=") }.first.split('=').last).to eq(cve_url_value)
+      end
+
+      it 'wont send any cve_url if none is defined' do
+        stub_settings_merge(:ems => {:ems_kubernetes => {:image_inspector_cve_url => "" }})
+        pod = create_pod_definition
+        expect(pod[:spec][:containers][0][:command]
+          .select { |cmd| cmd.starts_with?("--cve-url=") }.count).to eq(0)
+      end
+
+      it 'should use image_tag option' do
+        image_tag = "3.3"
+        @ems.update(:options => { :image_inspector_options => {:image_tag => image_tag} })
+        pod = create_pod_definition
+        expect(pod[:spec][:containers][0][:image].split(':').last).to eq(image_tag)
+      end
+
+      it 'uses global defaults for registry,repo,tag and cve_url' do
+        stub_settings_merge(
+          :ems => {
+            :ems_kubernetes => {
+              :image_inspector_registry   => "registry1",
+              :image_inspector_repository => "repository1",
+              :image_inspector_cve_url    => "cve_url1"
+            }
+          }
+        )
+        pod = create_pod_definition
+        expect(pod[:spec][:containers][0][:command]
+          .select { |cmd| cmd.starts_with?("--cve-url=") }.first.split('=').last).to eq("cve_url1")
+        expect(pod[:spec][:containers][0][:image]).to eq("registry1/repository1:2.1")
       end
     end
 

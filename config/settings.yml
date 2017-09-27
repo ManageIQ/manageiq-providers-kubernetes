@@ -8,6 +8,7 @@
     :miq_namespace: management-infra
     :image_inspector_registry: docker.io
     :image_inspector_repository: openshift/image-inspector
+    :image_inspector_cve_url:
     :blacklisted_event_names: []
     :event_handling:
       :event_groups:

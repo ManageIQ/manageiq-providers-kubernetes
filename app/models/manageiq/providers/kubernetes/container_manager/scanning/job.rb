@@ -445,8 +445,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   end
 
   def add_cve_url(pod_def)
-    if ems_image_inspector_options.key?(:cve_url)
-      pod_def[:spec][:containers][0][:command].append("--cve-url=#{ems_image_inspector_options[:cve_url]}")
-    end
+    cve_url = ems_image_inspector_options.fetch_path(:cve_url) || ::Settings.ems.ems_kubernetes.image_inspector_cve_url
+    pod_def[:spec][:containers][0][:command].append("--cve-url=#{cve_url}") unless cve_url.blank?
   end
 end

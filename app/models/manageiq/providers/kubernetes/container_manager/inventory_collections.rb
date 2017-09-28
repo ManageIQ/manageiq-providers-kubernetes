@@ -242,17 +242,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       )
     initialize_custom_attributes_collections(manager.container_routes, %w(labels))
 
-    @collections[:container_component_statuses] =
-      ::ManagerRefresh::InventoryCollection.new(
-        shared_options.merge(
-          :model_class    => ContainerComponentStatus,
-          :parent         => manager,
-          :builder_params => {:ems_id => manager.id},
-          :association    => :container_component_statuses,
-          :manager_ref    => [:name],
-        )
-      )
-
     @collections[:container_templates] =
       ::ManagerRefresh::InventoryCollection.new(
         :model_class          => ContainerTemplate,

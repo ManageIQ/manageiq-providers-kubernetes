@@ -327,9 +327,9 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     expect(container_quota.container_quota_items.count).to eq(8)
     cpu_quota = container_quota.container_quota_items.select { |x| x[:resource] == 'cpu' }[0]
     expect(cpu_quota).to have_attributes(
-      :quota_desired  => '20',
-      :quota_enforced => '20',
-      :quota_observed => '100m',
+      :quota_desired  => 20,
+      :quota_enforced => 20,
+      :quota_observed => 0.1,
     )
     expect(container_quota.container_project.name).to eq("default")
   end

@@ -33,12 +33,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::Options
             :repository  => {
               :label          => N_('Image-Inspector Repository'),
               :help_text      => N_('Image-Inspector Repository. example: openshift/image-inspector'),
-              :global_default => Settings.ems.ems_kubernetes.image_inspector_repository,
+              :global_default => ::Settings.ems.ems_kubernetes.image_inspector_repository,
             },
             :registry    => {
               :label          => N_('Image-Inspector Registry'),
               :help_text      => N_('Registry to provide the image inspector repository. example: docker.io'),
-              :global_default => Settings.ems.ems_kubernetes.image_inspector_registry,
+              :global_default => ::Settings.ems.ems_kubernetes.image_inspector_registry,
             },
             :image_tag   => {
               :label          => N_('Image-Inspector Tag'),
@@ -46,11 +46,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::Options
               :global_default => ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job::INSPECTOR_IMAGE_TAG,
             },
             :cve_url     => {
-              :label     => N_('CVE location'),
-              :help_text => N_('Enables defining a URL path prefix for XCCDF file instead of accessing the default location.
+              :label          => N_('CVE location'),
+              :help_text      => N_('Enables defining a URL path prefix for XCCDF file instead of accessing the default location.
   example: http://my_file_server.org:3333/xccdf_files/
   Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
               # Future versions of image inspector will extend this.
+              :global_default => ::Settings.ems.ems_kubernetes.image_inspector_cve_url,
             },
           }
         }

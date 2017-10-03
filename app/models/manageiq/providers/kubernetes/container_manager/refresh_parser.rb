@@ -595,7 +595,16 @@ module ManageIQ::Providers::Kubernetes
     ## Shared parsing methods
 
     def map_labels(model_name, labels)
-      ContainerLabelTagMapping.map_labels(@label_tag_mapping, model_name, labels)
+      tag_hashes = ContainerLabelTagMapping.map_labels(@label_tag_mapping, model_name, labels)
+      # Deduplicate tag hashes, store them all in @data_index, like we do for images.
+      tag_hashes.each do |tag_hash|
+        # Has {:tag_id} or {:category_tag_id, :entry_name, :entry_description}
+        if tag_hash[:entry_name]
+          find_or_store_data([:tag, :by_category_and_entry, tag_hash[:category_tag_id], tag_hash[:entry_name]],
+                             :tags_to_resolve, tag_hash)
+        end
+      end
+      tag_hashes
     end
 
     def find_host_by_provider_id(provider_id)

@@ -1,3 +1,5 @@
+require 'faraday_middleware'
+
 module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   extend ActiveSupport::Concern
 

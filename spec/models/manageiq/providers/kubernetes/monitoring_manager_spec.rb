@@ -41,6 +41,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager do
         described_class.name.underscore,
         # :record => :new_episodes,
       ) do
+        # in case of error try to check monitoring_manager.authentication_check
         expect(monitoring_manager.authentication_status_ok?).to be_falsey
         container_manager.authentication_check_types
         monitoring_manager.reload

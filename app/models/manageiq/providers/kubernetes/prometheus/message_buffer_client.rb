@@ -1,5 +1,6 @@
 class ManageIQ::Providers::Kubernetes::Prometheus::MessageBufferClient
   require 'faraday'
+  require 'faraday_middleware'
 
   def initialize(host, port)
     @host = host

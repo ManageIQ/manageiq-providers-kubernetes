@@ -1,7 +1,5 @@
 # instantiated at the end, for both classical and graph refresh
-shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
-  let(:check_tag_mapping) { check_tag_mapping }
-
+shared_examples "kubernetes refresher VCR tests" do
   before(:each) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
     auth = AuthToken.new(:name => "test", :auth_key => "valid-token")
@@ -155,12 +153,10 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     expect(@containergroup.labels).to contain_exactly(
       label_with_name_value("name", "heapster")
     )
-    if check_tag_mapping
-      expect(@containergroup.tags).to contain_exactly(
-        tag_in_category_with_description(@name_category, "heapster"),
-        *expected_extra_tags
-      )
-    end
+    expect(@containergroup.tags).to contain_exactly(
+      tag_in_category_with_description(@name_category, "heapster"),
+      *expected_extra_tags
+    )
 
     # Check the relation to container node
     expect(@containergroup.container_node).not_to be_nil
@@ -295,12 +291,10 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     expect(@replicator.labels).to contain_exactly(
       label_with_name_value("name", "influxGrafana")
     )
-    if check_tag_mapping
-      expect(@replicator.tags).to contain_exactly(
-        tag_in_category_with_description(@name_category, "influxGrafana"),
-        *expected_extra_tags
-      )
-    end
+    expect(@replicator.tags).to contain_exactly(
+      tag_in_category_with_description(@name_category, "influxGrafana"),
+      *expected_extra_tags
+    )
     expect(@replicator.selector_parts.count).to eq(1)
 
     @group = ContainerGroup.where(:name => "monitoring-influx-grafana-controller-22icy").first
@@ -587,7 +581,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       end
 
       # TODO: pending graph tag mapping implementation
-      include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+      include_examples "kubernetes refresher VCR tests"
     end
 
     context "with :batch saver" do
@@ -598,7 +592,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       end
 
       # TODO: pending graph tag mapping implementation
-      include_examples "kubernetes refresher VCR tests", :check_tag_mapping => false
+      include_examples "kubernetes refresher VCR tests"
     end
   end
 end

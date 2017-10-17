@@ -29,6 +29,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       )
     )
     initialize_custom_attributes_collections(@collections[:container_projects], %w(labels additional_attributes))
+    initialize_taggings_collection(@collections[:container_projects])
 
     @collections[:container_quotas] = ::ManagerRefresh::InventoryCollection.new(
       shared_options.merge(
@@ -75,6 +76,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     )
     initialize_container_conditions_collection(manager, :container_nodes)
     initialize_custom_attributes_collections(@collections[:container_nodes], %w(labels additional_attributes))
+    initialize_taggings_collection(@collections[:container_nodes])
 
     # polymorphic child of ContainerNode & ContainerImage,
     # but refresh only sets it on nodes.
@@ -147,6 +149,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       )
     initialize_container_conditions_collection(manager, :container_groups)
     initialize_custom_attributes_collections(@collections[:container_groups], %w(labels node_selectors))
+    initialize_taggings_collection(@collections[:container_groups])
+
     @collections[:container_volumes]      =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -209,6 +213,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     initialize_custom_attributes_collections(@collections[:container_replicators], %w(labels selectors))
+    initialize_taggings_collection(@collections[:container_replicators])
 
     @collections[:container_services] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -223,6 +228,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     initialize_custom_attributes_collections(@collections[:container_services], %w(labels selectors))
+    initialize_taggings_collection(@collections[:container_services])
+
     @collections[:container_service_port_configs] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -244,6 +251,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     initialize_custom_attributes_collections(@collections[:container_routes], %w(labels))
+    initialize_taggings_collection(@collections[:container_routes])
 
     @collections[:container_templates] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -256,6 +264,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     initialize_custom_attributes_collections(@collections[:container_templates], %w(labels))
+    initialize_taggings_collection(@collections[:container_templates])
+
     @collections[:container_template_parameters] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -278,6 +288,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     initialize_custom_attributes_collections(@collections[:container_builds], %w(labels))
+    initialize_taggings_collection(@collections[:container_builds])
+
     @collections[:container_build_pods] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -291,6 +303,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         )
       )
     initialize_custom_attributes_collections(@collections[:container_build_pods], %w(labels))
+    # no taggings for build pods, they don't acts_as_miq_taggable.
 
     @collections[:persistent_volumes]       =
       ::ManagerRefresh::InventoryCollection.new(
@@ -353,6 +366,30 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           )
         )
     end
+  end
+
+  def initialize_taggings_collection(parent_collection)
+    type = parent_collection.model_class.base_class.name
+    relation = parent_collection.full_collection_for_comparison
+    query = Tagging.where(
+      :taggable_type => type,
+      :taggable_id   => relation,
+    ).joins(:tag).merge(Tag.controlled_by_mapping)
+
+    @collections[[:taggings_for, type]] =
+      ::ManagerRefresh::InventoryCollection.new(
+        shared_options.merge(
+          :model_class                  => Tagging,
+          :name                         => "taggings_for_#{parent_collection.name}".to_sym,
+          :arel                         => query,
+          :manager_ref                  => [:taggable, :tag],
+          :parent_inventory_collections => [parent_collection.name],
+        )
+      )
+  end
+
+  def add_collection(collection)
+    @collections[collection.name] = collection
   end
 
   def custom_reconnect_block

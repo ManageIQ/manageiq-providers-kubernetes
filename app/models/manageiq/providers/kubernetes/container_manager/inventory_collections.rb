@@ -28,7 +28,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :delete_method  => :disconnect_inv,
       )
     )
-    initialize_custom_attributes_collections(manager.container_projects, %w(labels additional_attributes))
+    initialize_custom_attributes_collections(manager, :container_projects, %w(labels additional_attributes))
 
     @collections[:container_quotas] = ::ManagerRefresh::InventoryCollection.new(
       shared_options.merge(
@@ -73,8 +73,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :secondary_refs => {:by_name => [:name]},
       )
     )
-    initialize_container_conditions_collection(manager.container_nodes)
-    initialize_custom_attributes_collections(manager.container_nodes, %w(labels additional_attributes))
+    initialize_container_conditions_collection(manager, :container_nodes)
+    initialize_custom_attributes_collections(manager, :container_nodes, %w(labels additional_attributes))
 
     # polymorphic child of ContainerNode & ContainerImage,
     # but refresh only sets it on nodes.
@@ -143,8 +143,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :delete_method        => :disconnect_inv,
         )
       )
-    initialize_container_conditions_collection(manager.container_groups)
-    initialize_custom_attributes_collections(manager.container_groups, %w(labels node_selectors))
+    initialize_container_conditions_collection(manager, :container_groups)
+    initialize_custom_attributes_collections(manager, :container_groups, %w(labels node_selectors))
     @collections[:container_volumes]      =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -205,7 +205,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :attributes_blacklist => [:namespace],
         )
       )
-    initialize_custom_attributes_collections(manager.container_replicators, %w(labels selectors))
+    initialize_custom_attributes_collections(manager, :container_replicators, %w(labels selectors))
 
     @collections[:container_services] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -219,7 +219,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :saver_strategy       => :default # TODO(perf) Can't use batch strategy because of usage of M:N container_groups relation
         )
       )
-    initialize_custom_attributes_collections(manager.container_services, %w(labels selectors))
+    initialize_custom_attributes_collections(manager, :container_services, %w(labels selectors))
     @collections[:container_service_port_configs] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -240,7 +240,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :attributes_blacklist => [:namespace, :tags],
         )
       )
-    initialize_custom_attributes_collections(manager.container_routes, %w(labels))
+    initialize_custom_attributes_collections(manager, :container_routes, %w(labels))
 
     @collections[:container_templates] =
       ::ManagerRefresh::InventoryCollection.new(
@@ -250,7 +250,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :association          => :container_templates,
         :attributes_blacklist => [:namespace],
       )
-    initialize_custom_attributes_collections(manager.container_templates, %w(labels))
+    initialize_custom_attributes_collections(manager, :container_templates, %w(labels))
     @collections[:container_template_parameters] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -272,7 +272,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
         )
       )
-    initialize_custom_attributes_collections(manager.container_builds, %w(labels))
+    initialize_custom_attributes_collections(manager, :container_builds, %w(labels))
     @collections[:container_build_pods] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
@@ -285,7 +285,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :secondary_refs => {:by_namespace_and_name => [:namespace, :name]},
         )
       )
-    initialize_custom_attributes_collections(manager.container_build_pods, %w(labels))
+    initialize_custom_attributes_collections(manager, :container_build_pods, %w(labels))
 
     @collections[:persistent_volumes]       =
       ::ManagerRefresh::InventoryCollection.new(
@@ -310,7 +310,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
   end
 
   # ContainerCondition is polymorphic child of ContainerNode & ContainerGroup.
-  def initialize_container_conditions_collection(relation)
+  def initialize_container_conditions_collection(manager, association)
+    relation = manager.public_send(association)
     query = ContainerCondition.where(
       :container_entity_type => relation.model.base_class.name,
       :container_entity_id   => relation, # nested SELECT. TODO: compare to a JOIN.
@@ -326,7 +327,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
   end
 
   # CustomAttribute is polymorphic child of many models
-  def initialize_custom_attributes_collections(relation, sections)
+  def initialize_custom_attributes_collections(manager, association, sections)
+    relation = manager.public_send(association)
     sections.each do |section|
       query = CustomAttribute.where(
         :resource_type => relation.model.base_class.name,
@@ -336,9 +338,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       @collections[[:custom_attributes_for, relation.model.base_class.name, section.to_s]] =
         ::ManagerRefresh::InventoryCollection.new(
           shared_options.merge(
-            :model_class => CustomAttribute,
-            :arel        => query,
-            :manager_ref => [:resource, :section, :name],
+            :model_class                  => CustomAttribute,
+            :arel                         => query,
+            :manager_ref                  => [:resource, :section, :name],
+            :parent_inventory_collections => [association]
           )
         )
     end

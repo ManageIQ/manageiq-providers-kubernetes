@@ -19,7 +19,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorWorke
         :manager_ref => ems_ref,
         :options     => {
           :payload => notice.object,
-        },
+        }.to_json,
       )
 
       EmsRefresh.queue_refresh(target)

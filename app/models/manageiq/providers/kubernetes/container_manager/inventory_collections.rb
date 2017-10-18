@@ -244,11 +244,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
 
     @collections[:container_templates] =
       ::ManagerRefresh::InventoryCollection.new(
-        :model_class          => ContainerTemplate,
-        :parent               => manager,
-        :builder_params       => {:ems_id => manager.id},
-        :association          => :container_templates,
-        :attributes_blacklist => [:namespace],
+        shared_options.merge(
+          :model_class          => ContainerTemplate,
+          :parent               => manager,
+          :builder_params       => {:ems_id => manager.id},
+          :association          => :container_templates,
+          :attributes_blacklist => [:namespace],
+        )
       )
     initialize_custom_attributes_collections(manager.container_templates, %w(labels))
     @collections[:container_template_parameters] =

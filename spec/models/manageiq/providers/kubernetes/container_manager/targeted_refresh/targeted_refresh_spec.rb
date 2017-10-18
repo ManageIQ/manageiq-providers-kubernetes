@@ -5,9 +5,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     hostname          = 'host.example.com'
     token             = 'theToken'
     hawkular_hostname = 'host.example.com'
-
-    allow(MiqServer).to receive(:my_zone).and_return("default")
-
+    
     @ems = FactoryGirl.create(
       :ems_kubernetes,
       :name                      => 'KubernetesProvider',
@@ -32,8 +30,20 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     expect(described_class.ems_type).to eq(:kubernetes)
   end
 
-  it "will perform a full refresh on openshift" do
-    full_refresh_test
+  it "will perform a full refresh on openshift loading only referenced Nodes and Namespaces" do
+    stub_settings_merge(
+      :ems_refresh => {:kubernetes => {:api_filter_vs_full_list_threshold => 50}}
+    )
+
+    full_refresh_test(:targeted_refresh_referenced_nodes_and_namespaces)
+  end
+
+  it "will perform a full refresh on openshift loading all Nodes and Namespaces" do
+    stub_settings_merge(
+      :ems_refresh => {:kubernetes => {:api_filter_vs_full_list_threshold => 0}}
+    )
+
+    full_refresh_test(:targeted_refresh_all_nodes_and_namespaces)
   end
 
   def queue_target!(watch_data_path)
@@ -58,11 +68,11 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     pod['metadata']['uid']
   end
 
-  def normal_refresh
+  def normal_refresh(suffix)
     queue_target!('watch_pod_stress_4.json')
     queue_target!('watch_pod_stress_5.json')
 
-    VCR.use_cassette(described_class.name.underscore + "_targeted_refresh",
+    VCR.use_cassette(described_class.name.underscore + "_#{suffix}",
                      :match_requests_on => [:path,]) do # , :record => :new_episodes) do
 
       # There should be 1 refresh Job with 2 targets inside
@@ -72,14 +82,14 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     end
   end
 
-  def full_refresh_test
+  def full_refresh_test(suffix)
     2.times do
       @ems.reload
-      normal_refresh
+      normal_refresh(suffix)
       @ems.reload
 
       assert_ems
-      assert_table_counts
+      assert_table_counts(send("expected_table_counts_#{suffix}"))
       assert_specific_container
       assert_specific_container_group
       assert_specific_container_node
@@ -94,7 +104,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     end
   end
 
-  def expected_table_counts
+  def expected_table_counts_targeted_refresh_all_nodes_and_namespaces
     {
       :computer_system               => 9,
       :container                     => 2,
@@ -128,7 +138,41 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     }
   end
 
-  def assert_table_counts
+  def expected_table_counts_targeted_refresh_referenced_nodes_and_namespaces
+    {
+      :computer_system               => 1,
+      :container                     => 2,
+      :container_build               => 0,
+      :container_build_pod           => 0,
+      :container_condition           => 10,
+      :container_env_var             => 0,
+      :container_group               => 2,
+      :container_image               => 1,
+      :container_image_registry      => 1,
+      :container_limit               => 0,
+      :container_limit_item          => 0,
+      :container_node                => 1,
+      :container_port_config         => 0,
+      :container_project             => 1,
+      :container_quota               => 0,
+      :container_quota_item          => 0,
+      :container_replicator          => 0,
+      :container_route               => 0,
+      :container_service             => 0,
+      :container_service_port_config => 0,
+      :container_template            => 0,
+      :container_template_parameter  => 0,
+      :container_volume              => 2,
+      :custom_attribute              => 12,
+      :ext_management_system         => 1,
+      :hardware                      => 1,
+      :operating_system              => 1,
+      :persistent_volume_claim       => 0,
+      :security_context              => 2
+    }
+  end
+
+  def assert_table_counts(counts)
     actual = {
       :computer_system               => ComputerSystem.count,
       :container                     => Container.count,
@@ -161,7 +205,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :security_context              => SecurityContext.count,
     }
 
-    expect(actual).to eq expected_table_counts
+    expect(actual).to eq counts
   end
 
   def assert_ems
@@ -290,16 +334,16 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   context "graph refresh" do
     before(:each) do
       stub_settings_merge(
-        :ems_refresh => {:openshift => {:inventory_object_refresh => true}}
+        :ems_refresh => {:kubernetes => {:inventory_object_refresh => true}}
       )
 
-      expect(ManageIQ::Providers::Openshift::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
+      expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
     end
 
     context "with :default saver" do
       before(:each) do
         stub_settings_merge(
-          :ems_refresh => {:openshift => {:inventory_collections => {:saver_strategy => :default}}}
+          :ems_refresh => {:kubernetes => {:inventory_collections => {:saver_strategy => :default}}}
         )
       end
 
@@ -309,7 +353,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     context "with :batch saver" do
       before(:each) do
         stub_settings_merge(
-          :ems_refresh => {:openshift => {:inventory_collections => {:saver_strategy => :batch}}}
+          :ems_refresh => {:kubernetes => {:inventory_collections => {:saver_strategy => :batch}}}
         )
       end
 

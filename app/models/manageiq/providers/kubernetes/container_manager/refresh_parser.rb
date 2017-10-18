@@ -9,8 +9,12 @@ module ManageIQ::Providers::Kubernetes
       new(options).ems_inv_to_hashes(inventory, options)
     end
 
-    def self.ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
-      new(options).ems_inv_to_inv_collections(ems, inventory, options)
+    def self.ems_inv_to_persister(ems, inventory, options = Config::Options.new)
+      new(options).ems_inv_to_persister(ems, inventory, options)
+    end
+
+    def self.target_collection_inv_to_persister(ems, inventory, options = Config::Options.new)
+      new(options).target_collection_inv_to_persister(ems, inventory, options)
     end
 
     def initialize(options = Config::Options.new)
@@ -44,9 +48,22 @@ module ManageIQ::Providers::Kubernetes
       ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager
     end
 
-    def ems_inv_to_inv_collections(ems, inventory, options = Config::Options.new)
+    def persister_target_collection_class
+      ManageIQ::Providers::Kubernetes::Inventory::Persister::TargetCollection
+    end
+
+    def ems_inv_to_persister(ems, inventory, options = Config::Options.new)
       persister = persister_class.new(ems)
-      # TODO expose Persistor and use that
+      persister_inv_to_persister(persister, inventory, options)
+    end
+
+    def target_collection_inv_to_persister(ems, inventory, options = Config::Options.new)
+      persister = persister_target_collection_class.new(ems)
+      persister_inv_to_persister(persister, inventory, options)
+    end
+
+    def persister_inv_to_persister(persister, inventory, options)
+      # TODO expose persister and use that and use that instead of @inv_collections
       @inv_collections = persister.collections
 
       ems_inv_populate_collections(inventory, options)
@@ -56,8 +73,8 @@ module ManageIQ::Providers::Kubernetes
       get_container_images_graph
       get_container_image_registries_graph
 
-      # Returning an array triggers ManagerRefresh::SaveInventory code path.
-      persister.inventory_collections
+      # Returning Persister triggers ManagerRefresh::SaveInventory code path.
+      persister
     end
 
     def ems_inv_populate_collections(inventory, _options)

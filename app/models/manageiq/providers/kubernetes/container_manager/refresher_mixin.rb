@@ -2,6 +2,58 @@ module ManageIQ
   module Providers
     module Kubernetes
       module ContainerManager::RefresherMixin
+        def preprocess_targets
+          @targets_by_ems_id.each do |ems_id, targets|
+            # We want all targets of class EmsEvent to be merged into one target, so they can be refreshed together, otherwise
+            # we could be missing some crosslinks in the refreshed data
+            ems_targets, sub_ems_targets = targets.partition { |x| x.kind_of?(ExtManagementSystem) }
+            all_targets = []
+
+            if sub_ems_targets.present?
+              # We can disable targeted refresh with a setting, then we will just do full ems refresh on any event
+              ems_event_collection = ManagerRefresh::TargetCollection.new(:targets    => sub_ems_targets,
+                                                                          :manager_id => ems_id)
+              # Before full EMS refresh, we want to refresh any targets found
+              all_targets << ems_event_collection
+            end
+
+            if ems_targets.present?
+              # There should be only 1 ems
+              all_targets << ems_targets.first
+            end
+
+            @targets_by_ems_id[ems_id] = all_targets
+          end
+        end
+
+        def collect_inventory_for_targets(ems, targets)
+          # TODO (lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
+          # Parser and Persister
+          targets.map do |target|
+            inventory = if target.kind_of?(ManagerRefresh::TargetCollection)
+                          target_collection_collector_class.new(ems, target).inventory(all_entities)
+                        else
+                          collect_full_inventory(ems)
+                        end
+            EmsRefresh.log_inv_debug_trace(inventory, "inv_hash:")
+            [target, inventory]
+          end
+        end
+
+        def parse_targeted_inventory(ems, target, inventory)
+          # TODO (lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
+          # Parser and Persister
+          if refresher_options.inventory_object_refresh
+            if target.kind_of?(ManagerRefresh::TargetCollection)
+              refresh_parser_class.target_collection_inv_to_persister(ems, inventory, refresher_options)
+            else
+              refresh_parser_class.ems_inv_to_persister(ems, inventory, refresher_options)
+            end
+          else
+            refresh_parser_class.ems_inv_to_hashes(inventory, refresher_options)
+          end
+        end
+
         KUBERNETES_ENTITIES = [
           {:name => 'pods'}, {:name => 'services'}, {:name => 'replication_controllers'}, {:name => 'nodes'},
           {:name => 'endpoints'}, {:name => 'namespaces'}, {:name => 'resource_quotas'}, {:name => 'limit_ranges'},

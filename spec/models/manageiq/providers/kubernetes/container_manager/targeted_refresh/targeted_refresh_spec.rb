@@ -5,7 +5,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     hostname          = 'host.example.com'
     token             = 'theToken'
     hawkular_hostname = 'host.example.com'
-    
+
     @ems = FactoryGirl.create(
       :ems_kubernetes,
       :name                      => 'KubernetesProvider',
@@ -100,7 +100,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       assert_specific_container_build
       assert_specific_container_build_pod
       assert_specific_container_template
-      assert_specific_used_container_image(:metadata => true)
+      assert_specific_used_container_image
     end
   end
 
@@ -318,15 +318,14 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     expect(ContainerTemplate.count).to eq 0
   end
 
-  def assert_specific_used_container_image(metadata:)
-    # An image mentioned both in /pods and /images, built by openshift so it has metadata.
+  def assert_specific_used_container_image
     @container_image = ContainerImage.find_by(:name => "fsimonce/stress-test")
 
     expect(@container_image.ext_management_system).to eq(@ems)
-    expect(@container_image.environment_variables.count).to eq(metadata ? 0 : 0)
+    expect(@container_image.environment_variables.count).to eq(0)
     # TODO: for next recording, oc label some running, openshift-built image
     expect(@container_image.labels.count).to eq(0)
-    expect(@container_image.docker_labels.count).to eq(metadata ? 0 : 0)
+    expect(@container_image.docker_labels.count).to eq(0)
   end
 end
 

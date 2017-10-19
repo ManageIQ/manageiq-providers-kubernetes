@@ -63,7 +63,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def persister_inv_to_persister(persister, inventory, options)
-      # TODO expose persister and use that and use that instead of @inv_collections
+      # TODO(lsmola) expose persister and use that and use that instead of @inv_collections
       @inv_collections = persister.collections
 
       ems_inv_populate_collections(inventory, options)

@@ -27,7 +27,7 @@ module ManageIQ
         end
 
         def collect_inventory_for_targets(ems, targets)
-          # TODO (lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
+          # TODO(lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
           # Parser and Persister
           targets.map do |target|
             inventory = if target.kind_of?(ManagerRefresh::TargetCollection)
@@ -41,7 +41,7 @@ module ManageIQ
         end
 
         def parse_targeted_inventory(ems, target, inventory)
-          # TODO (lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
+          # TODO(lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
           # Parser and Persister
           if refresher_options.inventory_object_refresh
             if target.kind_of?(ManagerRefresh::TargetCollection)

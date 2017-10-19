@@ -29,16 +29,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
 
     manager.with_provider_connection(:service => ManageIQ::Providers::Kubernetes::ContainerManager.ems_type) do |client|
       # Fetch all nodes and projects, so we can always connect pods to them
-      references['node']      = if node_names.count > threshold
-                                  fetch_entity(client, 'nodes')
-                                else
-                                  node_names.map { |name| fetch_entity(client, 'node', name) }
-                                end
-      references['namespace'] = if project_names.count > threshold
-                                  fetch_entity(client, 'namespaces')
-                                else
-                                  project_names.map { |name| fetch_entity(client, 'namespace', name) }
-                                end
+      references['node']      = filter_or_fetch_all(threshold, client, node_names, 'nodes')
+      references['namespace'] = filter_or_fetch_all(threshold, client, project_names, 'namespaces')
     end
     references
   end
@@ -48,6 +40,14 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
   end
 
   private
+
+  def filter_or_fetch_all(threshold, client, names, entity_name)
+    if names.count > threshold
+      fetch_entity(client, entity_name)
+    else
+      names.map { |name| fetch_entity(client, entity_name.singularize, name) }
+    end
+  end
 
   def fetch_entity(client, entity_name, filter = nil)
     if filter

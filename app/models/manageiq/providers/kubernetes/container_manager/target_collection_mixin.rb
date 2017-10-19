@@ -27,7 +27,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
     # Threshold for determining if it's better to fetch all entities, rather than doing individual API query for each
     threshold = options.api_filter_vs_full_list_threshold || 40
 
-    manager.with_provider_connection do |client|
+    manager.with_provider_connection(:service => ManageIQ::Providers::Kubernetes::ContainerManager.ems_type) do |client|
       # Fetch all nodes and projects, so we can always connect pods to them
       references['node']      = if node_names.count > threshold
                                   fetch_entity(client, 'nodes')

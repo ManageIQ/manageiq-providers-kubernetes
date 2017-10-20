@@ -1,26 +1,82 @@
+require 'thread'
+
 module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixin
+  def after_initialize
+    super
+    @queue = Queue.new
+  end
+
+  def do_before_work_loop
+    @watch_thread_id = start_watch_thread
+  end
+
   def do_work
-    pod_watch_stream.each do |notice|
-      _log.info("EMS [#{ems.id}] Pod: #{notice}")
+    if @watch_thread_id.nil? || !@watch_thread_id.alive?
+      _log.info("Watch thread #{@watch_thread_id} gone, restarting...")
+      @watch_thread_id = start_watch_thread
+    end
 
-      ems_ref = parse_notice_pod_ems_ref(notice.object)
+    targets = []
+    while @queue.length > 0
+      object = queue.deq
+      ems_ref = parse_notice_pod_ems_ref(object)
 
-      target = ManagerRefresh::Target.new(
+      targets << ManagerRefresh::Target.new(
         :manager     => ems,
         :association => :container_groups,
         :manager_ref => ems_ref,
         :options     => {
-          :payload => notice.object,
+          :payload => object,
         }.to_json,
       )
-
-      EmsRefresh.queue_refresh(target)
-
-      heartbeat
     end
+
+    unless targets.empty?
+      _log.info("Queueing refresh for #{targets.count} pods")
+
+      EmsRefresh.queue_refresh(targets)
+    end
+
+    sleep_poll_normal
+  end
+
+  def before_exit(message, _exit_code)
+    exit_requested = true
+
+    # TODO thread.timed_join ?
   end
 
   private
+  attr_reader   :queue
+  attr_accessor :exit_requested
+
+  def start_watch_thread
+    exit_requested = false
+
+    _log.info("Starting watch thread...")
+
+    tid = Thread.new do
+      begin
+        watch_thread
+      rescue => err
+        _log.warn("Watch thread exception: #{err}")
+      end
+    end
+
+    _log.info("Started watch thread")
+
+    tid
+  end
+
+  def watch_thread
+    pod_watch_stream.each do |notice|
+      break if exit_requested
+
+      _log.info("EMS [#{ems.id}] Pod: #{notice.object.metadata.uid}")
+
+      queue.enq(notice.object)
+    end
+  end
 
   def connection
     @connection ||= ems.connect(:service => "kubernetes")

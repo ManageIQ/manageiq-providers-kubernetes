@@ -26,8 +26,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
         :association => :container_groups,
         :manager_ref => ems_ref,
         :options     => {
-          :payload => object,
-        }.to_json,
+          :payload => object.to_json,
+        }
       )
     end
 

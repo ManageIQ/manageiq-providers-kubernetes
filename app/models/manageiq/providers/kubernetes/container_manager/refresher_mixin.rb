@@ -20,9 +20,8 @@ module ManageIQ
           end
         end
 
-        def manager_refresh_post_processing(_ems, _target, inventory_collections)
-          indexed = inventory_collections.index_by(&:name)
-          container_images_post_processing(indexed[:container_images])
+        def manager_refresh_post_processing(_ems, _target, persister)
+          container_images_post_processing(persister.container_images)
         end
 
         def container_images_post_processing(container_images)

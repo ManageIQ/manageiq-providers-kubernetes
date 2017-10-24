@@ -8,18 +8,18 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
 
       # prometheus field is in sec, multiply by 1e9, sec to ns
       # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-nodes\"}) * 1e9"
+      cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\"}) * 1e9"
       process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
 
       # prometheus field is in bytes
       # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      mem_resid = "sum(container_memory_usage_bytes{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-nodes\"})"
+      mem_resid = "sum(container_memory_usage_bytes{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\"})"
       process_mem_gauges_data(fetch_counters_data(mem_resid))
 
       # prometheus field is in bytes
       # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      net_resid_rx = "sum(container_network_receive_bytes_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-nodes\",interface=~\"eth.*\"})"
-      net_resid_tx = "sum(container_network_transmit_bytes_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-nodes\",interface=~\"eth.*\"})"
+      net_resid_rx = "sum(container_network_receive_bytes_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
+      net_resid_tx = "sum(container_network_transmit_bytes_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
 
       net_counters = [fetch_counters_rate(net_resid_tx),
                       fetch_counters_rate(net_resid_rx)]
@@ -31,11 +31,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       # TODO: This function should be replaced to use utilization and rate endoints
 
       # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"#{@target.name}\",job=\"kubernetes-nodes\"}) * 1e9"
+      cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\"}) * 1e9"
       process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
 
       # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      mem_resid = "sum(container_memory_usage_bytes{container_name=\"#{@target.name}\",job=\"kubernetes-nodes\"})"
+      mem_resid = "sum(container_memory_usage_bytes{container_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\"})"
       process_mem_gauges_data(fetch_counters_data(mem_resid))
     end
 
@@ -44,21 +44,21 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
 
       cpu_counters = @target.containers.collect do |c|
         # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-        cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"#{c.name}\",job=\"kubernetes-nodes\"}) * 1e9"
+        cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"#{c.name}\",job=\"kubernetes-cadvisor\"}) * 1e9"
         fetch_counters_rate(cpu_resid)
       end
       process_cpu_counters_rate(compute_summation(cpu_counters))
 
       mem_gauges = @target.containers.collect do |c|
         # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-        mem_resid = "sum(container_memory_usage_bytes{container_name=\"#{c.name}\",job=\"kubernetes-nodes\"})"
+        mem_resid = "sum(container_memory_usage_bytes{container_name=\"#{c.name}\",job=\"kubernetes-cadvisor\"})"
         fetch_counters_data(mem_resid)
       end
       process_mem_gauges_data(compute_summation(mem_gauges))
 
       # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      net_resid_rx = "sum(container_network_receive_bytes_total{container_name=\"POD\",pod_name=\"#{@target.name}\",job=\"kubernetes-nodes\",interface=~\"eth.*\"})"
-      net_resid_tx = "sum(container_network_transmit_bytes_total{container_name=\"POD\",pod_name=\"#{@target.name}\",job=\"kubernetes-nodes\",interface=~\"eth.*\"})"
+      net_resid_rx = "sum(container_network_receive_bytes_total{container_name=\"POD\",pod_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
+      net_resid_tx = "sum(container_network_transmit_bytes_total{container_name=\"POD\",pod_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
 
       net_counters = [fetch_counters_rate(net_resid_tx),
                       fetch_counters_rate(net_resid_rx)]

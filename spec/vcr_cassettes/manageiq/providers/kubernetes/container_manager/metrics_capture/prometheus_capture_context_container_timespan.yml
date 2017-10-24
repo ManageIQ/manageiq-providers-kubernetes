@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1499841942&query=sum(container_cpu_usage_seconds_total%7Bcontainer_name=%22registry%22,job=%22kubernetes-nodes%22%7D)%20*%201e9&start=1499841622&step=20s
+    uri: https://capture.context.com/api/v1/query_range?end=1508842990&query=sum(container_cpu_usage_seconds_total%7Bcontainer_name=%22registry%22,job=%22kubernetes-cadvisor%22%7D)%20*%201e9&start=1508842770&step=20s
     body:
       encoding: US-ASCII
       string: ''
@@ -29,24 +29,28 @@ http_interactions:
       Access-Control-Expose-Headers:
       - Date
       Content-Length:
-      - '563'
+      - '425'
       Content-Type:
       - application/json
       Date:
-      - Wed, 12 Jul 2017 10:27:21 GMT
+      - Tue, 24 Oct 2017 14:22:14 GMT
+      Gap-Auth:
+      - system:serviceaccount:management-infra:management-admin@cluster.local
+      Gap-Upstream-Address:
+      - localhost:9090
       Set-Cookie:
-      - bd337c9bdedd23361d6a22bfc4876b73=a26b6652b3b173de5a3f07cffd745bb1; path=/;
+      - bd337c9bdedd23361d6a22bfc4876b73=292825d0933e3f4a6179fd077c4f6c17; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1499841622,"804317572382"],[1499841642,"804418936841"],[1499841662,"804418936841"],[1499841682,"804418936841"],[1499841702,"804509915090"],[1499841722,"804509915090"],[1499841742,"804509915090"],[1499841762,"804604941040"],[1499841782,"804604941040"],[1499841802,"804604941040"],[1499841822,"804699237330"],[1499841842,"804699237330"],[1499841862,"804699237330"],[1499841882,"804809146469"],[1499841902,"804809146469"],[1499841922,"804809146469"],[1499841942,"804889680612"]]}]}}'
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1508842770,"15728440689"],[1508842790,"15728440689"],[1508842810,"15728440689"],[1508842830,"15728440689"],[1508842850,"15728440689"],[1508842870,"15728440689"],[1508842890,"15728440689"],[1508842910,"15964088028"],[1508842930,"15964088028"],[1508842950,"15964088028"],[1508842970,"16048981383.999998"],[1508842990,"16048981383.999998"]]}]}}'
     http_version: 
-  recorded_at: Wed, 12 Jul 2017 10:27:21 GMT
+  recorded_at: Tue, 24 Oct 2017 14:22:14 GMT
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1499841942&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22registry%22,job=%22kubernetes-nodes%22%7D)&start=1499841622&step=20s
+    uri: https://capture.context.com/api/v1/query_range?end=1508842990&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22registry%22,job=%22kubernetes-cadvisor%22%7D)&start=1508842770&step=20s
     body:
       encoding: US-ASCII
       string: ''
@@ -73,19 +77,23 @@ http_interactions:
       Access-Control-Expose-Headers:
       - Date
       Content-Length:
-      - '495'
+      - '375'
       Content-Type:
       - application/json
       Date:
-      - Wed, 12 Jul 2017 10:27:21 GMT
+      - Tue, 24 Oct 2017 14:22:14 GMT
+      Gap-Auth:
+      - system:serviceaccount:management-infra:management-admin@cluster.local
+      Gap-Upstream-Address:
+      - localhost:9090
       Set-Cookie:
-      - bd337c9bdedd23361d6a22bfc4876b73=a26b6652b3b173de5a3f07cffd745bb1; path=/;
+      - bd337c9bdedd23361d6a22bfc4876b73=292825d0933e3f4a6179fd077c4f6c17; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1499841622,"15802368"],[1499841642,"15802368"],[1499841662,"15802368"],[1499841682,"15802368"],[1499841702,"15802368"],[1499841722,"15802368"],[1499841742,"15802368"],[1499841762,"15802368"],[1499841782,"15802368"],[1499841802,"15802368"],[1499841822,"15802368"],[1499841842,"15802368"],[1499841862,"15802368"],[1499841882,"15802368"],[1499841902,"15802368"],[1499841922,"15802368"],[1499841942,"15802368"]]}]}}'
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1508842770,"19456000"],[1508842790,"19456000"],[1508842810,"19456000"],[1508842830,"19456000"],[1508842850,"19456000"],[1508842870,"19456000"],[1508842890,"19456000"],[1508842910,"88653824"],[1508842930,"88653824"],[1508842950,"88653824"],[1508842970,"35565568"],[1508842990,"35565568"]]}]}}'
     http_version: 
-  recorded_at: Wed, 12 Jul 2017 10:27:21 GMT
+  recorded_at: Tue, 24 Oct 2017 14:22:14 GMT
 recorded_with: VCR 3.0.3

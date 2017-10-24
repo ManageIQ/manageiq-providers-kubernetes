@@ -7,8 +7,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
     token = 'theToken'
 
     @ems = FactoryGirl.create(
-      :ems_openshift,
-      :name                      => 'OpenShiftProvider',
+      :ems_kubernetes,
+      :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
                                                           :hostname   => hostname,
                                                           :port       => "8443",
@@ -31,8 +31,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
         EmsRefresh.refresh(@ems)
         @ems.reload
 
-        @node = @ems.container_nodes.find_by(:name => "capture.context.com")
-        pod = @ems.container_groups.find_by(:name => "docker-registry-1-4svbw")
+        @node = @ems.container_nodes.find_by(:name => hostname)
+        pod = @ems.container_groups.find_by(:name => "docker-registry-1-w690w")
         container = pod.containers.find_by(:name => "registry")
         @targets = [['node', @node], ['pod', pod], ['container', container]]
       end
@@ -40,8 +40,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
   end
 
   it "will read prometheus metrics" do
-    start_time = Time.parse("2017-07-12 06:40:42 UTC").utc
-    end_time   = Time.parse("2017-07-12 09:45:42 UTC").utc
+    start_time = Time.parse("2017-10-24 10:59:50 UTC").utc
+    end_time   = Time.parse("2017-10-24 11:03:10 UTC").utc
     interval   = 20
 
     @targets.each do |target_name, target|
@@ -58,8 +58,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
   end
 
   it "will read only specific timespan prometheus metrics" do
-    start_time = Time.parse("2017-07-12 06:40:42 UTC").utc
-    end_time   = Time.parse("2017-07-12 06:45:42 UTC").utc
+    start_time = Time.parse("2017-10-24 10:59:50 UTC").utc
+    end_time   = Time.parse("2017-10-24 11:03:10 UTC").utc
     interval   = 20
 
     @targets.each do |target_name, target|

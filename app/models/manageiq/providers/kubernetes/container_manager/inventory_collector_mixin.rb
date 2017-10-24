@@ -1,6 +1,10 @@
 require 'thread'
 
 module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixin
+  attr_reader   :queue
+  attr_accessor :exit_requested
+  private :queue, :exit_requested
+
   def after_initialize
     super
     @queue = Queue.new
@@ -17,16 +21,16 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
     end
 
     targets = []
-    while @queue.length > 0
-      object = queue.deq
-      ems_ref = parse_notice_pod_ems_ref(object)
+    while queue.length > 0
+      notice = queue.deq
+      ems_ref = parse_notice_pod_ems_ref(notice.object)
 
       targets << ManagerRefresh::Target.new(
         :manager     => ems,
         :association => :container_groups,
         :manager_ref => ems_ref,
         :options     => {
-          :payload => object.to_json,
+          :payload => notice.object.to_json,
         }
       )
     end
@@ -41,17 +45,30 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
   end
 
   def before_exit(message, _exit_code)
-    exit_requested = true
+    safe_log("#{message} Stopping Watch Thread.")
 
-    # TODO thread.timed_join ?
+    stop_watch_thread
+
+    unless @watch_thread_id.nil?
+      safe_log("#{message} Waiting for Watch Thread to Stop.")
+      begin
+        @watch_thread_id.join(worker_settings[:watch_thread_shutdown_timeout])
+      rescue => err
+        safe_log("#{message} Failed to join watch thread: #{err}")
+      end
+    end
   end
 
   private
-  attr_reader   :queue
-  attr_accessor :exit_requested
+
+  def stop_watch_thread
+    self.exit_requested = true
+
+    # TODO: pod_watch_stream.finish ?
+  end
 
   def start_watch_thread
-    exit_requested = false
+    self.exit_requested = false
 
     _log.info("Starting watch thread...")
 
@@ -72,10 +89,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
     pod_watch_stream.each do |notice|
       break if exit_requested
 
-      _log.info("EMS [#{ems.id}] Pod: #{notice.object.metadata.uid}")
+      _log.info("EMS [#{ems.id}] Pod: #{parse_notice_pod_ems_ref(notice.object)}")
 
-      queue.enq(notice.object)
+      queue.enq(notice)
     end
+
+    _log.info("Watch thread exiting...")
   end
 
   def connection

@@ -104,22 +104,22 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     end
   end
 
-  def expected_table_counts_targeted_refresh_all_nodes_and_namespaces
+  def base_counts
     {
-      :computer_system               => 9,
-      :container                     => 2,
+      :computer_system               => 0,
+      :container                     => 0,
       :container_build               => 0,
       :container_build_pod           => 0,
-      :container_condition           => 42,
+      :container_condition           => 0,
       :container_env_var             => 0,
-      :container_group               => 2,
-      :container_image               => 1,
-      :container_image_registry      => 1,
+      :container_group               => 0,
+      :container_image               => 0,
+      :container_image_registry      => 0,
       :container_limit               => 0,
       :container_limit_item          => 0,
-      :container_node                => 9,
+      :container_node                => 0,
       :container_port_config         => 0,
-      :container_project             => 14,
+      :container_project             => 0,
       :container_quota               => 0,
       :container_quota_item          => 0,
       :container_replicator          => 0,
@@ -128,48 +128,52 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :container_service_port_config => 0,
       :container_template            => 0,
       :container_template_parameter  => 0,
-      :container_volume              => 2,
-      :custom_attribute              => 58,
-      :ext_management_system         => 1,
-      :hardware                      => 9,
-      :operating_system              => 9,
+      :container_volume              => 0,
+      :custom_attribute              => 0,
+      :ext_management_system         => 0,
+      :hardware                      => 0,
+      :operating_system              => 0,
       :persistent_volume_claim       => 0,
-      :security_context              => 2
+      :security_context              => 0,
     }
   end
 
+  def expected_table_counts_targeted_refresh_all_nodes_and_namespaces
+    base_counts.merge(
+      :computer_system          => 9,
+      :container                => 2,
+      :container_condition      => 42,
+      :container_group          => 2,
+      :container_image          => 1,
+      :container_image_registry => 1,
+      :container_node           => 9,
+      :container_project        => 14,
+      :container_volume         => 2,
+      :custom_attribute         => 58,
+      :ext_management_system    => 1,
+      :hardware                 => 9,
+      :operating_system         => 9,
+      :security_context         => 2,
+    )
+  end
+
   def expected_table_counts_targeted_refresh_referenced_nodes_and_namespaces
-    {
-      :computer_system               => 1,
-      :container                     => 2,
-      :container_build               => 0,
-      :container_build_pod           => 0,
-      :container_condition           => 10,
-      :container_env_var             => 0,
-      :container_group               => 2,
-      :container_image               => 1,
-      :container_image_registry      => 1,
-      :container_limit               => 0,
-      :container_limit_item          => 0,
-      :container_node                => 1,
-      :container_port_config         => 0,
-      :container_project             => 1,
-      :container_quota               => 0,
-      :container_quota_item          => 0,
-      :container_replicator          => 0,
-      :container_route               => 0,
-      :container_service             => 0,
-      :container_service_port_config => 0,
-      :container_template            => 0,
-      :container_template_parameter  => 0,
-      :container_volume              => 2,
-      :custom_attribute              => 12,
-      :ext_management_system         => 1,
-      :hardware                      => 1,
-      :operating_system              => 1,
-      :persistent_volume_claim       => 0,
-      :security_context              => 2
-    }
+    base_counts.merge(
+      :computer_system          => 1,
+      :container                => 2,
+      :container_condition      => 10,
+      :container_group          => 2,
+      :container_image          => 1,
+      :container_image_registry => 1,
+      :container_node           => 1,
+      :container_project        => 1,
+      :container_volume         => 2,
+      :custom_attribute         => 12,
+      :ext_management_system    => 1,
+      :hardware                 => 1,
+      :operating_system         => 1,
+      :security_context         => 2
+    )
   end
 
   def assert_table_counts(counts)

@@ -1,6 +1,6 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
   def inventory(entities)
-    full_inventory = clean_inventory(entities)
+    full_inventory = empty_inventory(entities)
 
     # Fill pods from Targets
     full_inventory['pod'] = pods
@@ -10,7 +10,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
     full_inventory
   end
 
-  def clean_inventory(entities)
+  def empty_inventory(entities)
     # Return [] for all entities by default
     entities.each_with_object({}) { |entity, obj| obj[entity[:name].singularize] = [] }
   end

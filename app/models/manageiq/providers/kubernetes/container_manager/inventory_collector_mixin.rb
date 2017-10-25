@@ -20,26 +20,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
       @watch_thread_id = start_watch_thread
     end
 
-    targets = []
-    while queue.length > 0
-      notice = queue.deq
-      ems_ref = parse_notice_pod_ems_ref(notice.object)
-
-      targets << ManagerRefresh::Target.new(
-        :manager     => ems,
-        :association => :container_groups,
-        :manager_ref => ems_ref,
-        :options     => {
-          :payload => notice.object.to_json,
-        }
-      )
-    end
-
-    unless targets.empty?
-      _log.info("Queueing refresh for #{targets.count} pods")
-
-      EmsRefresh.queue_refresh(targets)
-    end
+    process_queue
 
     sleep_poll_normal
   end
@@ -57,9 +38,40 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
         safe_log("#{message} Failed to join watch thread: #{err}")
       end
     end
+
+    process_queue
   end
 
   private
+
+  def process_queue
+    targets = []
+    until queue.empty?
+      notice = queue.deq
+
+      targets << parse_target_from_notice(notice)
+    end
+
+    unless targets.empty?
+      _log.info("Queueing refresh for #{targets.count} pods")
+      EmsRefresh.queue_refresh(targets)
+    end
+  end
+
+  def parse_target_from_notice(notice)
+    object = notice.object
+
+    ems_ref = parse_notice_pod_ems_ref(object)
+
+    ManagerRefresh::Target.new(
+      :manager     => ems,
+      :association => :container_groups,
+      :manager_ref => ems_ref,
+      :options     => {
+        :payload => object.to_json,
+      }
+    )
+  end
 
   def stop_watch_thread
     self.exit_requested = true

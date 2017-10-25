@@ -1,6 +1,6 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Persister::TargetCollection < ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager
   def targeted
-    false # TODO(lsmola) get ready for true
+    false # TODO(lsmola) get ready for true, which means a proper targeted refresh. That will require more effort.
   end
 
   def strategy

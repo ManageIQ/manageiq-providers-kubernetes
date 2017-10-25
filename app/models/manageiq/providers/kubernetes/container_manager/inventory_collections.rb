@@ -320,6 +320,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
           :model_class => ContainerCondition,
+          :name        => "container_conditions_for_#{association}".to_sym,
           :arel        => query,
           :manager_ref => [:container_entity, :name],
         )
@@ -340,6 +341,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         ::ManagerRefresh::InventoryCollection.new(
           shared_options.merge(
             :model_class                  => CustomAttribute,
+            :name                         => "custom_attributes_for_#{parent_collection.name}_#{section}".to_sym,
             :arel                         => query,
             :manager_ref                  => [:resource, :section, :name],
             :parent_inventory_collections => [parent_collection.name],

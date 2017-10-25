@@ -3,10 +3,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Persister::TargetCollection < 
     false # TODO(lsmola) get ready for true, which means a proper targeted refresh. That will require more effort.
   end
 
-  def strategy
-    nil
-  end
-
   def shared_options
     settings_options = options[:inventory_collections].try(:to_hash) || {}
 

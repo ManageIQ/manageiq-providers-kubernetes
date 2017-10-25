@@ -43,17 +43,9 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
 
   def filter_or_fetch_all(threshold, client, names, entity_name)
     if names.count > threshold
-      fetch_entity(client, entity_name)
-    else
-      names.map { |name| fetch_entity(client, entity_name.singularize, name) }
-    end
-  end
-
-  def fetch_entity(client, entity_name, filter = nil)
-    if filter
-      client.send("get_#{entity_name}", filter)
-    else
       client.send("get_#{entity_name}")
+    else
+      names.map { |name| client.send("get_#{entity_name.singularize}", name) }
     end
   end
 end

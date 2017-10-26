@@ -3,6 +3,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
     full_inventory = empty_inventory(entities)
 
     # Fill pods from Targets
+    pods                  = pod_list
     full_inventory['pod'] = pods
     # Fill pods references
     full_inventory.merge!(pods_references(pods))
@@ -35,7 +36,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
     references
   end
 
-  def pods
+  def pod_list
     target.targets.map { |target| JSON.parse(target.options[:payload], :object_class => OpenStruct) }
   end
 

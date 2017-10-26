@@ -1,0 +1,113 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://host.example.com:8443/api/v1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      Accept-Encoding:
+      - gzip, deflate
+      User-Agent:
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
+      Authorization:
+      - Bearer theToken
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-store
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 18 Oct 2017 16:29:50 GMT
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: UTF-8
+      string: '{"kind":"APIResourceList","groupVersion":"v1","resources":[{"name":"bindings","namespaced":true,"kind":"Binding","verbs":["create"]},{"name":"componentstatuses","namespaced":false,"kind":"ComponentStatus","verbs":["get","list"],"shortNames":["cs"]},{"name":"configmaps","namespaced":true,"kind":"ConfigMap","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["cm"]},{"name":"endpoints","namespaced":true,"kind":"Endpoints","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["ep"]},{"name":"events","namespaced":true,"kind":"Event","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["ev"]},{"name":"limitranges","namespaced":true,"kind":"LimitRange","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["limits"]},{"name":"namespaces","namespaced":false,"kind":"Namespace","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["ns"]},{"name":"namespaces/finalize","namespaced":false,"kind":"Namespace","verbs":["update"]},{"name":"namespaces/status","namespaced":false,"kind":"Namespace","verbs":["get","patch","update"]},{"name":"nodes","namespaced":false,"kind":"Node","verbs":["create","delete","deletecollection","get","list","patch","proxy","update","watch"],"shortNames":["no"]},{"name":"nodes/proxy","namespaced":false,"kind":"Node","verbs":[]},{"name":"nodes/status","namespaced":false,"kind":"Node","verbs":["get","patch","update"]},{"name":"persistentvolumeclaims","namespaced":true,"kind":"PersistentVolumeClaim","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["pvc"]},{"name":"persistentvolumeclaims/status","namespaced":true,"kind":"PersistentVolumeClaim","verbs":["get","patch","update"]},{"name":"persistentvolumes","namespaced":false,"kind":"PersistentVolume","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["pv"]},{"name":"persistentvolumes/status","namespaced":false,"kind":"PersistentVolume","verbs":["get","patch","update"]},{"name":"pods","namespaced":true,"kind":"Pod","verbs":["create","delete","deletecollection","get","list","patch","proxy","update","watch"],"shortNames":["po"]},{"name":"pods/attach","namespaced":true,"kind":"Pod","verbs":[]},{"name":"pods/binding","namespaced":true,"kind":"Binding","verbs":["create"]},{"name":"pods/eviction","namespaced":true,"kind":"Eviction","verbs":["create"]},{"name":"pods/exec","namespaced":true,"kind":"Pod","verbs":[]},{"name":"pods/log","namespaced":true,"kind":"Pod","verbs":["get"]},{"name":"pods/portforward","namespaced":true,"kind":"Pod","verbs":[]},{"name":"pods/proxy","namespaced":true,"kind":"Pod","verbs":[]},{"name":"pods/status","namespaced":true,"kind":"Pod","verbs":["get","patch","update"]},{"name":"podtemplates","namespaced":true,"kind":"PodTemplate","verbs":["create","delete","deletecollection","get","list","patch","update","watch"]},{"name":"replicationcontrollers","namespaced":true,"kind":"ReplicationController","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["rc"]},{"name":"replicationcontrollers/scale","namespaced":true,"kind":"Scale","verbs":["get","patch","update"]},{"name":"replicationcontrollers/status","namespaced":true,"kind":"ReplicationController","verbs":["get","patch","update"]},{"name":"resourcequotas","namespaced":true,"kind":"ResourceQuota","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["quota"]},{"name":"resourcequotas/status","namespaced":true,"kind":"ResourceQuota","verbs":["get","patch","update"]},{"name":"secrets","namespaced":true,"kind":"Secret","verbs":["create","delete","deletecollection","get","list","patch","update","watch"]},{"name":"securitycontextconstraints","namespaced":false,"kind":"SecurityContextConstraints","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["scc"]},{"name":"serviceaccounts","namespaced":true,"kind":"ServiceAccount","verbs":["create","delete","deletecollection","get","list","patch","update","watch"],"shortNames":["sa"]},{"name":"services","namespaced":true,"kind":"Service","verbs":["create","delete","get","list","patch","proxy","update","watch"]},{"name":"services/proxy","namespaced":true,"kind":"Service","verbs":[]},{"name":"services/status","namespaced":true,"kind":"Service","verbs":["get","patch","update"]}]}
+
+'
+    http_version: 
+  recorded_at: Wed, 18 Oct 2017 16:29:50 GMT
+- request:
+    method: get
+    uri: https://host.example.com:8443/api/v1/nodes/ladislav-ocp-3.6-compute04.10.35.49.24.nip.io
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      Accept-Encoding:
+      - gzip, deflate
+      User-Agent:
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
+      Authorization:
+      - Bearer theToken
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-store
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 18 Oct 2017 16:29:50 GMT
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: UTF-8
+      string: '{"kind":"Node","apiVersion":"v1","metadata":{"name":"ladislav-ocp-3.6-compute04.10.35.49.24.nip.io","selfLink":"/api/v1/nodes/ladislav-ocp-3.6-compute04.10.35.49.24.nip.io","uid":"05f19fa9-a6c2-11e7-8de6-001a4a162711","resourceVersion":"1719669","creationTimestamp":"2017-10-01T16:03:11Z","labels":{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/hostname":"ladislav-ocp-3.6-compute04.10.35.49.24.nip.io","logging-infra-fluentd":"true","region":"primary","zone":"default"},"annotations":{"volumes.kubernetes.io/controller-managed-attach-detach":"true"}},"spec":{"externalID":"ladislav-ocp-3.6-compute04.10.35.49.24.nip.io"},"status":{"capacity":{"cpu":"2","memory":"19908656Ki","pods":"20"},"allocatable":{"cpu":"2","memory":"19806256Ki","pods":"20"},"conditions":[{"type":"OutOfDisk","status":"False","lastHeartbeatTime":"2017-10-18T16:29:41Z","lastTransitionTime":"2017-10-01T16:55:08Z","reason":"KubeletHasSufficientDisk","message":"kubelet
+        has sufficient disk space available"},{"type":"MemoryPressure","status":"False","lastHeartbeatTime":"2017-10-18T16:29:41Z","lastTransitionTime":"2017-10-01T16:55:08Z","reason":"KubeletHasSufficientMemory","message":"kubelet
+        has sufficient memory available"},{"type":"DiskPressure","status":"False","lastHeartbeatTime":"2017-10-18T16:29:41Z","lastTransitionTime":"2017-10-01T16:55:08Z","reason":"KubeletHasNoDiskPressure","message":"kubelet
+        has no disk pressure"},{"type":"Ready","status":"True","lastHeartbeatTime":"2017-10-18T16:29:41Z","lastTransitionTime":"2017-10-01T16:55:18Z","reason":"KubeletReady","message":"kubelet
+        is posting ready status"}],"addresses":[{"type":"LegacyHostIP","address":"10.35.49.24"},{"type":"InternalIP","address":"10.35.49.24"},{"type":"Hostname","address":"ladislav-ocp-3.6-compute04.10.35.49.24.nip.io"}],"daemonEndpoints":{"kubeletEndpoint":{"Port":10250}},"nodeInfo":{"machineID":"4bdc423c06554441a44182e398ed5990","systemUUID":"EF114F30-90D9-45B5-80B6-A2108F5491BA","bootID":"b291ff03-cdb0-4e10-983c-9450be9c7ad1","kernelVersion":"3.10.0-514.26.2.el7.x86_64","osImage":"CentOS
+        Linux 7 (Core)","containerRuntimeVersion":"docker://1.12.6","kubeletVersion":"v1.6.1+5115d708d7","kubeProxyVersion":"v1.6.1+5115d708d7","operatingSystem":"linux","architecture":"amd64"},"images":[{"names":["brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/metrics-hawkular-metrics@sha256:efb72090a6956f6b6eb743b0ff34a9a2a54cdf22ce917d2051ff174930cb1ceb","brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/metrics-hawkular-metrics:v3.6"],"sizeBytes":1020848316},{"names":["brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/ose-deployer@sha256:2d0dbb1b2d7683f84428d3f5ee71bdff9c7bf3848ee5365aa2a780bbcaa28c14","brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/ose-deployer:v3.6.173.0.5"],"sizeBytes":970120704},{"names":["brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/metrics-heapster@sha256:bf707820b09a15d06fbf992eb0ed110753a4692bde728b99a10d37b9ca467fa9","brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/metrics-heapster:v3.6"],"sizeBytes":277723303},{"names":["brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/logging-fluentd@sha256:f7ea78513409b5240999132692c8b5db6ef96bbab75178a7e59a78a431fa5538","brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/logging-fluentd:v3.6"],"sizeBytes":235123547},{"names":["brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/registry-console@sha256:a971317255f9187a10a0fa20dda8a08b86d18f2bfe89a37d2a7be1b1ab602713","brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/registry-console:v3.6"],"sizeBytes":228571373},{"names":["docker.io/fsimonce/stress-test@sha256:baa95d9848ec0608803cc2a18f0b9b55c967a8ed6dea62fb0d045cb6b7bfb32a","docker.io/fsimonce/stress-test:latest"],"sizeBytes":216558505},{"names":["brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/ose-pod@sha256:cba42c0bde501d456738d761b5cc75a3488109a14415f3bbe0d22f91a1984532","brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/ose-pod:v3.6.173.0.5"],"sizeBytes":208587467}]}}
+
+'
+    http_version: 
+  recorded_at: Wed, 18 Oct 2017 16:29:50 GMT
+- request:
+    method: get
+    uri: https://host.example.com:8443/api/v1/namespaces/vcr-tests
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      Accept-Encoding:
+      - gzip, deflate
+      User-Agent:
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
+      Authorization:
+      - Bearer theToken
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-store
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 18 Oct 2017 16:29:51 GMT
+      Content-Length:
+      - '583'
+    body:
+      encoding: UTF-8
+      string: '{"kind":"Namespace","apiVersion":"v1","metadata":{"name":"vcr-tests","selfLink":"/api/v1/namespaces/vcr-tests","uid":"a300e856-a9b2-11e7-8a08-001a4a162711","resourceVersion":"372766","creationTimestamp":"2017-10-05T09:50:36Z","annotations":{"openshift.io/description":"","openshift.io/display-name":"","openshift.io/requester":"system:admin","openshift.io/sa.scc.mcs":"s0:c11,c10","openshift.io/sa.scc.supplemental-groups":"1000130000/10000","openshift.io/sa.scc.uid-range":"1000130000/10000"}},"spec":{"finalizers":["openshift.io/origin","kubernetes"]},"status":{"phase":"Active"}}
+
+'
+    http_version: 
+  recorded_at: Wed, 18 Oct 2017 16:29:51 GMT
+recorded_with: VCR 3.0.3

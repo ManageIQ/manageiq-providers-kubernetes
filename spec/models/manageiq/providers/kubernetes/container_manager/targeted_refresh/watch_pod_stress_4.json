@@ -1,0 +1,143 @@
+{
+  "type": "ADDED",
+  "object": {
+    "kind": "Pod",
+    "apiVersion": "v1",
+    "metadata": {
+      "name": "stress4-1-7r2fb",
+      "generateName": "stress4-1-",
+      "namespace": "vcr-tests",
+      "selfLink": "/api/v1/namespaces/vcr-tests/pods/stress4-1-7r2fb",
+      "uid": "1b641a4f-aa70-11e7-8a08-001a4a162711",
+      "resourceVersion": "466385",
+      "creationTimestamp": "2017-10-06T08:26:53Z",
+      "labels": {
+        "deployment": "stress4-1",
+        "deploymentconfig": "stress4",
+        "run": "stress4"
+      },
+      "annotations": {
+        "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicationController\",\"namespace\":\"vcr-tests\",\"name\":\"stress4-1\",\"uid\":\"7bc607a3-a9b7-11e7-8a08-001a4a162711\",\"apiVersion\":\"v1\",\"resourceVersion\":\"466359\"}}\n",
+        "openshift.io/deployment-config.latest-version": "1",
+        "openshift.io/deployment-config.name": "stress4",
+        "openshift.io/deployment.name": "stress4-1",
+        "openshift.io/scc": "restricted"
+      },
+      "ownerReferences": [
+        {
+          "apiVersion": "v1",
+          "kind": "ReplicationController",
+          "name": "stress4-1",
+          "uid": "7bc607a3-a9b7-11e7-8a08-001a4a162711",
+          "controller": true,
+          "blockOwnerDeletion": true
+        }
+      ]
+    },
+    "spec": {
+      "volumes": [
+        {
+          "name": "default-token-78s93",
+          "secret": {
+            "secretName": "default-token-78s93",
+            "defaultMode": 420
+          }
+        }
+      ],
+      "containers": [
+        {
+          "name": "stress4",
+          "image": "docker.io/fsimonce/stress-test",
+          "resources": {},
+          "volumeMounts": [
+            {
+              "name": "default-token-78s93",
+              "readOnly": true,
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+            }
+          ],
+          "terminationMessagePath": "/dev/termination-log",
+          "terminationMessagePolicy": "File",
+          "imagePullPolicy": "Always",
+          "securityContext": {
+            "capabilities": {
+              "drop": [
+                "KILL",
+                "MKNOD",
+                "SETGID",
+                "SETUID",
+                "SYS_CHROOT"
+              ]
+            },
+            "privileged": false,
+            "seLinuxOptions": {
+              "level": "s0:c11,c10"
+            },
+            "runAsUser": 1000130000
+          }
+        }
+      ],
+      "restartPolicy": "Always",
+      "terminationGracePeriodSeconds": 30,
+      "dnsPolicy": "ClusterFirst",
+      "serviceAccountName": "default",
+      "serviceAccount": "default",
+      "nodeName": "ladislav-ocp-3.6-compute04.10.35.49.24.nip.io",
+      "securityContext": {
+        "seLinuxOptions": {
+          "level": "s0:c11,c10"
+        },
+        "fsGroup": 1000130000
+      },
+      "imagePullSecrets": [
+        {
+          "name": "default-dockercfg-l2ng9"
+        }
+      ],
+      "schedulerName": "default-scheduler"
+    },
+    "status": {
+      "phase": "Running",
+      "conditions": [
+        {
+          "type": "Initialized",
+          "status": "True",
+          "lastProbeTime": null,
+          "lastTransitionTime": "2017-10-06T08:26:53Z"
+        },
+        {
+          "type": "Ready",
+          "status": "True",
+          "lastProbeTime": null,
+          "lastTransitionTime": "2017-10-06T08:27:01Z"
+        },
+        {
+          "type": "PodScheduled",
+          "status": "True",
+          "lastProbeTime": null,
+          "lastTransitionTime": "2017-10-06T08:26:53Z"
+        }
+      ],
+      "hostIP": "10.35.49.24",
+      "podIP": "10.130.2.21",
+      "startTime": "2017-10-06T08:26:53Z",
+      "containerStatuses": [
+        {
+          "name": "stress4",
+          "state": {
+            "running": {
+              "startedAt": "2017-10-06T08:27:00Z"
+            }
+          },
+          "lastState": {},
+          "ready": true,
+          "restartCount": 0,
+          "image": "docker.io/fsimonce/stress-test:latest",
+          "imageID": "docker-pullable://docker.io/fsimonce/stress-test@sha256:baa95d9848ec0608803cc2a18f0b9b55c967a8ed6dea62fb0d045cb6b7bfb32a",
+          "containerID": "docker://df957b2594bb7f16261e0d47fca06837e01e31e10ac1723dfe375dca14f0234a"
+        }
+      ],
+      "qosClass": "BestEffort"
+    }
+  }
+}

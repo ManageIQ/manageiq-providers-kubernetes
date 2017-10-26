@@ -101,7 +101,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
     pod_watch_stream.each do |notice|
       break if exit_requested
 
-      _log.info("EMS [#{ems.id}] Pod: #{parse_notice_pod_ems_ref(notice.object)}")
+      _log.info("EMS [#{ems.id}] Received change for pod [#{parse_notice_pod_ems_ref(notice.object)}]")
 
       queue.enq(notice)
     end

@@ -263,4 +263,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       )
     end
   end
+
+  def evaluate_alert(_alert_id, _event)
+    # currently only EmsEvents from Prometheus are tested for node alerts,
+    # and these should automatically be translated to alerts.
+    true
+  end
 end

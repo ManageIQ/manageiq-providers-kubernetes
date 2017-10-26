@@ -79,29 +79,43 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
     event[:url] = annotations["url"]
     event[:severity] = parse_severity(annotations["severity"])
     labels = event["labels"]
+    # TODO(mtayer): remove after https://github.com/ManageIQ/manageiq/pull/16339
     event[:ems_ref] = incident_identifier(event, labels, annotations)
     event[:resolved] = event["status"] == "resolved"
-    timestamp = event["timestamp"]
-
-    target = find_target(labels)
+    timestamp = event[:resolved] ? event["endsAt"] : event["startsAt"]
     {
-      :ems_id              => @cfg[:ems_id],
-      :source              => "DATAWAREHOUSE",
-      :timestamp           => timestamp,
-      :event_type          => "datawarehouse_alert",
-      :target_type         => target.class.name,
-      :target_id           => target.id,
-      :container_node_id   => target.id,
-      :container_node_name => target.name,
-      :message             => annotations["message"],
-      :full_data           => event.to_h
-    }
+      :source     => "DATAWAREHOUSE",
+      :timestamp  => timestamp,
+      :event_type => "datawarehouse_alert",
+      :message    => annotations["message"],
+      :ems_ref    => incident_identifier(event, labels, annotations),
+      :full_data  => event.to_h
+    }.merge(
+      find_target(
+        annotations,
+        labels
+      )
+    )
   end
 
-  def find_target(labels)
-    instance = ContainerNode.find_by(:name => labels["instance"], :ems_id => @target_ems_id)
-    $cn_monitoring_log.error("Could not find alert target from labels: [#{labels}]") unless instance
-    instance
+  def find_target(annotations, labels)
+    case annotations['miqTarget'] # We only collect alerts with miqTarget=ContainerNode|ExtManagementSystem
+    when 'ContainerNode'
+      # TODO: we must do the db query here unless we get Prometheus to emit ems_ref
+      node = ContainerNode.find_by(:ems_id => @target_ems_id, :name => labels["instance"])
+      $cn_monitoring_log.error("Could not find node from labels: [#{labels}]") unless node
+      {
+        :container_node_name => labels["instance"],
+        :container_node_id   => node.try(:id),
+        :target_type         => node.try(:class).try(:name),
+        :target_id           => node.try(:id),
+      }
+    when 'ExtManagementSystem'
+      {
+        :target_type => 'ExtManagementSystem',
+        :target_id   => @target_ems_id,
+      }
+    end
   end
 
   def parse_severity(severity)

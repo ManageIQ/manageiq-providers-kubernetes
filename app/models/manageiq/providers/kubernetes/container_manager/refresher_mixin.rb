@@ -4,8 +4,9 @@ module ManageIQ
       module ContainerManager::RefresherMixin
         def preprocess_targets
           @targets_by_ems_id.each do |ems_id, targets|
-            # We want all targets of class EmsEvent to be merged into one target, so they can be refreshed together, otherwise
-            # we could be missing some crosslinks in the refreshed data
+            # We want all targets of other than ExtManagementSystem class to be merged into one target, so they can be
+            # refreshed together, otherwise we could be missing some crosslinks in the refreshed data and refreshing by
+            # one would not be effective.
             ems_targets, sub_ems_targets = targets.partition { |x| x.kind_of?(ExtManagementSystem) }
             all_targets = []
 

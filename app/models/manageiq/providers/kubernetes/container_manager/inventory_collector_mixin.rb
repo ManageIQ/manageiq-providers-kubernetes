@@ -92,7 +92,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
       end
     end
 
-    _log.info("Started watch thread")
+    _log.info("Started watch thread [#{tid}]")
 
     tid
   end

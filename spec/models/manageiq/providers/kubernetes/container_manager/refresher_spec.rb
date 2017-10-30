@@ -519,7 +519,7 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
 
         [pod0, pod1].each do |pod|
           assert_disconnected(pod)
-          expect(pod.container_project).to be_nil
+          expect(pod.container_project).not_to be_nil
           expect(pod.containers.count).to eq(1)
           expect(pod.containers.count).to eq(1)
         end
@@ -537,7 +537,7 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
 
         [container0, container1].each do |container|
           assert_disconnected(container)
-          expect(container.container_project).to be_nil
+          expect(container.container_project).not_to be_nil
         end
       end
     end

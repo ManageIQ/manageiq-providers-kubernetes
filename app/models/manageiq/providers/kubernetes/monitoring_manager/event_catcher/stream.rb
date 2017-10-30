@@ -32,6 +32,13 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
     # {
     #   "generationID":"323e0863-f501-4896-b7dc-353cf863597d",
     #   "messages":[
+    #     "index": 1,
+    #     "timestamp": "2017-10-17T08:30:00.466775417Z",
+    #     "data": {
+    #       "alerts": [
+    #         ...
+    #       ]
+    #     }
     #   ...
     #   ]
     # }
@@ -41,15 +48,12 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
     return alerts if alert_list['messages'].blank?
     alert_list["messages"].each do |message|
       @current_index = message['index']
-      unless message.fetch_path("data", "commonAnnotations", "miqTarget") == 'ContainerNode'
-        $cn_monitoring_log.info("Skipping alert due to missing annotation")
-        next
-      end
-      message["data"]["alerts"].each_with_index do |alert, i|
-        alert['generationID'] = @current_generation
-        alert['index'] = @current_index
-        alert['timestamp'] = timestamp_indent(alert, i)
-        alerts << alert
+      message["data"]["alerts"].each do |alert|
+        if alert_for_miq?(alert)
+          alerts << process_alert!(alert, @current_generation, @current_index)
+        else
+          $cn_monitoring_log.info("Skipping alert due to missing annotation or unexpected target")
+        end
       end
       @current_index += 1
     end
@@ -58,18 +62,21 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
     alerts
   end
 
-  def timestamp_indent(alert, indent)
-    # This is currently needed due to a uniqueness constraint on ems events
-    # see https://github.com/ManageIQ/manageiq/pull/15719
-    # Prometheus alert timestamp equals the evaluation cycle start timestamp
-    # We are adding an artificial indent of the lest significant bit since several alerts
-    # for different entities or from different alert definitions are likely to have the same timestamp
-    timestamp = alert["status"] == 'resolved' ? alert["endsAt"] : alert["startsAt"]
-    Time.zone.at((Time.parse(timestamp).to_f + (0.000001 * indent)))
+  def process_alert!(alert, generation, group_index)
+    alert['generationID'] = generation
+    alert['index'] = group_index
+    alert
+  end
+
+  def alert_for_miq?(alert)
+    %w(ContainerNode ExtManagementSystem).include?(
+      alert.fetch_path("annotations", "miqTarget")
+    )
   end
 
   def last_position
-    last_event = @ems.parent_manager.ems_events.last || OpenStruct.new(:full_data => {})
+    last_event = @ems.parent_manager.ems_events.where(:source => "DATAWAREHOUSE").last
+    last_event ||= OpenStruct.new(:full_data => {})
     last_index = last_event.full_data['index']
     [
       last_event.full_data['generationID'].to_s,

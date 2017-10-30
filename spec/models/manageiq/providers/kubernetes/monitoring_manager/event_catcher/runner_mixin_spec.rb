@@ -46,23 +46,29 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
   end
 
   let(:monitoring_manager) { container_manager.monitoring_manager }
+  let(:node_annotations) { {"miqTarget" => 'ContainerNode'} }
 
   context "#find_target" do
     it "finds a target container node" do
-      target = FactoryGirl.create(:container_node)
+      target = FactoryGirl.create(:container_node, :name => 'testing')
       labels = {
         "instance" => target.name
       }
-      expect(subject.find_target(labels)).to eq(target)
+      expect(subject.find_target(node_annotations, labels)).to eq(
+        :container_node_name => target.name,
+        :container_node_id   => target.id,
+        :target_type         => "ContainerNode",
+        :target_id           => target.id,
+      )
     end
 
     it "logs error and returns nil if the node does not exist" do
-      target = FactoryGirl.build(:container_node)
+      target = FactoryGirl.build(:container_node, :name => 'testing')
       labels = {
         "instance" => target.name
       }
       expect($cn_monitoring_log).to receive(:error)
-      expect(subject.find_target(labels)).to eq(nil)
+      expect(subject.find_target(node_annotations, labels).compact).to eq(:container_node_name => target.name)
     end
   end
 

@@ -55,6 +55,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
         [
           FactoryGirl.create(
             :ems_event,
+            :source                => "DATAWAREHOUSE",
             :timestamp             => "1970-01-01 00:00:00.000000",
             :ext_management_system => container_manager,
             :full_data             => {
@@ -65,6 +66,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
           # not real data because this generation also need a 0 index, but good for the test purpose
           FactoryGirl.create(
             :ems_event,
+            :source                => "DATAWAREHOUSE",
             :timestamp             => "1970-01-02 00:00:00.000000",
             :ext_management_system => container_manager,
             :full_data             => {

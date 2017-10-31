@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ManageIQ_Providers_Kubernetes 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-21 09:55+0200\n"
-"PO-Revision-Date: 2017-04-21 09:55+0200\n"
+"POT-Creation-Date: 2017-10-31 16:38+0100\n"
+"PO-Revision-Date: 2017-10-31 16:38+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,3 +17,94 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:69
+msgid "Advanced Settings"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:70
+msgid "Advanced Settings for provider configuration"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:49
+msgid "CVE location"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:50
+msgid ""
+"Enables defining a URL path prefix for XCCDF file instead of accessing the default location.\n"
+"  example: http://my_file_server.org:3333/xccdf_files/\n"
+"  Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there."
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:8 ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:22
+msgid "HTTP Proxy"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:9
+msgid "HTTP Proxy to connect ManageIQ to the provider. example: http://user:password@my_https_proxy"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:23
+msgid "HTTP Proxy to connect image inspector pods to the internet. example: http://user:password@my_https_proxy"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:26
+msgid "HTTPS Proxy"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:27
+msgid "HTTPS Proxy to connect image inspector pods to the internet. example: https://user:password@my_https_proxy"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:18
+msgid "Image Inspector Options"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:39
+msgid "Image-Inspector Registry"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:34
+msgid "Image-Inspector Repository"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:35
+msgid "Image-Inspector Repository. example: openshift/image-inspector"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:44
+msgid "Image-Inspector Tag"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:45
+msgid "Image-Inspector image tag. example: 2.1"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:30
+msgid "NO Proxy"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:31
+msgid "NO Proxy lists urls that should'nt be sent to any proxy. example: my_file_server.org"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:64
+msgid "Proxy Settings"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:65
+msgid "Proxy Settings for connection to the provider"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:40
+msgid "Registry to provide the image inspector repository. example: docker.io"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:19
+msgid "Settings for Image Inspector tool"
+msgstr ""
+
+#: ../app/models/manageiq/providers/kubernetes/container_manager_mixin.rb:193
+msgid "target_class must be a class not an instance"
+msgstr ""

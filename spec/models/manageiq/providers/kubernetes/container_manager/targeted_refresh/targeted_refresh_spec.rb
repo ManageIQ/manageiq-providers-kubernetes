@@ -46,6 +46,12 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     full_refresh_test(:targeted_refresh_all_nodes_and_namespaces)
   end
 
+  it "will perform a targeted refresh not duplicating archived Pods and Containers" do
+    create_archived_entities
+
+    full_refresh_test(:targeted_refresh_referenced_nodes_and_namespaces)
+  end
+
   def queue_target!(watch_data_path)
     notice = JSON.parse(File.read(File.join(File.dirname(__FILE__), watch_data_path)))
 
@@ -62,6 +68,78 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     )
 
     EmsRefresh.queue_refresh(target)
+  end
+
+  def create_archived_entities
+    FactoryGirl.create(
+      :container,
+      :type              => "ManageIQ::Providers::Kubernetes::ContainerManager::Container",
+      :ems_ref           => "1b641a4f-aa70-11e7-8a08-001a4a162711_stress4_docker.io/fsimonce/stress-test",
+      :restart_count     => 0,
+      :state             => "running",
+      :name              => "stress4",
+      :backing_ref       => "docker://df957b2594bb7f16261e0d47fca06837e01e31e10ac1723dfe375dca14f0234a",
+      :ems_id            => @ems.id,
+      :image             => "docker.io/fsimonce/stress-test",
+      :image_pull_policy => "Always",
+      :cpu_cores         => 0.0,
+      :capabilities_drop => "KILL,MKNOD,SETGID,SETUID,SYS_CHROOT",
+      :deleted_on        => Time.now.utc,
+    )
+    FactoryGirl.create(
+      :container,
+      :type              => "ManageIQ::Providers::Kubernetes::ContainerManager::Container",
+      :ems_ref           => "82b28922-acd4-11e7-8a08-001a4a162711_stress5_docker.io/fsimonce/stress-test",
+      :restart_count     => 0,
+      :state             => "running",
+      :name              => "stress5",
+      :backing_ref       => "docker://a4deeaedcb33ec4e8895f4a981d1d47ae92f7b36a6e4525f5ae134ca767fc00c",
+      :ems_id            => @ems.id,
+      :image             => "docker.io/fsimonce/stress-test",
+      :image_pull_policy => "Always",
+      :cpu_cores         => 0.0,
+      :capabilities_drop => "KILL,MKNOD,SETGID,SETUID,SYS_CHROOT",
+      :deleted_on        => Time.now.utc,
+    )
+
+    FactoryGirl.create(
+      :container_group,
+      :ems_ref          => "1b641a4f-aa70-11e7-8a08-001a4a162711",
+      :name             => "stress4-1-7r2fb",
+      :resource_version => "466385",
+      :restart_policy   => "Always",
+      :dns_policy       => "ClusterFirst",
+      :ems_id           => @ems.id,
+      :ipaddress        => "10.130.2.21",
+      :type             => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup",
+      :phase            => "Running",
+      :deleted_on       => Time.now.utc,
+    )
+
+    FactoryGirl.create(
+      :container_group,
+      :ems_ref          => "82b28922-acd4-11e7-8a08-001a4a162711",
+      :name             => "stress5-1-w9vm2",
+      :resource_version => "768737",
+      :restart_policy   => "Always",
+      :dns_policy       => "ClusterFirst",
+      :ems_id           => @ems.id,
+      :ipaddress        => "10.130.2.22",
+      :type             => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup",
+      :phase            => "Running",
+      :deleted_on       => Time.now.utc,
+    )
+
+    FactoryGirl.create(
+      :container_image,
+      :tag        => "latest",
+      :name       => "fsimonce/stress-test",
+      :image_ref  => "docker-pullable://docker.io/fsimonce/stress-test@sha256:baa95d9848ec0608803cc2a18f0b9b55c967a8ed6dea62fb0d045cb6b7bfb32a",
+      :ems_id     => @ems.id,
+      :digest     => "sha256:baa95d9848ec0608803cc2a18f0b9b55c967a8ed6dea62fb0d045cb6b7bfb32a",
+      :type       => "ContainerImage",
+      :deleted_on => Time.now.utc,
+    )
   end
 
   def parse_notice_pod_ems_ref(pod)

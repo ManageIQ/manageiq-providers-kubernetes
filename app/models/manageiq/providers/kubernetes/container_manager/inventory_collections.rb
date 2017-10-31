@@ -358,11 +358,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
   def custom_reconnect_block(manager_ref = :ems_ref)
     # TODO(lsmola) once we have DB unique indexes, we can stop using manual reconnect, since it adds processing time
     lambda do |inventory_collection, inventory_objects_index, attributes_index|
+      relation = inventory_collection.model_class.where(:ems_id => inventory_collection.parent.id).archived
+
       # Skip reconnect if there are no archived entities
-      return if inventory_collection.model_class.archived.count <= 0
+      return if relation.archived.count <= 0
 
       inventory_objects_index.each_slice(1000) do |batch|
-        inventory_collection.model_class.archived.where(manager_ref => batch.map(&:second).map(&:manager_uuid)).each do |record|
+        relation.where(manager_ref => batch.map(&:second).map(&:manager_uuid)).each do |record|
           index = inventory_collection.object_index_with_keys(inventory_collection.manager_ref_to_cols, record)
 
           # We need to delete the record from the inventory_objects_index and attributes_index, otherwise it

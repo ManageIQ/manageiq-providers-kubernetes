@@ -116,17 +116,18 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :manager_ref    => [:host, :port],
         )
       )
-    @collections[:container_images]           =
+    @collections[:container_images] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
-          :model_class    => ContainerImage,
-          :parent         => manager,
-          :builder_params => {:ems_id => manager.id},
-          :association    => :container_images,
+          :model_class            => ContainerImage,
+          :parent                 => manager,
+          :builder_params         => {:ems_id => manager.id},
+          :association            => :container_images,
           # TODO: old save matches on [:image_ref, :container_image_registry_id]
           # TODO: should match on digest when available
-          :manager_ref    => [:image_ref],
-          :delete_method  => :disconnect_inv,
+          :manager_ref            => [:image_ref],
+          :delete_method          => :disconnect_inv,
+          :custom_reconnect_block => custom_reconnect_block(:image_ref)
         )
       )
     # images have custom_attributes but that's done conditionally in openshift parser
@@ -134,13 +135,14 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     @collections[:container_groups] =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
-          :model_class          => ContainerGroup,
-          :parent               => manager,
-          :builder_params       => {:ems_id => manager.id},
-          :association          => :container_groups,
-          :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
-          :attributes_blacklist => [:namespace],
-          :delete_method        => :disconnect_inv,
+          :model_class            => ContainerGroup,
+          :parent                 => manager,
+          :builder_params         => {:ems_id => manager.id},
+          :association            => :container_groups,
+          :secondary_refs         => {:by_namespace_and_name => [:namespace, :name]},
+          :attributes_blacklist   => [:namespace],
+          :delete_method          => :disconnect_inv,
+          :custom_reconnect_block => custom_reconnect_block
         )
       )
     initialize_container_conditions_collection(manager, :container_groups)
@@ -157,12 +159,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     @collections[:containers]             =
       ::ManagerRefresh::InventoryCollection.new(
         shared_options.merge(
-          :model_class    => Container,
-          :parent         => manager,
-          :builder_params => {:ems_id => manager.id},
-          :association    => :containers,
+          :model_class            => Container,
+          :parent                 => manager,
+          :builder_params         => {:ems_id => manager.id},
+          :association            => :containers,
           # parser sets :ems_ref => "#{pod_id}_#{container.name}_#{container.image}"
-          :delete_method  => :disconnect_inv,
+          :delete_method          => :disconnect_inv,
+          :custom_reconnect_block => custom_reconnect_block
         )
       )
     @collections[:container_port_configs] =
@@ -349,6 +352,36 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
             :parent_inventory_collections => [parent_collection.name],
           )
         )
+    end
+  end
+
+  def custom_reconnect_block(manager_ref = :ems_ref)
+    # TODO(lsmola) once we have DB unique indexes, we can stop using manual reconnect, since it adds processing time
+    lambda do |inventory_collection, inventory_objects_index, attributes_index|
+      # Skip reconnect if there are no archived entities
+      return if inventory_collection.model_class.archived.count <= 0
+
+      inventory_objects_index.each_slice(1000) do |batch|
+        inventory_collection.model_class.archived.where(manager_ref => batch.map(&:second).map(&:manager_uuid)).each do |record|
+          index = inventory_collection.object_index_with_keys(inventory_collection.manager_ref_to_cols, record)
+
+          # We need to delete the record from the inventory_objects_index and attributes_index, otherwise it
+          # would be sent for create.
+          inventory_object = inventory_objects_index.delete(index)
+          hash             = attributes_index.delete(index)
+
+          # Make the entity active again
+          hash[:deleted_on] = nil unless hash.key?(:deleted_on)
+
+          record.assign_attributes(hash.except(:id, :type))
+          if !inventory_collection.check_changed? || record.changed?
+            record.save!
+            inventory_collection.store_updated_records(record)
+          end
+
+          inventory_object.id = record.id
+        end
+      end
     end
   end
 end

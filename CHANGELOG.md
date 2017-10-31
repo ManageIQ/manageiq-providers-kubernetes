@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 72 ending 2017-10-30
+
+### Added
+- Collect ems targeted Prometheus events [(#140)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/140)
+- Targeted refresh for pods using watches [(#135)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/135)
+- Name custom attributes ICs nicely [(#128)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/128)
+- Scanning job will read oscap erros from image-inspector [(#100)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/100)
+
 ## Unreleased as of Sprint 71 ending 2017-10-16
 
 ### Added

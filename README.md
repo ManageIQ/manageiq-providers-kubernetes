@@ -1,11 +1,11 @@
 # manageiq-providers-kubernetes
 
 [![Gem Version](https://badge.fury.io/rb/manageiq-providers-kubernetes.svg)](http://badge.fury.io/rb/manageiq-providers-kubernetes)
-[![Build Status](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes.svg)](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes)
+[![Build Status](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes.svg?branch=gaprindashvili)](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes)
 [![Code Climate](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes.svg)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes)
 [![Test Coverage](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/badges/coverage.svg)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/coverage)
 [![Dependency Status](https://gemnasium.com/ManageIQ/manageiq-providers-kubernetes.svg)](https://gemnasium.com/ManageIQ/manageiq-providers-kubernetes)
-[![Security](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/master.svg)](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/master)
+[![Security](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/gaprindashvili.svg)](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/gaprindashvili)
 
 [![Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ManageIQ/manageiq-providers-kubernetes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Translate](https://img.shields.io/badge/translate-zanata-blue.svg)](https://translate.zanata.org/zanata/project/view/manageiq-providers-kubernetes)

@@ -70,6 +70,7 @@
         :poll: 20.seconds
     :ems_inventory_collector_worker:
       :ems_inventory_collector_worker_kubernetes:
+        :deleted_notices_only: true
         :disabled: false
         :watch_thread_shutdown_timeout: 10.seconds
     :queue_worker_base:

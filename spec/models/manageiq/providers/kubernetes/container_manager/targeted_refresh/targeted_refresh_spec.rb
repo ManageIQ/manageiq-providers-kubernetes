@@ -71,6 +71,8 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
   def normal_refresh(suffix)
     queue_target!('watch_pod_stress_4.json')
     queue_target!('watch_pod_stress_5.json')
+    queue_target!('watch_pod_stress_6_modified.json')
+    queue_target!('watch_pod_stress_6_deleted.json')
 
     VCR.use_cassette(described_class.name.underscore + "_#{suffix}",
                      :match_requests_on => [:path,]) do # , :record => :new_episodes) do
@@ -141,38 +143,38 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
   def expected_table_counts_targeted_refresh_all_nodes_and_namespaces
     base_counts.merge(
       :computer_system          => 9,
-      :container                => 2,
-      :container_condition      => 42,
-      :container_group          => 2,
+      :container                => 3,
+      :container_condition      => 45,
+      :container_group          => 3,
       :container_image          => 1,
       :container_image_registry => 1,
       :container_node           => 9,
       :container_project        => 14,
-      :container_volume         => 2,
-      :custom_attribute         => 58,
+      :container_volume         => 3,
+      :custom_attribute         => 61,
       :ext_management_system    => 1,
       :hardware                 => 9,
       :operating_system         => 9,
-      :security_context         => 2,
+      :security_context         => 3,
     )
   end
 
   def expected_table_counts_targeted_refresh_referenced_nodes_and_namespaces
     base_counts.merge(
       :computer_system          => 1,
-      :container                => 2,
-      :container_condition      => 10,
-      :container_group          => 2,
+      :container                => 3,
+      :container_condition      => 13,
+      :container_group          => 3,
       :container_image          => 1,
       :container_image_registry => 1,
       :container_node           => 1,
       :container_project        => 1,
-      :container_volume         => 2,
-      :custom_attribute         => 12,
+      :container_volume         => 3,
+      :custom_attribute         => 15,
       :ext_management_system    => 1,
       :hardware                 => 1,
       :operating_system         => 1,
-      :security_context         => 2
+      :security_context         => 3
     )
   end
 
@@ -220,10 +222,13 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
   end
 
   def assert_specific_container
-    @container = Container.find_by(:name => "stress4")
+    # Test added Container
+    @container = Container.find_by(:ems_ref => "1b641a4f-aa70-11e7-8a08-001a4a162711_stress4_docker.io/fsimonce/stress-test")
     expect(@container).to have_attributes(
       :name          => "stress4",
       :restart_count => 0,
+      :started_at    => "2017-10-06 08:27:00.000000000 +0000",
+      :finished_at   => nil,
     )
     expect(@container[:backing_ref]).not_to be_nil
 
@@ -234,6 +239,29 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
 
     # TODO: move to kubernetes refresher test (needs cassette containing seLinuxOptions)
     expect(@container.security_context).to have_attributes(
+      :se_linux_user  => nil,
+      :se_linux_role  => nil,
+      :se_linux_type  => nil,
+      :se_linux_level => "s0:c11,c10"
+    )
+
+    # Test deleted Container
+    @container_deleted = Container.find_by(:ems_ref => "06cff57b-bf0c-11e7-a73f-001a4a162711_stress6_docker.io/fsimonce/stress-test")
+    expect(@container_deleted).to have_attributes(
+      :name          => "stress6",
+      :restart_count => 0,
+      :started_at    => "2017-11-01 13:53:29.000000000 +0000",
+      :finished_at   => "2017-11-01 15:11:42.000000000 +0000",
+    )
+    expect(@container_deleted[:backing_ref]).not_to be_nil
+
+    # Check the relation to container node
+    expect(@container_deleted.container_group).to have_attributes(
+      :name => "stress6-1-42svr"
+    )
+
+    # TODO: move to kubernetes refresher test (needs cassette containing seLinuxOptions)
+    expect(@container_deleted.security_context).to have_attributes(
       :se_linux_user  => nil,
       :se_linux_role  => nil,
       :se_linux_type  => nil,
@@ -296,8 +324,8 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :display_name => nil,
     )
 
-    expect(@container_pr.container_groups.count).to eq(2)
-    expect(@container_pr.containers.count).to eq(2)
+    expect(@container_pr.container_groups.count).to eq(3)
+    expect(@container_pr.containers.count).to eq(3)
     expect(@container_pr.container_replicators.count).to eq(0)
     expect(@container_pr.container_routes.count).to eq(0)
     expect(@container_pr.container_services.count).to eq(0)

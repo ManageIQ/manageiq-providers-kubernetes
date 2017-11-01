@@ -372,8 +372,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           inventory_object = inventory_objects_index.delete(index)
           hash             = attributes_index.delete(index)
 
-          # Make the entity active again
-          hash[:deleted_on] = nil unless hash.key?(:deleted_on)
+          # Make the entity active again, otherwise we would be duplicating nested entities
+          hash[:deleted_on] = nil
 
           record.assign_attributes(hash.except(:id, :type))
           if !inventory_collection.check_changed? || record.changed?

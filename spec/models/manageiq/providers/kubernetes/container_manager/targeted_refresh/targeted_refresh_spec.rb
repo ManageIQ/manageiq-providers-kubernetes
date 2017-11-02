@@ -233,6 +233,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :restart_count => 0,
       :started_at    => "2017-10-06 08:27:00.000000000 +0000",
       :finished_at   => nil,
+      :deleted_on    => nil
     )
     expect(@container[:backing_ref]).not_to be_nil
 
@@ -260,6 +261,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :restart_count => 0,
       :started_at    => "2017-11-01 13:53:29.000000000 +0000",
       :finished_at   => "2017-11-01 15:11:42.000000000 +0000",
+      :deleted_on    => nil
     )
     expect(@container_deleted[:backing_ref]).not_to be_nil
 
@@ -283,6 +285,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :name           => "stress4-1-7r2fb",
       :restart_policy => "Always",
       :dns_policy     => "ClusterFirst",
+      :deleted_on     => nil
     )
 
     # Check the relation to container node
@@ -361,6 +364,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
   def assert_specific_used_container_image
     @container_image = ContainerImage.find_by(:name => "fsimonce/stress-test")
 
+    expect(@container_image.deleted_on).to be_nil
     expect(@container_image.ext_management_system).to eq(@ems)
     expect(@container_image.environment_variables.count).to eq(0)
     # TODO: for next recording, oc label some running, openshift-built image

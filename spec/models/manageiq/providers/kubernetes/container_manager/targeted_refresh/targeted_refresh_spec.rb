@@ -223,7 +223,11 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
 
   def assert_specific_container
     # Test added Container
-    @container = Container.find_by(:ems_ref => "1b641a4f-aa70-11e7-8a08-001a4a162711_stress4_docker.io/fsimonce/stress-test")
+    container_ems_ref = "1b641a4f-aa70-11e7-8a08-001a4a162711_stress4_docker.io/fsimonce/stress-test"
+    containers_count = Container.where(:ems_ref => container_ems_ref).count
+    expect(containers_count).to eq 1
+
+    @container = Container.find_by(:ems_ref => container_ems_ref)
     expect(@container).to have_attributes(
       :name          => "stress4",
       :restart_count => 0,
@@ -246,7 +250,11 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     )
 
     # Test deleted Container
-    @container_deleted = Container.find_by(:ems_ref => "06cff57b-bf0c-11e7-a73f-001a4a162711_stress6_docker.io/fsimonce/stress-test")
+    container_ems_ref = "06cff57b-bf0c-11e7-a73f-001a4a162711_stress6_docker.io/fsimonce/stress-test"
+    containers_count = Container.where(:ems_ref => container_ems_ref).count
+    expect(containers_count).to eq 1
+
+    @container_deleted = Container.find_by(:ems_ref => container_ems_ref)
     expect(@container_deleted).to have_attributes(
       :name          => "stress6",
       :restart_count => 0,

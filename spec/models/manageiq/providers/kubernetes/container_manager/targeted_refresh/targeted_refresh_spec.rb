@@ -280,12 +280,19 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
   end
 
   def assert_specific_container_group
-    @containergroup = ContainerGroup.find_by(:name => "stress4-1-7r2fb")
-    expect(@containergroup).to have_attributes(
-      :name           => "stress4-1-7r2fb",
-      :restart_policy => "Always",
-      :dns_policy     => "ClusterFirst",
-      :deleted_on     => nil
+    # Test added Pod
+    container_group_name  = "stress4-1-7r2fb"
+    container_group_count = ContainerGroup.where(:name => container_group_name).count
+    expect(container_group_count).to eq 1
+
+    @containergroup = ContainerGroup.find_by(:name => container_group_name)
+    expect(@containergroup).to(
+      have_attributes(
+        :name           => container_group_name,
+        :restart_policy => "Always",
+        :dns_policy     => "ClusterFirst",
+        :deleted_on     => nil
+      )
     )
 
     # Check the relation to container node
@@ -297,6 +304,35 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     expect(@containergroup.containers.count).to eq(1)
     expect(@containergroup.containers.last).to have_attributes(
       :name => "stress4"
+    )
+
+    expect(@containergroup.container_project).to eq(ContainerProject.find_by(:name => "vcr-tests"))
+    expect(@containergroup.ext_management_system).to eq(@ems)
+
+    # Test deleted Pod
+    container_group_name  = "stress6-1-42svr"
+    container_group_count = ContainerGroup.where(:name => container_group_name).count
+    expect(container_group_count).to eq 1
+
+    @containergroup = ContainerGroup.find_by(:name => container_group_name)
+    expect(@containergroup).to(
+      have_attributes(
+        :name           => container_group_name,
+        :restart_policy => "Always",
+        :dns_policy     => "ClusterFirst",
+        :deleted_on     => nil
+      )
+    )
+
+    # Check the relation to container node
+    expect(@containergroup.container_node).to have_attributes(
+      :name => "ladislav-ocp-3.6-compute04.10.35.49.24.nip.io"
+    )
+
+    # Check the relation to containers
+    expect(@containergroup.containers.count).to eq(1)
+    expect(@containergroup.containers.last).to have_attributes(
+      :name => "stress6"
     )
 
     expect(@containergroup.container_project).to eq(ContainerProject.find_by(:name => "vcr-tests"))

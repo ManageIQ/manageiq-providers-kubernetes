@@ -365,7 +365,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
       raise "Allowed only manager_ref size of 1, got #{inventory_collection.manager_ref}" if inventory_collection.manager_ref.count > 1
 
       inventory_objects_index.each_slice(1000) do |batch|
-        relation.where(inventory_collection.manager_ref.first => batch.map(&:second).map(&:manager_uuid)).each do |record|
+        relation.where(inventory_collection.manager_ref.first => batch.map(&:first)).each do |record|
           index = inventory_collection.object_index_with_keys(inventory_collection.manager_ref_to_cols, record)
 
           # We need to delete the record from the inventory_objects_index and attributes_index, otherwise it

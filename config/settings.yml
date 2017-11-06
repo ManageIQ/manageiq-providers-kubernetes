@@ -71,7 +71,7 @@
     :ems_inventory_collector_worker:
       :ems_inventory_collector_worker_kubernetes:
         :deleted_notices_only: true
-        :disabled: false
+        :disabled: true
         :watch_thread_shutdown_timeout: 10.seconds
     :queue_worker_base:
         :ems_metrics_collector_worker:

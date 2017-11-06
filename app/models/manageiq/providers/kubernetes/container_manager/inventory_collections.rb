@@ -127,7 +127,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           # TODO: should match on digest when available
           :manager_ref            => [:image_ref],
           :delete_method          => :disconnect_inv,
-          :custom_reconnect_block => custom_reconnect_block(:image_ref)
+          :custom_reconnect_block => custom_reconnect_block
         )
       )
     # images have custom_attributes but that's done conditionally in openshift parser
@@ -355,16 +355,17 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     end
   end
 
-  def custom_reconnect_block(manager_ref = :ems_ref)
+  def custom_reconnect_block
     # TODO(lsmola) once we have DB unique indexes, we can stop using manual reconnect, since it adds processing time
     lambda do |inventory_collection, inventory_objects_index, attributes_index|
       relation = inventory_collection.model_class.where(:ems_id => inventory_collection.parent.id).archived
 
       # Skip reconnect if there are no archived entities
       return if relation.archived.count <= 0
+      raise "Allowed only manager_ref size of 1, got #{inventory_collection.manager_ref}" if inventory_collection.manager_ref.count > 1
 
       inventory_objects_index.each_slice(1000) do |batch|
-        relation.where(manager_ref => batch.map(&:second).map(&:manager_uuid)).each do |record|
+        relation.where(inventory_collection.manager_ref.first => batch.map(&:second).map(&:manager_uuid)).each do |record|
           index = inventory_collection.object_index_with_keys(inventory_collection.manager_ref_to_cols, record)
 
           # We need to delete the record from the inventory_objects_index and attributes_index, otherwise it

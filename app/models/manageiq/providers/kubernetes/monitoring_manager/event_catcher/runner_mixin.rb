@@ -80,7 +80,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
     event[:severity] = parse_severity(annotations["severity"])
     labels = event["labels"]
     # TODO(mtayer): remove after https://github.com/ManageIQ/manageiq/pull/16339
-    event[:ems_ref] = incident_identifier(event, labels, annotations)
+    event[:ems_ref] = incident_identifier(labels, annotations, event["startsAt"])
     event[:resolved] = event["status"] == "resolved"
     timestamp = event[:resolved] ? event["endsAt"] : event["startsAt"]
     {
@@ -88,7 +88,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
       :timestamp  => timestamp,
       :event_type => "datawarehouse_alert",
       :message    => annotations["message"],
-      :ems_ref    => incident_identifier(event, labels, annotations),
+      :ems_ref    => incident_identifier(labels, annotations, event["startsAt"]),
       :full_data  => event.to_h
     }.merge(
       find_target(
@@ -99,34 +99,39 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
   end
 
   def find_target(annotations, labels)
-    case annotations['miqTarget'] # We only collect alerts with miqTarget=ContainerNode|ExtManagementSystem
-    when 'ContainerNode'
+    unless annotations.fetch_path("miqTarget") == "ExtManagementSystem"
       # TODO: we must do the db query here unless we get Prometheus to emit ems_ref
       node = ContainerNode.find_by(:ems_id => @target_ems_id, :name => labels["instance"])
-      $cn_monitoring_log.error("Could not find node from labels: [#{labels}]") unless node
-      {
-        :container_node_name => labels["instance"],
-        :container_node_id   => node.try(:id),
-        :target_type         => node.try(:class).try(:name),
-        :target_id           => node.try(:id),
-      }
-    when 'ExtManagementSystem'
-      {
-        :target_type => 'ExtManagementSystem',
-        :target_id   => @target_ems_id,
-      }
+      if node
+        return {
+          :container_node_name => labels["instance"],
+          :container_node_id   => node.try(:id),
+          :target_type         => node.try(:class).try(:name),
+          :target_id           => node.try(:id),
+        }
+      else
+        $cn_monitoring_log.warn("Could not find node from labels: [#{labels}] defaulting to ems")
+      end
     end
+    {
+      :target_type => 'ExtManagementSystem',
+      :target_id   => @target_ems_id,
+    }
   end
 
   def parse_severity(severity)
     MiqAlertStatus::SEVERITY_LEVELS.find { |x| x == severity.to_s.downcase } || "error"
   end
 
-  def incident_identifier(event, labels, annotations)
+  def incident_identifier(labels, annotations, started)
     # When event b resolves event a, they both have the same startAt.
     # Labels are added to avoid having two incidents starting at the same time.
     Digest::SHA256.hexdigest(
-      [event["startsAt"], annotations["url"], labels["instance"], labels["alertname"]].join('|')
+      (
+        annotations.sort.flatten +
+        labels.sort.flatten +
+        ["startsAt", started]
+      ).join('|')
     )
   end
 end

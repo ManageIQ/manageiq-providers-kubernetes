@@ -47,9 +47,23 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
 
   let(:monitoring_manager) { container_manager.monitoring_manager }
   let(:node_annotations) { {"miqTarget" => 'ContainerNode'} }
+  let(:ext_annotations) { {"miqTarget" => 'ExtManagementSystem'} }
 
   context "#find_target" do
-    it "finds a target container node" do
+    it "binds to container node by default" do
+      target = FactoryGirl.create(:container_node, :name => 'testing')
+      labels = {
+        "instance" => target.name
+      }
+      expect(subject.find_target({}, labels)).to eq(
+        :container_node_name => target.name,
+        :container_node_id   => target.id,
+        :target_type         => "ContainerNode",
+        :target_id           => target.id,
+      )
+    end
+
+    it "binds to container node if requested explicitly" do
       target = FactoryGirl.create(:container_node, :name => 'testing')
       labels = {
         "instance" => target.name
@@ -62,13 +76,35 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
       )
     end
 
-    it "logs error and returns nil if the node does not exist" do
-      target = FactoryGirl.build(:container_node, :name => 'testing')
+    it "binds to the ems if requested explicitly" do
+      target = FactoryGirl.create(:container_node, :name => 'testing')
+      subject.instance_variable_set(:@target_ems_id, 8)
       labels = {
         "instance" => target.name
       }
-      expect($cn_monitoring_log).to receive(:error)
-      expect(subject.find_target(node_annotations, labels).compact).to eq(:container_node_name => target.name)
+      expect(subject.find_target(node_annotations, labels).compact).to eq(
+        :target_type => "ExtManagementSystem",
+        :target_id   => 8,
+      )
+    end
+
+    it "logs warn and fallsback to the ems if the node does not exist" do
+      subject.instance_variable_set(:@target_ems_id, 8)
+      labels = { "instance" => "testing" }
+      expect($cn_monitoring_log).to receive(:warn)
+      expect(subject.find_target(node_annotations, labels).compact).to eq(
+        :target_type => "ExtManagementSystem",
+        :target_id   => 8,
+      )
+    end
+
+    it "logs warn and fallsback to the ems if there is no instance annotation" do
+      subject.instance_variable_set(:@target_ems_id, 8)
+      expect($cn_monitoring_log).to receive(:warn)
+      expect(subject.find_target(node_annotations, {}).compact).to eq(
+        :target_type => "ExtManagementSystem",
+        :target_id   => 8,
+      )
     end
   end
 
@@ -93,21 +129,21 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
   end
 
   context "#incident_identifier" do
-    let(:event) { { "startsAt" => "2017-07-27T14:23:00.457131488Z" } }
+    let(:startsAt) { "2017-07-27T14:23:00.457131488Z" }
     let(:labels) { { "instance" => "vm-34.173", "container" => "nginx", "alertname" => "alert1"} }
     let(:annotations) { { "url" => "example.com" } }
     it "generates different identifiers for events with different labels" do
       expect(
         subject.incident_identifier(
-          event,
           labels,
           annotations,
+          startsAt
         )
       ).not_to eq(
         subject.incident_identifier(
-          event,
           labels.merge("instance" => "vm-34.174"),
           annotations,
+          startsAt
         )
       )
     end
@@ -115,31 +151,31 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
     it "generates different identifiers for events with different start times" do
       expect(
         subject.incident_identifier(
-          event.merge("startsAt" => "2017-07-27T14:23:01.457131488Z"),
           labels,
           annotations,
+          "2017-07-27T00:00:00.457131488Z"
         )
       ).not_to eq(
         subject.incident_identifier(
-          event,
           labels,
           annotations,
+          "2017-07-27T14:23:00.457131488Z"
         )
       )
     end
 
-    it "generates equal identifiers for events equal in labels and start date" do
+    it "generates equal identifiers for events equal in labels and annotations" do
       expect(
         subject.incident_identifier(
-          event,
           labels,
           annotations,
+          startsAt
         )
       ).to eq(
         subject.incident_identifier(
-          event,
           labels,
           annotations,
+          startsAt
         )
       )
     end

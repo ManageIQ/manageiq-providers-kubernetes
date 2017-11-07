@@ -69,9 +69,7 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
   end
 
   def alert_for_miq?(alert)
-    %w(ContainerNode ExtManagementSystem).include?(
-      alert.fetch_path("annotations", "miqTarget")
-    )
+    alert.fetch_path("annotations", "miqIgnore").to_s.downcase != "true"
   end
 
   def last_position

@@ -10,7 +10,7 @@ module ManageIQ
             ems_targets, sub_ems_targets = targets.partition { |x| x.kind_of?(ExtManagementSystem) }
             all_targets = []
 
-            if sub_ems_targets.present?
+            if sub_ems_targets.present? && refresher_options.inventory_object_refresh
               # We can disable targeted refresh with a setting, then we will just do full ems refresh on any event
               ems_event_collection = ManagerRefresh::TargetCollection.new(:targets    => sub_ems_targets,
                                                                           :manager_id => ems_id)

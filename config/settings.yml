@@ -78,5 +78,7 @@
           :ems_metrics_collector_worker_kubernetes:
             :metrics_port: 5000
             :metrics_path: "/hawkular/metrics"
+            :prometheus_open_timeout: 5
+            :prometheus_request_timeout: 30
         :ems_refresh_worker:
           :ems_refresh_worker_kubernetes: {}

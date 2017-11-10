@@ -62,7 +62,9 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :manager     => @ems,
       :association => :container_groups,
       :manager_ref => ems_ref,
-    ).tap { |t| t.payload = notice['object'].to_json }
+    )
+
+    target.payload = notice['object'].to_json
 
     EmsRefresh.queue_refresh(target)
   end

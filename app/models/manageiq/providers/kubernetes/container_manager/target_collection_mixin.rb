@@ -37,7 +37,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
   end
 
   def pod_list
-    target.targets.map { |target| JSON.parse(target.payload, :object_class => OpenStruct) }
+    target.targets.map do |target|
+      payload = target.payload
+      next if payload.nil?
+
+      JSON.parse(payload, :object_class => OpenStruct)
+    end.compact
   end
 
   private

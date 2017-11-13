@@ -1130,7 +1130,7 @@ module ManageIQ::Providers::Kubernetes
 
     def parse_service_port_config(port_config, service_id)
       {
-        :ems_ref     => "#{service_id}_#{port_config.port}_#{port_config.targetPort}",
+        :ems_ref     => "#{service_id}_#{port_config.port}_#{port_config.targetPort}_#{port_config.protocol}",
         :name        => port_config.name,
         :protocol    => port_config.protocol,
         :port        => port_config.port,

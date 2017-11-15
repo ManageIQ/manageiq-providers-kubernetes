@@ -1114,6 +1114,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
             :resources   => {
               :requests => {
                 :storage => '3Gi'
+              },
+              :limits   => {
+                :storage => '5Gi'
               }
             },
           },
@@ -1129,6 +1132,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
           :namespace            => nil,
           :resource_version     => '448015',
           :desired_access_modes => ['ReadWriteOnce'],
+          :requests             => {:storage => 3.gigabytes},
+          :limits               => {:storage => 5.gigabytes},
           :phase                => 'Pending',
           :actual_access_modes  => nil,
           :capacity             => {}
@@ -1169,6 +1174,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
           :namespace            => nil,
           :resource_version     => '448015',
           :desired_access_modes => %w(ReadWriteOnce ReadWriteMany),
+          :requests             => {:storage => 3.gigabytes},
+          :limits               => {},
           :phase                => 'Bound',
           :actual_access_modes  => %w(ReadWriteOnce ReadWriteMany),
           :capacity             => {:storage => 10.gigabytes}

@@ -24,40 +24,45 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
 
   # Smoke test the use of ContainerLabelTagMapping during refresh.
   before :each do
-    @name_category = FactoryGirl.create(:classification, :name => 'name', :description => 'Name')
-    @label_tag_mapping = FactoryGirl.create(
-      :container_label_tag_mapping,
-      :label_name => 'name', :tag => @name_category.tag
-    )
+    mapping = FactoryGirl.create(:tag_mapping_with_category, :label_name => 'name')
+    @name_category = mapping.tag.category
+
+    @user_tag = FactoryGirl.create(:classification_cost_center_with_tags).entries.first.tag
   end
 
-  def full_refresh_test
-    3.times do # Run three times to verify that second & third runs with existing data do not change anything
-      VCR.use_cassette(described_class.name.underscore) do # , :record => :new_episodes) do
-        EmsRefresh.refresh(@ems)
-      end
-      @ems.reload
-
-      # All ems_ref fields and other auto generated fields aren't checked because the VCR file needs update
-      # every time the api changes. Until the api stabilizes, the tests on those fields are commented out.
-      assert_ems
-      assert_authentication
-      assert_table_counts
-      assert_specific_container
-      assert_specific_container_group
-      assert_specific_container_node
-      assert_specific_container_service
-      assert_specific_container_replicator
-      assert_specific_container_project
-      assert_specific_container_quota
-      assert_specific_container_limit
-      assert_specific_container_image_and_registry
-      # Volumes, PVs, and PVCs are tested in _before_deletions VCR.
+  def full_refresh_test(expected_extra_tags: [])
+    VCR.use_cassette(described_class.name.underscore) do # , :record => :new_episodes) do
+      EmsRefresh.refresh(@ems)
     end
+    @ems.reload
+
+    # All ems_ref fields and other auto generated fields aren't checked because the VCR file needs update
+    # every time the api changes. Until the api stabilizes, the tests on those fields are commented out.
+    assert_ems
+    assert_authentication
+    assert_table_counts
+    assert_specific_container
+    assert_specific_container_group(:expected_extra_tags => expected_extra_tags)
+    assert_specific_container_node
+    assert_specific_container_service
+    assert_specific_container_replicator(:expected_extra_tags => expected_extra_tags)
+    assert_specific_container_project
+    assert_specific_container_quota
+    assert_specific_container_limit
+    assert_specific_container_image_and_registry
+    # Volumes, PVs, and PVCs are tested in _before_deletions VCR.
   end
 
   it "will perform a full refresh on k8s" do
+    # Run three times to verify that second & third runs with existing data do not change anything
     full_refresh_test
+
+    # Now records exist, simulate user assigning tags by Edit Tags, to test later refreshes don't remove them.
+    @replicator.reload.tags |= [@user_tag]
+    @containergroup.reload.tags |= [@user_tag]
+
+    full_refresh_test(:expected_extra_tags => [@user_tag])
+    full_refresh_test(:expected_extra_tags => [@user_tag])
   end
 
   def assert_table_counts
@@ -138,7 +143,7 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     )
   end
 
-  def assert_specific_container_group
+  def assert_specific_container_group(expected_extra_tags: [])
     @containergroup = ContainerGroup.find_by(:name => "monitoring-heapster-controller-4j5zu")
     expect(@containergroup).to have_attributes(
       # :ems_ref        => "49984e80-e1b7-11e4-b7dc-001a4a5f4a02",
@@ -152,7 +157,8 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     )
     if check_tag_mapping
       expect(@containergroup.tags).to contain_exactly(
-        tag_in_category_with_description(@name_category, "heapster")
+        tag_in_category_with_description(@name_category, "heapster"),
+        *expected_extra_tags
       )
     end
 
@@ -279,7 +285,7 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     expect(@containersrv.container_nodes.count).to eq(0)
   end
 
-  def assert_specific_container_replicator
+  def assert_specific_container_replicator(expected_extra_tags: [])
     @replicator = ContainerReplicator.where(:name => "monitoring-influx-grafana-controller").first
     expect(@replicator).to have_attributes(
       :name             => "monitoring-influx-grafana-controller",
@@ -291,7 +297,8 @@ shared_examples "kubernetes refresher VCR tests" do |check_tag_mapping: true|
     )
     if check_tag_mapping
       expect(@replicator.tags).to contain_exactly(
-        tag_in_category_with_description(@name_category, "influxGrafana")
+        tag_in_category_with_description(@name_category, "influxGrafana"),
+        *expected_extra_tags
       )
     end
     expect(@replicator.selector_parts.count).to eq(1)

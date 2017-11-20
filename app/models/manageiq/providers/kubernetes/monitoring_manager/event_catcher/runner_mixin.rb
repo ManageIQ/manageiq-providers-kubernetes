@@ -82,10 +82,9 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
     # TODO(mtayer): remove after https://github.com/ManageIQ/manageiq/pull/16339
     event[:ems_ref] = incident_identifier(labels, annotations, event["startsAt"])
     event[:resolved] = event["status"] == "resolved"
-    timestamp = event[:resolved] ? event["endsAt"] : event["startsAt"]
     {
       :source     => "DATAWAREHOUSE",
-      :timestamp  => timestamp,
+      :timestamp  => Time.zone.now,
       :event_type => "datawarehouse_alert",
       :message    => annotations["message"],
       :ems_ref    => incident_identifier(labels, annotations, event["startsAt"]),

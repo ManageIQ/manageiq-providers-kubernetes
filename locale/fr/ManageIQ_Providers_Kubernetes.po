@@ -1,87 +1,131 @@
-# French translations for ManageIQ_Providers_Kubernetes package.
-# Copyright (C) 2017 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the ManageIQ_Providers_Kubernetes package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2017.
-#
+# Laurence Ganseman <laurence.ganseman@stoquart.com>, 2017. #zanata
+# Nathalie Stoquart <nateltrad@gmail.com>, 2017. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ManageIQ_Providers_Kubernetes 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2017-04-21 09:55+0200\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2017-10-31 16:38+0100\n"
+"PO-Revision-Date: 2017-11-14 05:20-0500\n"
+"Last-Translator: Nathalie Stoquart <nateltrad@gmail.com>\n"
 "Language-Team: French\n"
-"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n>1;\n"
-"\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"X-Generator: Zanata 3.9.6\n"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:69
 msgid "Advanced Settings"
-msgstr ""
+msgstr "Paramètres avancés"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:70
 msgid "Advanced Settings for provider configuration"
-msgstr ""
+msgstr "Paramètres avancés pour la configuration du fournisseur"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:49
 msgid "CVE location"
-msgstr ""
+msgstr "Emplacement CVE"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:50
 msgid ""
 "Enables defining a URL path prefix for XCCDF file instead of accessing the default location.\n"
 "  example: http://my_file_server.org:3333/xccdf_files/\n"
 "  Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there."
 msgstr ""
+"Permet de définir un préfixe de chemin d'URL pour un fichier XCCDF au lieu d'accéder à l'emplacement par défaut.\n"
+"  Par exemple : http://mon_serveur_fichiers.org:3333/fichiers_xccdf/\n"
+"  Le fichier com.redhat.rhsa-RHEL7.ds.xml.bz2 doit s'y trouver."
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:8
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:22
 msgid "HTTP Proxy"
-msgstr ""
+msgstr "Proxy HTTP"
 
-msgid "HTTP Proxy to connect ManageIQ to the provider. example: http://user:password@my_https_proxy"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:9
+msgid ""
+"HTTP Proxy to connect ManageIQ to the provider. example: "
+"http://user:password@my_https_proxy"
 msgstr ""
+"Proxy HTTP pouvant être utilisé pour se connecter à un serveur distant. Par "
+"exemple : http://nom_utilisateur:mot_de_passe@mon_proxy_https"
 
-msgid "HTTP Proxy to connect image inspector pods to the internet. example: http://user:password@my_https_proxy"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:23
+msgid ""
+"HTTP Proxy to connect image inspector pods to the internet. example: "
+"http://user:password@my_https_proxy"
 msgstr ""
+"Proxy HTTP pouvant être utilisé pour connecter à Internet les pods de "
+"l'inspecteur d'images. Par exemple : "
+"http://nom_utilisateur:mot_de_passe@mon_proxy_https"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:26
 msgid "HTTPS Proxy"
-msgstr ""
+msgstr "Proxy HTTPS"
 
-msgid "HTTPS Proxy to connect image inspector pods to the internet. example: https://user:password@my_https_proxy"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:27
+msgid ""
+"HTTPS Proxy to connect image inspector pods to the internet. example: "
+"https://user:password@my_https_proxy"
 msgstr ""
+"Proxy HTTPS pouvant être utilisé pour connecter à Internet les pods de "
+"l'inspecteur d'images. Par exemple : "
+"https://nom_utilisateur:mot_de_passe@mon_proxy_https"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:18
 msgid "Image Inspector Options"
-msgstr ""
+msgstr "Options de l'inspecteur d'images"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:39
 msgid "Image-Inspector Registry"
-msgstr ""
+msgstr "Registre de l'inspecteur d'images"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:34
 msgid "Image-Inspector Repository"
-msgstr ""
+msgstr "Référentiel de l'inspecteur d'images"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:35
 msgid "Image-Inspector Repository. example: openshift/image-inspector"
 msgstr ""
+"Référentiel de l'inspecteur d'images. Exemple : openshift/image-inspector"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:44
 msgid "Image-Inspector Tag"
-msgstr ""
+msgstr "Balise de l'inspecteur d'images"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:45
 msgid "Image-Inspector image tag. example: 2.1"
-msgstr ""
+msgstr "Balise d'image de l'inspecteur d'images. Exemple : 2.1"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:30
 msgid "NO Proxy"
-msgstr ""
+msgstr "Aucun proxy"
 
-msgid "NO Proxy lists urls that should'nt be sent to any proxy. example: my_file_server.org"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:31
+msgid ""
+"NO Proxy lists urls that should'nt be sent to any proxy. example: "
+"my_file_server.org"
 msgstr ""
+"Aucun proxy ne répertorie les URL qui ne doivent pas être envoyées à un "
+"proxy. Exemple : mon_serveur_fichiers.org"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:64
 msgid "Proxy Settings"
-msgstr ""
+msgstr "Paramètres du proxy"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:65
 msgid "Proxy Settings for connection to the provider"
-msgstr ""
+msgstr "Paramètres du proxy pour la connexion au fournisseur"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:40
 msgid "Registry to provide the image inspector repository. example: docker.io"
 msgstr ""
+"Registre servant de référentiel à l'inspecteur d'images. Exemple : docker.io"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:19
 msgid "Settings for Image Inspector tool"
-msgstr ""
+msgstr "Paramètres de l'inspecteur d'images"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager_mixin.rb:193
 msgid "target_class must be a class not an instance"
-msgstr ""
+msgstr "Le paramètre target_class doit être une classe et non une instance"

@@ -74,16 +74,20 @@ class MockImageInspectorClient
 end
 
 class MockFailedImageInspectorClient < MockImageInspectorClient
-  def initialize(status, msg, *args)
+  def initialize(oscap_status, oscap_msg, image_acq_success = true, image_acq_error = "", *args)
     super(*args)
-    @status = status
-    @msg = msg
+    @oscap_status = oscap_status
+    @oscap_msg = oscap_msg
+    @image_acq_success = image_acq_success
+    @image_acq_error = image_acq_error
   end
 
   def fetch_metadata(*_args)
     os = super
-    os["OpenSCAP"] = OpenStruct.new("Status"       => @status,
-                                    "ErrorMessage" => @msg)
+    os["OpenSCAP"] = OpenStruct.new("Status"       => @oscap_status,
+                                    "ErrorMessage" => @oscap_msg)
+    os["ImageAcquireSuccess"] = @image_acq_success
+    os["ImageAcquireError"] = @image_acq_error
     os
   end
 
@@ -382,7 +386,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
 
       it 'set the ok status from image-inspector OSCAP' do
         allow_any_instance_of(described_class).to receive_messages(
-          :image_inspector_client => MockFailedImageInspectorClient.new("Success", "", IMAGE_ID)
+          :image_inspector_client => MockFailedImageInspectorClient.new("Success", "", true, "", IMAGE_ID)
         )
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
@@ -393,13 +397,26 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
 
       it 'set the warn status from image-inspector OSCAP' do
         allow_any_instance_of(described_class).to receive_messages(
-          :image_inspector_client => MockFailedImageInspectorClient.new("Error", OSCAP_ERROR_MSG, IMAGE_ID)
+          :image_inspector_client => MockFailedImageInspectorClient.new("Error", OSCAP_ERROR_MSG, true, "", IMAGE_ID)
         )
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'warn'
         expect(@job.message).to eq OSCAP_ERROR_MSG
         expect(@image.last_scan_result.scan_result_message).to eq OSCAP_ERROR_MSG
+      end
+    end
+
+    context 'Image Acquiring Status' do
+      it 'Detects when image acquiring failed and reports the error' do
+        IMG_ACQ_ERR = "can't find image".freeze
+        allow_any_instance_of(described_class).to receive_messages(
+          :image_inspector_client => MockFailedImageInspectorClient.new("Sucess", "", false, IMG_ACQ_ERR, IMAGE_ID)
+        )
+        @job.signal(:start)
+        expect(@job.state).to eq 'finished'
+        expect(@job.status).to eq 'error'
+        expect(@job.message).to eq "image acquiring error: #{IMG_ACQ_ERR}"
       end
     end
 

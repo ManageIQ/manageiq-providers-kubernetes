@@ -1032,6 +1032,7 @@ module ManageIQ::Providers::Kubernetes
 
     def parse_container_spec(container_spec, pod_id)
       new_result = {
+        :type                 => 'ManageIQ::Providers::Kubernetes::ContainerManager::Container',
         :ems_ref              => "#{pod_id}_#{container_spec.name}_#{container_spec.image}",
         :name                 => container_spec.name,
         :image                => container_spec.image,
@@ -1079,7 +1080,6 @@ module ManageIQ::Providers::Kubernetes
       return if container_image.nil?
 
       h = {
-        :type            => 'ManageIQ::Providers::Kubernetes::ContainerManager::Container',
         :restart_count   => container.restartCount,
         :backing_ref     => container.containerID,
         :container_image => container_image

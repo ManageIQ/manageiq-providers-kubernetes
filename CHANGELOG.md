@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 74 ending 2017-11-27
+
+### Added
+- Enable getting multiple alert for an incident [(#171)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/171)
+- Parse requests and limits for Persistent Volume Claim [(#116)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/116)
+
 ## Unreleased as of Sprint 73 ending 2017-11-13
 
 ### Added

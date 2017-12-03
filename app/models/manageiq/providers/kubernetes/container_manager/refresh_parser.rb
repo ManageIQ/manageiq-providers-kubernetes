@@ -567,10 +567,15 @@ module ManageIQ::Providers::Kubernetes
       images = @data_index.fetch_path(:container_image, :by_digest) || []
       images.each do |_digest, im|
         im = im.merge(:container_image_registry => lazy_find_image_registry(im[:container_image_registry]))
+
         custom_attrs = im.extract!(:labels, :docker_labels)
+        tags = im.delete(:tags)
+
         container_image = collection.build(im)
 
+        # labels, docker_labels, tags are optional, only if we got openshift metadata for this image.
         get_custom_attributes_graph(container_image, custom_attrs)
+        get_taggings_graph(container_image, tags) if tags
       end
     end
 

@@ -36,7 +36,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager do
   let(:monitoring_manager) { container_manager.monitoring_manager }
 
   context "#authentication" do
-    it "validates authentication with a proper response from message-buffer" do
+    it "validates authentication with a proper response from prometheus-alert-buffer" do
       VCR.use_cassette(
         described_class.name.underscore,
         # :record => :new_episodes,

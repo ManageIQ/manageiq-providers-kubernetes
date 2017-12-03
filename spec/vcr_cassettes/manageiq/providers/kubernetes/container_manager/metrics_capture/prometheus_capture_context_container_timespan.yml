@@ -2,13 +2,13 @@
 http_interactions:
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1508842990&query=sum(container_cpu_usage_seconds_total%7Bcontainer_name=%22registry%22,job=%22kubernetes-cadvisor%22%7D)%20*%201e9&start=1508842770&step=20s
+    uri: https://prometheus.example.com/api/v1/query_range?end=1514360400&query=sum(rate(container_cpu_usage_seconds_total%7Bcontainer_name=%22alertmanager%22,job=%22kubernetes-cadvisor%22,namespace=%22openshift-metrics%22,pod_name=%22prometheus-0%22%7D%5B2m%5D))&start=1514359740&step=60s
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Authorization:
-      - Bearer theToken
+      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw
       User-Agent:
       - Faraday v0.9.2
       Accept-Encoding:
@@ -29,34 +29,34 @@ http_interactions:
       Access-Control-Expose-Headers:
       - Date
       Content-Length:
-      - '425'
+      - '546'
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Oct 2017 14:22:14 GMT
+      - Wed, 27 Dec 2017 07:54:30 GMT
       Gap-Auth:
       - system:serviceaccount:management-infra:management-admin@cluster.local
       Gap-Upstream-Address:
       - localhost:9090
       Set-Cookie:
-      - bd337c9bdedd23361d6a22bfc4876b73=292825d0933e3f4a6179fd077c4f6c17; path=/;
+      - f81241e3a913aa890fb02ba92a29f1be=ecb5793ccea9607e269bba7b11f5f86f; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1508842770,"15728440689"],[1508842790,"15728440689"],[1508842810,"15728440689"],[1508842830,"15728440689"],[1508842850,"15728440689"],[1508842870,"15728440689"],[1508842890,"15728440689"],[1508842910,"15964088028"],[1508842930,"15964088028"],[1508842950,"15964088028"],[1508842970,"16048981383.999998"],[1508842990,"16048981383.999998"]]}]}}'
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1514359740,"0.00008154907418211862"],[1514359800,"0.00003399803330053854"],[1514359860,"0.00009806099898334224"],[1514359920,"0.000009984700000013428"],[1514359980,"0.00001210439999995335"],[1514360040,"0.00009278031666669999"],[1514360100,"0.00003633024999996811"],[1514360160,"0.00007797815000003539"],[1514360220,"0.00009239156666662751"],[1514360280,"0.000030625010416868166"],[1514360340,"0.000005454475758737163"],[1514360400,"0.00012954658333335088"]]}]}}'
     http_version: 
-  recorded_at: Tue, 24 Oct 2017 14:22:14 GMT
+  recorded_at: Wed, 27 Dec 2017 07:54:30 GMT
 - request:
     method: get
-    uri: https://capture.context.com/api/v1/query_range?end=1508842990&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22registry%22,job=%22kubernetes-cadvisor%22%7D)&start=1508842770&step=20s
+    uri: https://prometheus.example.com/api/v1/query_range?end=1514360400&query=sum(container_memory_usage_bytes%7Bcontainer_name=%22alertmanager%22,job=%22kubernetes-cadvisor%22,namespace=%22openshift-metrics%22,pod_name=%22prometheus-0%22%7D)&start=1514359740&step=60s
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Authorization:
-      - Bearer theToken
+      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw
       User-Agent:
       - Faraday v0.9.2
       Accept-Encoding:
@@ -81,19 +81,19 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 24 Oct 2017 14:22:14 GMT
+      - Wed, 27 Dec 2017 07:54:30 GMT
       Gap-Auth:
       - system:serviceaccount:management-infra:management-admin@cluster.local
       Gap-Upstream-Address:
       - localhost:9090
       Set-Cookie:
-      - bd337c9bdedd23361d6a22bfc4876b73=292825d0933e3f4a6179fd077c4f6c17; path=/;
+      - f81241e3a913aa890fb02ba92a29f1be=ecb5793ccea9607e269bba7b11f5f86f; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1508842770,"19456000"],[1508842790,"19456000"],[1508842810,"19456000"],[1508842830,"19456000"],[1508842850,"19456000"],[1508842870,"19456000"],[1508842890,"19456000"],[1508842910,"88653824"],[1508842930,"88653824"],[1508842950,"88653824"],[1508842970,"35565568"],[1508842990,"35565568"]]}]}}'
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1514359740,"14704640"],[1514359800,"14704640"],[1514359860,"14704640"],[1514359920,"14704640"],[1514359980,"14704640"],[1514360040,"14704640"],[1514360100,"14704640"],[1514360160,"14704640"],[1514360220,"14704640"],[1514360280,"14704640"],[1514360340,"14704640"],[1514360400,"14704640"]]}]}}'
     http_version: 
-  recorded_at: Tue, 24 Oct 2017 14:22:14 GMT
+  recorded_at: Wed, 27 Dec 2017 07:54:30 GMT
 recorded_with: VCR 3.0.3

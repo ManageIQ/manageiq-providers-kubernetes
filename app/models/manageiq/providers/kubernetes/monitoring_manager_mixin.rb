@@ -1,5 +1,6 @@
 module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   extend ActiveSupport::Concern
+  require 'prometheus/alert_buffer_client'
 
   ENDPOINT_ROLE = :prometheus_alerts
 
@@ -17,8 +18,8 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   end
 
   module ClassMethods
-    def raw_connect(hostname, port, options)
-      ManageIQ::Providers::Kubernetes::Prometheus::MessageBufferClient.new(hostname, port).connect(options)
+    def raw_connect(options)
+      Prometheus::AlertBufferClient::Client.new(options)
     end
   end
 
@@ -28,7 +29,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
 
   def verify_credentials(_auth_type = nil, _options = {})
     with_provider_connection do |conn|
-      conn.get.body.key?('generationID')
+      conn.get.key?('generationID')
     end
   rescue OpenSSL::X509::CertificateError => err
     raise MiqException::MiqInvalidCredentialsError, "SSL Error: #{err.message}"
@@ -40,13 +41,17 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
     raise MiqException::MiqUnreachableError, err.message, err.backtrace
   end
 
-  def connect(options = {})
+  def connect(_options = {})
+    settings = ::Settings.ems.ems_kubernetes.ems_monitoring.alerts_collection
     self.class.raw_connect(
-      options[:hostname] || prometheus_alerts_endpoint.hostname,
-      options[:port] || prometheus_alerts_endpoint.port,
-      :bearer     => options[:bearer] || authentication_token, # goes to the default endpoint
-      :verify_ssl => options[:verify_ssl] || verify_ssl,
-      :cert_store => options[:cert_store] || ssl_cert_store
+      :url         => "https://#{prometheus_alerts_endpoint.hostname}:#{prometheus_alerts_endpoint.port}",
+      :path        => "/topics/alerts",
+      :credentials => {:token => authentication_token},
+      :ssl         => {:verify         => verify_ssl,
+                       :ssl_cert_store => ssl_cert_store},
+      :request     => {:open_timeout => settings.open_timeout.to_f_with_method,
+                       :timeout      => settings.timeout.to_f_with_method},
+      :proxy       => parent_manager.options ? parent_manager.options.fetch_path(:proxy_settings, :http_proxy) : nil,
     )
   end
 

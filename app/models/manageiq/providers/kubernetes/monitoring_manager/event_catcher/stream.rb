@@ -25,10 +25,6 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
     end
     $cn_monitoring_log.info("Fetching alerts. Generation: [#{@current_generation}/#{@current_index}]")
 
-    response = @ems.connect.get do |req|
-      req.params['generationID'] = @current_generation
-      req.params['fromIndex'] = @current_index
-    end
     # {
     #   "generationID":"323e0863-f501-4896-b7dc-353cf863597d",
     #   "messages":[
@@ -42,7 +38,7 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
     #   ...
     #   ]
     # }
-    alert_list = response.body
+    alert_list = @ems.connect.get(:generation_id => @current_generation, :from_index => @current_index)
     alerts = []
     @current_generation = alert_list["generationID"]
     return alerts if alert_list['messages'].blank?

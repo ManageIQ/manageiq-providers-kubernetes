@@ -93,8 +93,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
     when 'Pod'
       /^spec.containers{(?<container_name>.*)}$/ =~ event_data[:fieldpath]
       unless container_name.nil?
-        event_type_prefix = "CONTAINER"
         event_data[:container_name] = container_name
+        event_data[:reason] = "Container" + event_data[:reason] # Failed ~> ContainerFailed
       end
       event_data[:container_group_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]

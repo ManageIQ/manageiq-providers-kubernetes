@@ -63,6 +63,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def persister_inv_to_persister(persister, inventory, options)
+      persister.add_collection(@tag_mapper.tags_to_resolve_collection)
       # TODO(lsmola) expose persister and use that and use that instead of @inv_collections
       @inv_collections = persister.collections
 
@@ -256,9 +257,10 @@ module ManageIQ::Providers::Kubernetes
       inv["node"].each do |data|
         h = parse_node(data)
 
-        h.except!(:namespace, :tags)
+        h.except!(:namespace)
 
         labels = h.delete(:labels)
+        tags = h.delete(:tags)
         children = h.extract!(:container_conditions, :computer_system)
 
         container_node = collection.build(h)
@@ -266,6 +268,7 @@ module ManageIQ::Providers::Kubernetes
         get_container_conditions_graph(container_node, children[:container_conditions])
         get_node_computer_systems_graph(container_node, children[:computer_system])
         get_custom_attributes_graph(container_node, :labels => labels)
+        get_taggings_graph(container_node, tags)
       end
     end
 
@@ -299,12 +302,13 @@ module ManageIQ::Providers::Kubernetes
       inv["namespace"].each do |ns|
         h = parse_namespace(ns)
 
-        h.except!(:tags)
         custom_attrs = h.extract!(:labels)
+        tags = h.delete(:tags)
 
         container_project = collection.build(h)
 
         get_custom_attributes_graph(container_project, custom_attrs) # TODO: untested
+        get_taggings_graph(container_project, tags)
       end
     end
 
@@ -360,16 +364,17 @@ module ManageIQ::Providers::Kubernetes
       inv["replication_controller"].each do |rc|
         h = parse_replication_controllers(rc)
 
-        h.except!(:tags)
-
         h[:container_project] = lazy_find_project(:name => h[:namespace])
+
         custom_attrs = h.extract!(:labels, :selector_parts)
+        tags = h.delete(:tags)
 
         container_replicator = collection.build(h)
         get_custom_attributes_graph(container_replicator,
                                     :labels    => custom_attrs[:labels],
                                     # The actual section is "selectors"
                                     :selectors => custom_attrs[:selector_parts])
+        get_taggings_graph(container_replicator, tags)
       end
     end
 
@@ -404,16 +409,15 @@ module ManageIQ::Providers::Kubernetes
       inv["pod"].each do |pod|
         h = parse_pod(pod)
 
-        h.except!(:tags)
-
         h[:container_project] = lazy_find_project(:name => h[:namespace])
         h[:container_node] = lazy_find_node(:name => h.delete(:container_node_name))
         h[:container_replicator] = lazy_find_replicator(h.delete(:container_replicator_ref))
         h[:container_build_pod] = lazy_find_build_pod(:namespace => h[:namespace],
                                                       :name      => h.delete(:build_pod_name))
 
-        custom_attrs    = h.extract!(:labels, :node_selector_parts)
-        children        = h.extract!(:containers, :container_conditions, :container_volumes)
+        custom_attrs = h.extract!(:labels, :node_selector_parts)
+        tags = h.delete(:tags)
+        children = h.extract!(:containers, :container_conditions, :container_volumes)
 
         container_group = collection.build(h)
 
@@ -424,6 +428,7 @@ module ManageIQ::Providers::Kubernetes
                                     :labels         => custom_attrs[:labels],
                                     # The actual section is "node_selectors"
                                     :node_selectors => custom_attrs[:node_selector_parts])
+        get_taggings_graph(container_group, tags)
       end
     end
 
@@ -523,11 +528,10 @@ module ManageIQ::Providers::Kubernetes
         end
 
         custom_attrs = h.extract!(:labels, :selector_parts)
-        children     = h.extract!(:container_service_port_configs)
+        tags = h.delete(:tags)
+        children = h.extract!(:container_service_port_configs)
 
         h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name])
-
-        h.except!(:tags)
 
         container_service = collection.build(h)
 
@@ -536,6 +540,7 @@ module ManageIQ::Providers::Kubernetes
                                     :labels    => custom_attrs[:labels],
                                     # The actual section is "selectors"
                                     :selectors => custom_attrs[:selector_parts])
+        get_taggings_graph(container_service, tags)
       end
     end
 
@@ -582,6 +587,17 @@ module ManageIQ::Providers::Kubernetes
           end
           collection.build(h)
         end
+      end
+    end
+
+    # Conveniently, the tags map_labels emits are already in InventoryObject<Tag> form
+    def get_taggings_graph(parent, tags_inventory_objects)
+      model_name = parent.inventory_collection.model_class.base_class.name
+      key = [:taggings_for, model_name]
+      collection = @inv_collections[key]
+      raise("can't save: missing @inv_collections[#{key}]") if collection.nil?
+      tags_inventory_objects.each do |tag|
+        collection.build(:taggable => parent, :tag => tag)
       end
     end
 

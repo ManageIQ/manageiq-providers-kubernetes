@@ -1,41 +1,42 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext do
-  @node = nil
+  before(:all) { @targets = [] }
 
   before(:each) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
-    hostname = 'capture.context.com'
-    token = 'theToken'
 
-    @ems = FactoryGirl.create(
-      :ems_kubernetes,
-      :name                      => 'KubernetesProvider',
-      :connection_configurations => [{:endpoint       => {:role       => :default,
-                                                          :hostname   => hostname,
-                                                          :port       => "8443",
-                                                          :verify_ssl => false},
-                                      :authentication => {:role     => :bearer,
-                                                          :auth_key => token,
-                                                          :userid   => "_"}},
-                                     {:endpoint       => {:role       => :hawkular,
-                                                          :hostname   => hostname,
-                                                          :port       => "443",
-                                                          :verify_ssl => false},
-                                      :authentication => {:role     => :hawkular,
-                                                          :auth_key => token,
-                                                          :userid   => "_"}}]
-    )
+    if @targets.empty?
+      hostname = 'capture.context.com'
+      token = 'theToken'
 
-    if @node.nil?
+      @ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :name                      => 'KubernetesProvider',
+        :connection_configurations => [{:endpoint       => {:role       => :default,
+                                                            :hostname   => hostname,
+                                                            :port       => "8443",
+                                                            :verify_ssl => false},
+                                        :authentication => {:role     => :bearer,
+                                                            :auth_key => token,
+                                                            :userid   => "_"}},
+                                       {:endpoint       => {:role       => :hawkular,
+                                                            :hostname   => hostname,
+                                                            :port       => "443",
+                                                            :verify_ssl => false},
+                                        :authentication => {:role     => :hawkular,
+                                                            :auth_key => token,
+                                                            :userid   => "_"}}]
+      )
+
       VCR.use_cassette("#{described_class.name.underscore}_refresh",
                        :match_requests_on => [:path,]) do # , :record => :new_episodes) do
         EmsRefresh.refresh(@ems)
         @ems.reload
 
-        @node = @ems.container_nodes.find_by(:name => "capture.context.com")
+        node = @ems.container_nodes.find_by(:name => "capture.context.com")
         pod = @ems.container_groups.find_by(:name => "docker-registry-1-w23wd")
         container = pod.containers.find_by(:name => "registry")
 
-        @targets = [['node', @node], ['pod', pod], ['container', container]]
+        @targets << ['node', node] << ['pod', pod] << ['container', container]
       end
     end
   end
@@ -47,7 +48,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
 
     VCR.use_cassette("#{described_class.name.underscore}_status") do # , :record => :new_episodes) do
       context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
-        @node, start_time, end_time, interval
+        @targets.to_h['node'], start_time, end_time, interval
       )
 
       metrics = {"MetricsService"         => "STARTED",

@@ -1,6 +1,4 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext do
-  @node = nil
-
   before(:each) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
     hostname = 'capture.context.com'
@@ -25,18 +23,16 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
                                                           :userid   => "_"}}]
     )
 
-    if @node.nil?
-      VCR.use_cassette("#{described_class.name.underscore}_refresh",
-                       :match_requests_on => [:path,]) do # , :record => :new_episodes) do
-        EmsRefresh.refresh(@ems)
-        @ems.reload
+    VCR.use_cassette("#{described_class.name.underscore}_refresh",
+                     :match_requests_on => [:path,]) do # , :record => :new_episodes) do
+      EmsRefresh.refresh(@ems)
+      @ems.reload
 
-        @node = @ems.container_nodes.find_by(:name => "capture.context.com")
-        pod = @ems.container_groups.find_by(:name => "docker-registry-1-w23wd")
-        container = pod.containers.find_by(:name => "registry")
+      @node = @ems.container_nodes.find_by(:name => "capture.context.com")
+      pod = @ems.container_groups.find_by(:name => "docker-registry-1-w23wd")
+      container = pod.containers.find_by(:name => "registry")
 
-        @targets = [['node', @node], ['pod', pod], ['container', container]]
-      end
+      @targets = [['node', @node], ['pod', pod], ['container', container]]
     end
   end
 

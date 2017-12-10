@@ -12,9 +12,9 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
-      - default
+      - rdis
       Authorization:
       - Bearer theToken
       Content-Type:
@@ -35,9 +35,9 @@ http_interactions:
       Content-Length:
       - '154'
       Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
+      - Tue, 28 Nov 2017 17:28:12 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
@@ -46,26 +46,28 @@ http_interactions:
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
     http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
+  recorded_at: Tue, 28 Nov 2017 17:28:12 GMT
 - request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/counters/registry%2F5bae6bfe-609c-11e7-9ac7-001a4a2314d5%2Fcpu%2Fusage/stats/?bucketDuration=20s&end=1499280042000&start=1499279722000
+    method: post
+    uri: https://capture.context.com/hawkular/metrics/m/stats/query
     body:
-      encoding: US-ASCII
-      string: ''
+      encoding: UTF-8
+      string: '{"start":1511886402000,"end":1511887062000,"bucketDuration":"60s","tags":"descriptor_name:network/tx_rate|network/rx_rate|cpu/usage_rate|memory/usage,type:pod,host_id:capture.context.com,pod_id:4bb31a97-bca3-11e7-94bc-001a4a2314d6"}'
     headers:
       Accept:
       - application/json
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
-      - default
+      - rdis
       Authorization:
       - Bearer theToken
       Content-Type:
       - application/json
+      Content-Length:
+      - '252'
   response:
     status:
       code: 200
@@ -80,300 +82,16 @@ http_interactions:
       Content-Type:
       - application/json
       Content-Length:
-      - '426'
+      - '1101'
       Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
+      - Tue, 28 Nov 2017 17:28:12 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
-      Cache-Control:
-      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        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
+        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
     http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
-- request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/status
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Hawkular-Tenant:
-      - default
-      Authorization:
-      - Bearer theToken
-      Content-Type:
-      - application/json
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Content-Encoding:
-      - gzip
-      X-Powered-By:
-      - Undertow/1
-      Server:
-      - WildFly/10
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '154'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
-      Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
-        HttpOnly; Secure
-      Cache-Control:
-      - private
-    body:
-      encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
-- request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/gauges/registry%2F5bae6bfe-609c-11e7-9ac7-001a4a2314d5%2Fmemory%2Fusage/stats/?bucketDuration=20s&end=1499280042000&start=1499279742000
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Hawkular-Tenant:
-      - default
-      Authorization:
-      - Bearer theToken
-      Content-Type:
-      - application/json
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Content-Encoding:
-      - gzip
-      X-Powered-By:
-      - Undertow/1
-      Server:
-      - WildFly/10
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '220'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
-      Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
-        HttpOnly; Secure
-      Cache-Control:
-      - private
-    body:
-      encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAM2SQQrCMBBF75J1kZiGZqZ7TyEuAo1SaEppoiji3S1UaZsO2J2zzGc+8zK841OEaPsoyr1GVAaNVlLKTLi2mrJizHzdijLf5bmBXOqDyYS9XZLEu6q26Zi39yQJV58m1neNC8PSYbnv4kOUZ9sE98pWiAWBCJ9sbMb+ShVhXQTJ6m9fnAWi4oWoCES94fxAqAW81AJCLQBeiITEKDecHwm1kJdaSKiFmhciITEWW85PqIW81MKVWjC8GSFOOAtE9fP8s6F58a9qnd5t1VyWfAcAAA==
-    http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
-- request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/status
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Hawkular-Tenant:
-      - default
-      Authorization:
-      - Bearer theToken
-      Content-Type:
-      - application/json
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Content-Encoding:
-      - gzip
-      X-Powered-By:
-      - Undertow/1
-      Server:
-      - WildFly/10
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '154'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
-      Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
-        HttpOnly; Secure
-      Cache-Control:
-      - private
-    body:
-      encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
-- request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/counters/pod%2F5bae6bfe-609c-11e7-9ac7-001a4a2314d5%2Fnetwork%2Ftx/stats/?bucketDuration=20s&end=1499280042000&start=1499279722000
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Hawkular-Tenant:
-      - default
-      Authorization:
-      - Bearer theToken
-      Content-Type:
-      - application/json
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Content-Encoding:
-      - gzip
-      X-Powered-By:
-      - Undertow/1
-      Server:
-      - WildFly/10
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '392'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
-      Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
-        HttpOnly; Secure
-      Cache-Control:
-      - private
-    body:
-      encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAI2Uy2rDMBBF/8XrUGRFj5ns+xWlC0PcEohDiJ3SUvrvNSTz0ESlWuZg4XPEdV6+u3kZLku36wOiz5i9d85tuvG0FxZubDqcul1+ciFDwv45b7rh492QadwfBvvYNHwaMl8nS4bpfBzn9aXry6fz8tXt3objPP5sHhRDRTEZReydUWSiFQWSIhNWFNKumCqKcGe3k8vlWjsIjwfBlW3RYfBetwlRbQre24RQmyLNbaRTKHqj6LOD4vqFaEWBpMiEFYW0K1ZGDKHh+qEyLTDTiiFiefsEdBkzCiPAXQzasyqrAjB2CeM2F3pMtJ9AEmTChkLaFSv7Rddw81hZFdpVQY5YpBHQZcwojAB3MWjOwsqg0PwrRsQUQ6HHRPsJJEEmbCikXbEyXUwtN19ZFZpVJb9NfTF6IapNwXubEGpTpL3tYVWw/jaKoQ+QCkUmWlEgKTJhRSGNiqJTKPp/r189pA+aaaWI21h81EJ0m0BqY8JtQv5qe/0FKDK+RRUIAAA=
-    http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
-- request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/status
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Hawkular-Tenant:
-      - default
-      Authorization:
-      - Bearer theToken
-      Content-Type:
-      - application/json
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Content-Encoding:
-      - gzip
-      X-Powered-By:
-      - Undertow/1
-      Server:
-      - WildFly/10
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '154'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
-      Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
-        HttpOnly; Secure
-      Cache-Control:
-      - private
-    body:
-      encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
-- request:
-    method: get
-    uri: https://capture.context.com/hawkular/metrics/counters/pod%2F5bae6bfe-609c-11e7-9ac7-001a4a2314d5%2Fnetwork%2Frx/stats/?bucketDuration=20s&end=1499280042000&start=1499279722000
-    body:
-      encoding: US-ASCII
-      string: ''
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
-      Hawkular-Tenant:
-      - default
-      Authorization:
-      - Bearer theToken
-      Content-Type:
-      - application/json
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Content-Encoding:
-      - gzip
-      X-Powered-By:
-      - Undertow/1
-      Server:
-      - WildFly/10
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '391'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
-      Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
-        HttpOnly; Secure
-      Cache-Control:
-      - private
-    body:
-      encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAI2UQWrDMBBF7+K1KbIsSzPZ9xSlC0PcEohDiJ3SUnr3GpKZ0UxUqqUfFn5PfPzy3SzreFmbXRcQfcLkvXOubabTXli4sflwanb9Ux+hhw6fU9uMH++GzNP+MNrX5vHTkOU6WzLO5+O0bB/dPj6f169m9zYel+mnfVAMBcVoFRESaEUiSpEhKxIRRSb1irGgCHd2O7lerqWD8HgQnGlDsNfPJG8TSG1MuE1IdRvpKEWvFZOL6NT1C8kUM3hXFEKKGalXLIwYQsX1Q2FaYKaVuuhDp9qY5G0CqY0JtwmpbytMC8Ao+uRcrxSZ5IoCSZEJKwqpVyyMGF3F9WNhWmin1Q9DUOsXkrcJpDYm3Cakug0L00Lzf0yh6wd9/UxyRYGkyIQVhdQrFkaMseb6C9NCO63BD3r8BPIyZhRGgLsY1Gc9rAq2Z2MXHQx6HExyP4EkyIQNhVQqio5S9P/efPZSftCuavsPpqjbiKg2htxGRNqY/NX2+gu61msMGggAAA==
-    http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
+  recorded_at: Tue, 28 Nov 2017 17:28:12 GMT
 recorded_with: VCR 3.0.3

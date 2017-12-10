@@ -195,7 +195,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       # insert the raw metrics into the @ts_values global object
       raw_metrics['gauge'][full_key].each do |metric|
         timestamp = Time.at(metric['start'] / 1.in_milliseconds).utc
-        @ts_values[timestamp][key] = metric['avg'] unless metric['empty']
+        @ts_values[timestamp][key] = metric['max'] unless metric['empty']
       end
     end
 

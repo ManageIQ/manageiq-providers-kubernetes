@@ -70,7 +70,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
 
         data = context.collect_metrics
 
-        expect(data.count).to be < 18
+        expect(data.count).to be > 10
+        expect(data.count).to be < 13
       end
     end
   end

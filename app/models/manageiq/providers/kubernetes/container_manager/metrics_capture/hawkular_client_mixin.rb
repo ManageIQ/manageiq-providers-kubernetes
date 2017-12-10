@@ -1,12 +1,14 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClientMixin
-  def hawkular_client
+  def hawkular_client(tenant = nil)
     require 'hawkular/hawkular_client'
 
     @hawkular_uri ||= hawkular_uri
     @hawkular_credentials ||= hawkular_credentials
     @hawkular_options ||= hawkular_options
 
-    Hawkular::Metrics::Client.new(@hawkular_uri, @hawkular_credentials, @hawkular_options)
+    options = @hawkular_options.merge({:tenant => tenant}.compact)
+
+    Hawkular::Metrics::Client.new(@hawkular_uri, @hawkular_credentials, options)
   end
 
   # may be nil

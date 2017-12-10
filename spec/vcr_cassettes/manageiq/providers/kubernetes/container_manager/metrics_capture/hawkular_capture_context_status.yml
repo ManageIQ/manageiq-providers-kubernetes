@@ -12,7 +12,7 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
       - _system
       Authorization:
@@ -35,9 +35,9 @@ http_interactions:
       Content-Length:
       - '154'
       Date:
-      - Thu, 06 Jul 2017 10:58:11 GMT
+      - Tue, 28 Nov 2017 17:28:11 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
@@ -45,8 +45,8 @@ http_interactions:
       encoding: ASCII-8BIT
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version:
-  recorded_at: Thu, 06 Jul 2017 10:58:11 GMT
+    http_version: 
+  recorded_at: Tue, 28 Nov 2017 17:28:11 GMT
 - request:
     method: get
     uri: https://capture.context.com/hawkular/metrics/status
@@ -59,7 +59,7 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
       - _system
       Authorization:
@@ -82,9 +82,9 @@ http_interactions:
       Content-Length:
       - '154'
       Date:
-      - Thu, 06 Jul 2017 10:58:11 GMT
+      - Tue, 28 Nov 2017 17:28:11 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
@@ -92,6 +92,6 @@ http_interactions:
       encoding: ASCII-8BIT
       string: !binary |-
         H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
-    http_version:
-  recorded_at: Thu, 06 Jul 2017 10:58:11 GMT
+    http_version: 
+  recorded_at: Tue, 28 Nov 2017 17:28:11 GMT
 recorded_with: VCR 3.0.3

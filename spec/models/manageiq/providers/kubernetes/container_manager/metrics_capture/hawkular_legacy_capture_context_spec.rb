@@ -1,6 +1,4 @@
-describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext do
-  @node = nil
-
+describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularLegacyCaptureContext do
   before(:each) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
     hostname = 'capture.context.com'
@@ -25,28 +23,26 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
                                                           :userid   => "_"}}]
     )
 
-    if @node.nil?
-      VCR.use_cassette("#{described_class.name.underscore}_refresh",
-                       :match_requests_on => [:path,]) do # , :record => :new_episodes) do
-        EmsRefresh.refresh(@ems)
-        @ems.reload
+    VCR.use_cassette("#{described_class.name.underscore}_refresh",
+                     :match_requests_on => [:path,]) do # , :record => :new_episodes) do
+      EmsRefresh.refresh(@ems)
+      @ems.reload
 
-        @node = @ems.container_nodes.find_by(:name => hostname)
-        pod = @ems.container_groups.find_by(:name => "redis-1-m9fs5")
-        container = pod.containers.find_by(:name => "redis")
+      @node = @ems.container_nodes.find_by(:name => "capture.context.com")
+      pod = @ems.container_groups.find_by(:name => "docker-registry-1-w23wd")
+      container = pod.containers.find_by(:name => "registry")
 
-        @targets = [['node', @node], ['pod', pod], ['container', container]]
-      end
+      @targets = [['node', @node], ['pod', pod], ['container', container]]
     end
   end
 
   it "will read hawkular status" do
-    start_time = Time.parse("2017-11-27 18:35:42 UTC").utc
+    start_time = Time.parse("2017-07-05 18:35:42 UTC").utc
     end_time   = nil
     interval   = nil
 
     VCR.use_cassette("#{described_class.name.underscore}_status") do # , :record => :new_episodes) do
-      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
+      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularLegacyCaptureContext.new(
         @node, start_time, end_time, interval
       )
 
@@ -61,50 +57,38 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
     end
   end
 
-  it "will discover m endpoint" do
-    start_time = Time.parse("2017-11-27 18:35:42 UTC").utc
-    end_time   = nil
-    interval   = nil
-
-    VCR.use_cassette("#{described_class.name.underscore}_m_endpoint") do # , :record => :new_episodes) do
-      context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
-        @node, start_time, end_time, interval
-      )
-
-      expect(context.m_endpoint?).to be_truthy
-    end
-  end
-
   it "will read hawkular metrics" do
-    start_time = Time.parse("2017-11-27 18:40:42 UTC").utc
+    start_time = Time.parse("2017-07-05 18:40:42 UTC").utc
     end_time   = nil
-    interval   = 60
+    interval   = 20
 
     @targets.each do |target_name, target|
       VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_metrics") do # , :record => :new_episodes) do
-        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
+        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularLegacyCaptureContext.new(
           target, start_time, end_time, interval
         )
 
-        context.collect_metrics
-        expect(context.ts_values).to be_a_kind_of(Hash)
+        data = context.collect_metrics
+
+        expect(data).to be_a_kind_of(Array)
       end
     end
   end
 
   it "will read only specific timespan hawkular metrics" do
-    start_time = Time.parse("2017-11-28 16:27:42 UTC").utc
-    end_time   = Time.parse("2017-11-28 16:37:42 UTC").utc
-    interval   = 60
+    start_time = Time.parse("2017-07-05 18:35:42 UTC").utc
+    end_time   = Time.parse("2017-07-05 18:40:42 UTC").utc
+    interval   = 20
 
     @targets.each do |target_name, target|
       VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_timespan") do # , :record => :new_episodes) do
-        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext.new(
+        context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularLegacyCaptureContext.new(
           target, start_time, end_time, interval
         )
 
-        context.collect_metrics
-        expect(context.ts_values.count).to eq(11)
+        data = context.collect_metrics
+
+        expect(data.count).to eq(9)
       end
     end
   end

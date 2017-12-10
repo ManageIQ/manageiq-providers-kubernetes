@@ -14,6 +14,7 @@ module ManageIQ::Providers
       end
     end
 
+    require_nested :HawkularLegacyCaptureContext
     require_nested :HawkularCaptureContext
     require_nested :PrometheusCaptureContext
 
@@ -49,6 +50,24 @@ module ManageIQ::Providers
       }
     }
 
+    def capture_context(ems, target, start_time, end_time)
+      # check for prometheus endpoint, ems must be set
+      if ems.connection_configurations.prometheus.try(:endpoint)
+        PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
+
+      # check for hawkualr endpoint
+      elsif ems.connection_configurations.hawkular.try(:endpoint)
+        context = HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
+
+        # check for old versions of hawkular endpoints (no /m endpoint)
+        unless context.m_endpoint?
+          context = HawkularLegacyCaptureContext.new(target, start_time, end_time, INTERVAL)
+        end
+
+        context
+      end
+    end
+
     def perf_collect_metrics(interval_name, start_time = nil, end_time = nil)
       start_time ||= 15.minutes.ago.beginning_of_minute.utc
       ems = target.ext_management_system
@@ -58,11 +77,10 @@ module ManageIQ::Providers
                 "[#{start_time}] [#{end_time}]")
 
       begin
-        context = if ems && ems.connection_configurations.prometheus.try(:endpoint)
-                    PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
-                  else
-                    HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
-                  end
+        raise TargetValidationError, "no provider for #{target_name}" if ems.nil?
+        context = capture_context(ems, target, start_time, end_time)
+
+        raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if context.nil?
       rescue TargetValidationError, TargetValidationWarning => e
         _log.send(e.log_severity, "[#{target_name}] #{e.message}")
         ems.try(:update_attributes,

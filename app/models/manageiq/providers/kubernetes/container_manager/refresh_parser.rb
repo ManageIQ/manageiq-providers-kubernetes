@@ -320,17 +320,25 @@ module ManageIQ::Providers::Kubernetes
 
         h[:container_project] = lazy_find_project(:name => h[:namespace])
 
+        scopes = h.delete(:container_quota_scopes)
         items = h.delete(:container_quota_items)
-        get_container_quota_items_graph(h, items)
+        container_quota = collection.build(h)
 
-        collection.build(h)
+        get_container_quota_scopes_graphs(container_quota, scopes)
+        get_container_quota_items_graph(container_quota, items)
+      end
+    end
+
+    def get_container_quota_scopes_graphs(parent, hashes)
+      hashes.each do |hash|
+        hash[:container_quota] = parent
+        @inv_collections[:container_quota_scopes].build(hash)
       end
     end
 
     def get_container_quota_items_graph(parent, hashes)
-      container_quota = @inv_collections[:container_quotas].lazy_find(parent[:ems_ref])
       hashes.each do |hash|
-        hash[:container_quota] = container_quota
+        hash[:container_quota] = parent
         @inv_collections[:container_quota_items].build(hash)
       end
     end
@@ -910,7 +918,8 @@ module ManageIQ::Providers::Kubernetes
 
     def parse_resource_quota(resource_quota)
       new_result = parse_base_item(resource_quota)
-      new_result[:container_quota_items] = parse_resource_quota_items resource_quota
+      new_result[:container_quota_scopes] = resource_quota.spec.scopes.to_a.collect { |scope| {:scope => scope} }
+      new_result[:container_quota_items] = parse_resource_quota_items(resource_quota)
       new_result
     end
 

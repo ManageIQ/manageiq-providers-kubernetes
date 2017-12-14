@@ -18,7 +18,7 @@ module ManageIQ::Providers
     require_nested :HawkularCaptureContext
     require_nested :PrometheusCaptureContext
 
-    INTERVAL = 20.seconds
+    INTERVAL = 60.seconds
 
     VIM_STYLE_COUNTERS = {
       "cpu_usage_rate_average"     => {
@@ -51,6 +51,9 @@ module ManageIQ::Providers
     }
 
     def capture_context(ems, target, start_time, end_time)
+      # make start_time align to minutes
+      start_time = start_time.beginning_of_minute
+
       # check for prometheus endpoint, ems must be set
       if ems.connection_configurations.prometheus.try(:endpoint)
         PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)

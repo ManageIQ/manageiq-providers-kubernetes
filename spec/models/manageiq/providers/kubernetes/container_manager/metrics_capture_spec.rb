@@ -47,69 +47,34 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     # TODO: include also sort_and_normalize in the tests
     METRICS_EXERCISES = [
       {
-        :counters => [
+        :counters           => [
           {
             :args => 'cpu/usage',
             :data => [
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 0},
-              {'start' => 1446500020000, 'end' => 1446500040000, 'avg' => 4000000000}
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 0},
+              {'start' => 1_446_500_060_000, 'end' => 1_446_500_120_000, 'min' => 12_000_000_000},
             ]
           },
           {
             :args => 'network/tx',
             :data => [
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 0},
-              {'start' => 1446500020000, 'end' => 1446500040000, 'avg' => 153600}
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 0},
+              {'start' => 1_446_500_060_000, 'end' => 1_446_500_120_000, 'min' => 460_800}
             ]
           },
           {
             :args => 'network/rx',
             :data => [
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 0},
-              {'start' => 1446500020000, 'end' => 1446500040000, 'avg' => 51200}
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 0},
+              {'start' => 1_446_500_060_000, 'end' => 1_446_500_120_000, 'min' => 153_600}
             ]
           }
         ],
-        :gauges => [
+        :gauges             => [
           {
             :args => 'memory/usage',
             :data => [
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 1073741824}
-            ]
-          }
-        ],
-        :node_expected      => {},
-        :container_expected => {}
-      },
-      {
-        :counters => [
-          {
-            :args => 'cpu/usage',
-            :data => [
-              {'start' => 1446499980000, 'end' => 1446500000000, 'avg' => 0},
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 4000000000}
-            ]
-          },
-          {
-            :args => 'network/tx',
-            :data => [
-              {'start' => 1446499980000, 'end' => 1446500000000, 'avg' => 0},
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 153600}
-            ]
-          },
-          {
-            :args => 'network/rx',
-            :data => [
-              {'start' => 1446499980000, 'end' => 1446500000000, 'avg' => 0},
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 51200}
-            ]
-          }
-        ],
-        :gauges => [
-          {
-            :args => 'memory/usage',
-            :data => [
-              {'start' => 1446500000000, 'end' => 1446500020000, 'avg' => 1073741824}
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 1_073_741_824}
             ]
           }
         ],
@@ -126,6 +91,41 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
             "mem_usage_absolute_average" => 50.0
           }
         }
+      },
+      {
+        :counters           => [
+          {
+            :args => 'cpu/usage',
+            :data => [
+              {'start' => 1_446_499_940_000, 'end' => 1_446_500_000_000, 'min' => 0},
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 12_000_000_000}
+            ]
+          },
+          {
+            :args => 'network/tx',
+            :data => [
+              {'start' => 1_446_499_940_000, 'end' => 1_446_500_000_000, 'min' => 0},
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 460_800}
+            ]
+          },
+          {
+            :args => 'network/rx',
+            :data => [
+              {'start' => 1_446_499_940_000, 'end' => 1_446_500_000_000, 'min' => 0},
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 153_600}
+            ]
+          }
+        ],
+        :gauges             => [
+          {
+            :args => 'memory/usage',
+            :data => [
+              {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 1_073_741_824}
+            ]
+          }
+        ],
+        :node_expected      => {},
+        :container_expected => {}
       }
     ]
 

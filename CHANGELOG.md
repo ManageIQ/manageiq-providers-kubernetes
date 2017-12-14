@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 75 ending 2017-12-11
+
+### Added
+- read image acquiring status [(#174)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/174)
+- Tag mapping in graph refresh [(#162)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/162)
+
+### Fixed
+- Make sure Container has always the right STI type [(#177)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/177)
+- Improve Hawkular metrics collection [(#159)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/159)
+
 ## Unreleased as of Sprint 74 ending 2017-11-27
 
 ### Added

@@ -100,7 +100,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
 
         {
           "start" => start_sec.to_i.in_milliseconds,
-          "avg"   => x[1].to_f
+          "end"   => (start_sec.to_i + @interval.to_i).in_milliseconds,
+          "min"   => x[1].to_f
         }
       end
     end

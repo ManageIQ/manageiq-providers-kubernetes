@@ -324,7 +324,8 @@ shared_examples "kubernetes refresher VCR tests" do
 
   def assert_specific_container_quota
     container_quota = ContainerQuota.find_by(:name => "quota")
-    container_quota.ems_created_on.kind_of?(ActiveSupport::TimeWithZone)
+    expect(container_quota.ems_created_on).to be_a(ActiveSupport::TimeWithZone)
+    expect(container_quota.container_quota_scopes.count).to eq(0)
     expect(container_quota.container_quota_items.count).to eq(8)
     cpu_quota = container_quota.container_quota_items.select { |x| x[:resource] == 'cpu' }[0]
     expect(cpu_quota).to have_attributes(

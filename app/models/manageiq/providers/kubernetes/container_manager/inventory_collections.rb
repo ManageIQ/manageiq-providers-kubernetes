@@ -40,6 +40,14 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :attributes_blacklist => [:namespace],
       )
     )
+    @collections[:container_quota_scopes] = ::ManagerRefresh::InventoryCollection.new(
+      shared_options.merge(
+        :model_class => ContainerQuotaScope,
+        :parent      => manager,
+        :association => :container_quota_scopes,
+        :manager_ref => [:container_quota, :scope],
+      )
+    )
     @collections[:container_quota_items] = ::ManagerRefresh::InventoryCollection.new(
       shared_options.merge(
         :model_class => ContainerQuotaItem,

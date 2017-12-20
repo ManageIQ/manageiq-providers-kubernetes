@@ -438,11 +438,15 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
             :creationTimestamp => '2015-08-17T09:16:46Z',
           },
           :spec     => {
-            :hard => {
+            :hard   => {
               :cpu    => '30',
               :pods   => '100',
               :memory => '10M'
-            }
+            },
+            :scopes => [
+              "Terminating",
+              "NotBestEffort"
+            ]
           },
           :status   => {
             :hard => {
@@ -457,12 +461,20 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
             }
           }
         )
-      )).to eq(:name                  => 'test-quota',
-               :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-               :ems_created_on        => '2015-08-17T09:16:46Z',
-               :resource_version      => '165339',
-               :namespace             => 'test-namespace',
-               :container_quota_items => [
+      )).to eq(:name                   => 'test-quota',
+               :ems_ref                => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+               :ems_created_on         => '2015-08-17T09:16:46Z',
+               :resource_version       => '165339',
+               :namespace              => 'test-namespace',
+               :container_quota_scopes => [
+                 {
+                   :scope => "Terminating"
+                 },
+                 {
+                   :scope => "NotBestEffort"
+                 }
+               ],
+               :container_quota_items  => [
                  {
                    :resource       => "cpu",
                    :quota_desired  => 30,
@@ -497,12 +509,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                            },
                            :spec     => {},
                            :status   => {})))
-        .to eq(:name                  => 'test-quota',
-               :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-               :ems_created_on        => '2015-08-17T09:16:46Z',
-               :resource_version      => '165339',
-               :namespace             => 'test-namespace',
-               :container_quota_items => [])
+        .to eq(:name                   => 'test-quota',
+               :ems_ref                => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+               :ems_created_on         => '2015-08-17T09:16:46Z',
+               :resource_version       => '165339',
+               :namespace              => 'test-namespace',
+               :container_quota_scopes => [],
+               :container_quota_items  => [])
     end
 
     it "handles quotas with no status" do
@@ -519,12 +532,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
                                :cpu => '30'
                              }},
                            :status   => {})))
-        .to eq(:name                  => 'test-quota',
-               :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-               :ems_created_on        => '2015-08-17T09:16:46Z',
-               :resource_version      => '165339',
-               :namespace             => 'test-namespace',
-               :container_quota_items => [
+        .to eq(:name                   => 'test-quota',
+               :ems_ref                => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+               :ems_created_on         => '2015-08-17T09:16:46Z',
+               :resource_version       => '165339',
+               :namespace              => 'test-namespace',
+               :container_quota_scopes => [],
+               :container_quota_items  => [
                  {
                    :resource       => "cpu",
                    :quota_desired  => 30,

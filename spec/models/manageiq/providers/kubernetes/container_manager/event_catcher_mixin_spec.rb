@@ -63,13 +63,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         }
       end
 
-      it 'extracts CONTAINER_KILLING data' do
+      it 'extracts POD_KILLING data' do
         expected_data = {
           :timestamp            => '2016-07-21T20:01:56Z',
           :kind                 => 'Pod',
           :name                 => 'heapster-aas69',
           :namespace            => 'openshift-infra',
-          :reason               => 'ContainerKilling',
+          :reason               => 'Killing',
           :message              => 'Killing container with docker id 18a563fdb87c: failed to call event handler: '\
                                    'Error executing in Docker Container: -1',
           :uid                  => '72d3098a-4f6a-11e6-b177-525400c7c086',
@@ -77,7 +77,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           :container_name       => 'heapster',
           :container_group_name => 'heapster-aas69',
           :container_namespace  => 'openshift-infra',
-          :event_type           => 'POD_CONTAINERKILLING'
+          :event_type           => 'POD_KILLING'
         }
         event = array_recursive_ostruct(:object => kubernetes_event)
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)

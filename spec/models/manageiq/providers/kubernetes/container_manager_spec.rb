@@ -199,8 +199,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       ems = FactoryGirl.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
+          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryGirl.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
         ]
       )
       expect(ems.monitoring_manager).not_to be_nil
@@ -218,36 +218,36 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(ems.monitoring_manager).to be_nil
     end
 
-    it "Creates a monitoring manager when container manager is added a prometheus_alert endpoint" do
+    it "Creates a monitoring manager when container manager is updated with a prometheus_alerts endpoint" do
       ems = FactoryGirl.create(:ems_kubernetes)
-      ems.endpoints << FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
-      ems.save!
+      ems.endpoints << FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2', :resource => ems)
+
       expect(ems.monitoring_manager).not_to be_nil
       expect(ems.monitoring_manager.parent_manager).to eq(ems)
     end
 
-    it "Does not create a monitoring manager when added a non prometheus_alert endpoint" do
+    it "Does not create a monitoring manager when added a non prometheus_alerts endpoint" do
       ems = FactoryGirl.create(:ems_kubernetes)
       ems.endpoints << FactoryGirl.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
-      ems.save!
       expect(ems.monitoring_manager).to be_nil
     end
 
-    it "Deletes the monitoring manager when container manager is removed the prometheus_alert endpoint" do
+    it "Deletes the monitoring manager when container manager is removed the prometheus_alerts endpoint" do
       ems = FactoryGirl.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host2'),
-          FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
+          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host2'),
+          FactoryGirl.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
         ]
       )
       expect(ems.monitoring_manager).not_to be_nil
       expect(ems.monitoring_manager.parent_manager).to eq(ems)
 
       allow(MiqServer).to receive(:my_zone).and_return("default")
-      ems.endpoints = [FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host3')]
-      expect(ems.monitoring_manager).to receive(:delete_queue).once
-      ems.save!
+      ems.endpoints = [FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host3')]
+      queue_item = MiqQueue.find_by(:method_name => 'orchestrate_destroy')
+      expect(queue_item).not_to be_nil
+      expect(queue_item.instance_id).to eq(ems.monitoring_manager.id)
     end
   end
 end

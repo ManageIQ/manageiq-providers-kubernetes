@@ -255,7 +255,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :container_routes,
-          :attributes_blacklist => [:namespace, :tags],
+          :attributes_blacklist => [:namespace],
         )
       )
     initialize_custom_attributes_collections(@collections[:container_routes], %w(labels))
@@ -291,7 +291,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :container_builds,
-          :attributes_blacklist => [:tags],
           :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
         )
       )

@@ -512,6 +512,7 @@ shared_examples "kubernetes refresher VCR tests" do
           'ContainerQuotaItem'    => 10,
           'ContainerLimit'        => 2,
           'ContainerLimitItem'    => 8,
+          'PersistentVolume'      => 0,
           'PersistentVolumeClaim' => 2,
         }
         expected_counts = deleted.collect { |k, d| [k, object_counts[k] - d] }.to_h
@@ -534,26 +535,24 @@ shared_examples "kubernetes refresher VCR tests" do
       it "disconnects objects" do
         pod0 = ContainerGroup.find_by(:name => "my-pod-0")
         pod1 = ContainerGroup.find_by(:name => "my-pod-1")
+        pod2 = ContainerGroup.find_by(:name => "my-pod-2")
 
-        [pod0, pod1].each do |pod|
+        [pod0, pod1, pod2].each do |pod|
           assert_disconnected(pod)
           expect(pod.container_project).not_to be_nil
           expect(pod.containers.count).to eq(1)
-          expect(pod.containers.count).to eq(1)
+          expect(pod.container_volumes.count).to eq(1)
         end
+        # ContainerVolume records don't get archived themselves, but some belong to archived pods.
+        expect(ContainerVolume.where(:type => 'ContainerVolume').count).to eq(container_volumes_count)
+        expect(@ems.container_volumes.count).to eq(container_volumes_count - 3)
 
         container0 = Container.find_by(:name => "my-container", :container_group => pod0)
         container1 = Container.find_by(:name => "my-container", :container_group => pod1)
+        container2 = Container.find_by(:name => "my-container", :container_group => pod2)
 
-        [container0, container1].each do |container|
-          assert_disconnected(container)
+        [container0, container1, container2].each do |container|
           expect(container).not_to be_nil
-        end
-
-        container0 = Container.find_by(:name => "my-container")
-        container1 = Container.find_by(:name => "my-container")
-
-        [container0, container1].each do |container|
           assert_disconnected(container)
           expect(container.container_project).not_to be_nil
         end

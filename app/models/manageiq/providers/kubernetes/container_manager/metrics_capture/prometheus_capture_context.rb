@@ -3,69 +3,83 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     include ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClientMixin
     include CaptureContextMixin
 
+    # NOTE: when calculating rate of net_usage and cpu_usage counters we use
+    #       Prometheus rate function, AVG_OVER is used for range vector size.
+    #       value of AVG_OVER is set to 2m allowing for none aligned or missing
+    #       scrapes.
+    #
+    # rate(v range-vector) calculates the per-second average rate of increase
+    # of the time series in the range vector. Breaks in monotonicity (such as
+    # counter resets due to target restarts) are automatically adjusted for.
+    # Also, the calculation extrapolates to the ends of the time range,
+    # allowing for missed scrapes or imperfect alignment of scrape cycles with
+    # the range's time period.
+    AVG_OVER = "2m".freeze
+
     def collect_node_metrics
-      # TODO: This function should be replaced to use utilization and rate endoints
+      # set node labels
+      labels = labels_to_s(
+        :container_name => "",
+        :id             => "/",
+        :instance       => @target.name,
+      )
 
-      # prometheus field is in sec, multiply by 1e9, sec to ns
-      # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\"}) * 1e9"
-      process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
-
-      # prometheus field is in bytes
-      # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      mem_resid = "sum(container_memory_usage_bytes{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\"})"
-      process_mem_gauges_data(fetch_counters_data(mem_resid))
-
-      # prometheus field is in bytes
-      # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      net_resid_rx = "sum(container_network_receive_bytes_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
-      net_resid_tx = "sum(container_network_transmit_bytes_total{container_name=\"\",id=\"/\",instance=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
-
-      net_counters = [fetch_counters_rate(net_resid_tx),
-                      fetch_counters_rate(net_resid_rx)]
-
-      process_net_counters_rate(compute_summation(net_counters))
+      @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)
+      collect_metrics_for_labels(labels)
     end
 
     def collect_container_metrics
-      # TODO: This function should be replaced to use utilization and rate endoints
+      # set container labels
+      labels = labels_to_s(
+        :container_name => @target.name,
+        :pod_name       => @target.container_group.name,
+        :namespace      => @target.container_project.name,
+      )
 
-      # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\"}) * 1e9"
-      process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
-
-      # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      mem_resid = "sum(container_memory_usage_bytes{container_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\"})"
-      process_mem_gauges_data(fetch_counters_data(mem_resid))
+      @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average)
+      collect_metrics_for_labels(labels)
     end
 
     def collect_group_metrics
-      # TODO: This function should be replaced to use utilization and rate endoints
+      # set pod labels
+      # NOTE: pod_name="X" willl yield metrics for all the containers
+      #       belonging to pod "X" as well as the internal POD container
+      #       (OpenShift's equivalent of kubernetes 'pause' pod)
 
-      cpu_counters = @target.containers.collect do |c|
-        # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-        cpu_resid = "sum(container_cpu_usage_seconds_total{container_name=\"#{c.name}\",job=\"kubernetes-cadvisor\"}) * 1e9"
-        fetch_counters_rate(cpu_resid)
-      end
-      process_cpu_counters_rate(compute_summation(cpu_counters))
+      labels = labels_to_s(
+        :pod_name  => @target.name,
+        :namespace => @target.container_project.name,
+      )
 
-      mem_gauges = @target.containers.collect do |c|
-        # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-        mem_resid = "sum(container_memory_usage_bytes{container_name=\"#{c.name}\",job=\"kubernetes-cadvisor\"})"
-        fetch_counters_data(mem_resid)
-      end
-      process_mem_gauges_data(compute_summation(mem_gauges))
-
-      # FIXME: we must update this labels to 3.7 labeling scheme and make sure it's uniqe (using type, id, and namespace labeiing)
-      net_resid_rx = "sum(container_network_receive_bytes_total{container_name=\"POD\",pod_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
-      net_resid_tx = "sum(container_network_transmit_bytes_total{container_name=\"POD\",pod_name=\"#{@target.name}\",job=\"kubernetes-cadvisor\",interface=~\"eth.*\"})"
-
-      net_counters = [fetch_counters_rate(net_resid_tx),
-                      fetch_counters_rate(net_resid_rx)]
-      process_net_counters_rate(compute_summation(net_counters))
+      @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)
+      collect_metrics_for_labels(labels)
     end
 
-    def fetch_counters_data(resource)
+    def collect_metrics_for_labels(labels)
+      # prometheus field is in core usage per sec
+      # miq field is in pct of node cpu
+      #
+      #   rate is the "usage per sec" readings avg over last 5m
+      cpu_resid = "sum(rate(container_cpu_usage_seconds_total{#{labels}}[#{AVG_OVER}]))"
+      fetch_counters_data(cpu_resid, 'cpu_usage_rate_average', @node_cores / 100.0)
+
+      # prometheus field is in bytes, @node_memory is in mb
+      # miq field is in pct of node memory
+      mem_resid = "sum(container_memory_usage_bytes{#{labels}})"
+      fetch_counters_data(mem_resid, 'mem_usage_absolute_average', @node_memory * 1e6 / 100.0)
+
+      # prometheus field is in bytes
+      # miq field is on kb ( / 1000 )
+      if @metrics.include?('net_usage_rate_average')
+        net_resid = "sum(rate(container_network_receive_bytes_total{#{labels},interface=~\"eth.*\"}[#{AVG_OVER}])) + " \
+                    "sum(rate(container_network_transmit_bytes_total{#{labels},interface=~\"eth.*\"}[#{AVG_OVER}]))"
+        fetch_counters_data(net_resid, 'net_usage_rate_average', 1000.0)
+      end
+
+      @ts_values
+    end
+
+    def fetch_counters_data(resource, metric_title, conversion_factor = 1)
       start_sec = (@starts / 1_000) - @interval
       end_sec = @ends ? (@ends / 1_000).to_i : Time.now.utc.to_i
 
@@ -76,13 +90,15 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
           :start => start_sec.to_i,
           :end   => end_sec,
           :step  => "#{@interval}s"
-        )
+        ),
+        metric_title,
+        conversion_factor
       )
     rescue StandardError => e
       raise CollectionFailure, "#{e.class.name}: #{e.message}"
     end
 
-    def sort_and_normalize(response)
+    def sort_and_normalize(response, metric_title, conversion_factor)
       response = JSON.parse(response.body)
 
       if response["status"] == "error"
@@ -97,12 +113,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
         # prometheus gives the time of last reading:
         # devide and multiply to convert time to start of interval window
         start_sec = (x[0] / @interval).to_i * @interval
+        timekey = Time.at(start_sec).utc
+        value = x[1].to_f / conversion_factor.to_f
 
-        {
-          "start" => start_sec.to_i.in_milliseconds,
-          "end"   => (start_sec.to_i + @interval.to_i).in_milliseconds,
-          "min"   => x[1].to_f
-        }
+        @ts_values[timekey][metric_title] = value
       end
     end
   end

@@ -1,16 +1,19 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusCaptureContext do
-  @node = nil
-
   before(:each) do
+    @record = :none
+    # @record = :new_episodes
+
     allow(MiqServer).to receive(:my_zone).and_return("default")
-    hostname = 'capture.context.com'
-    token = 'theToken'
+
+    master_hostname = 'master.example.com'
+    hostname = 'prometheus.example.com'
+    token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw'
 
     @ems = FactoryGirl.create(
       :ems_kubernetes,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
-                                                          :hostname   => hostname,
+                                                          :hostname   => master_hostname,
                                                           :port       => "8443",
                                                           :verify_ssl => false},
                                       :authentication => {:role     => :bearer,
@@ -25,52 +28,50 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
                                                           :userid   => "_"}}]
     )
 
-    if @node.nil?
-      VCR.use_cassette("#{described_class.name.underscore}_refresh",
-                       :match_requests_on => [:path,]) do # , :record => :new_episodes) do
-        EmsRefresh.refresh(@ems)
-        @ems.reload
+    VCR.use_cassette("#{described_class.name.underscore}_refresh",
+                     :match_requests_on => [:path,], :record => @record) do
+      EmsRefresh.refresh(@ems)
+      @ems.reload
 
-        @node = @ems.container_nodes.find_by(:name => hostname)
-        pod = @ems.container_groups.find_by(:name => "docker-registry-1-w690w")
-        container = pod.containers.find_by(:name => "registry")
-        @targets = [['node', @node], ['pod', pod], ['container', container]]
-      end
+      @node = @ems.container_nodes.last
+      pod = @ems.container_groups.last
+      container = @ems.containers.last
+      @targets = [['node', @node], ['pod', pod], ['container', container]]
     end
   end
 
   it "will read prometheus metrics" do
-    start_time = Time.parse("2017-10-24 10:59:50 UTC").utc
-    end_time   = Time.parse("2017-10-24 11:03:10 UTC").utc
-    interval   = 20
+    start_time = Time.parse("2017-12-27 07:30:00 UTC").utc
+    end_time   = Time.parse("2017-12-27 07:40:00 UTC").utc
+    interval   = 60
 
     @targets.each do |target_name, target|
-      VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_metrics") do # , :record => :new_episodes) do
+      VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_metrics", :record => @record) do
         context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusCaptureContext.new(
           target, start_time, end_time, interval
         )
 
         data = context.collect_metrics
 
-        expect(data).to be_a_kind_of(Array)
+        expect(data).to be_a_kind_of(Hash)
       end
     end
   end
 
   it "will read only specific timespan prometheus metrics" do
-    start_time = Time.parse("2017-10-24 10:59:50 UTC").utc
-    end_time   = Time.parse("2017-10-24 11:03:10 UTC").utc
-    interval   = 20
+    start_time = Time.parse("2017-12-27 07:30:00 UTC").utc
+    end_time   = Time.parse("2017-12-27 07:40:00 UTC").utc
+    interval   = 60
 
     @targets.each do |target_name, target|
-      VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_timespan") do # , :record => :new_episodes) do
+      VCR.use_cassette("#{described_class.name.underscore}_#{target_name}_timespan", :record => @record) do
         context = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusCaptureContext.new(
           target, start_time, end_time, interval
         )
 
         data = context.collect_metrics
 
-        expect(data.count).to be > 10
+        expect(data.count).to be > 8
         expect(data.count).to be < 13
       end
     end

@@ -53,6 +53,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
     }
   end
 
+  def labels_to_s(labels, job = "kubernetes-cadvisor")
+    labels.merge(:job => job).compact.sort.map { |k, v| "#{k}=\"#{v}\"" }.join(',')
+  end
+
   def prometheus_try_connect
     begin
       response = prometheus_client.get("query", :query => "ALL")

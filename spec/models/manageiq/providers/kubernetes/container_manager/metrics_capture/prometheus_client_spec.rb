@@ -33,7 +33,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
     VCR.use_cassette("#{described_class.name.underscore}_fail_connect") do # , :record => :new_episodes) do
       @ems.connection_configurations.prometheus.authentication.auth_key = 'wrong_key'
       client = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClient.new(@ems)
-      expect { client.prometheus_try_connect }.to raise_error(MiqException::MiqInvalidCredentialsError)
+      expect { client.prometheus_try_connect }.to raise_error(Prometheus::ApiClient::Client::RequestError)
     end
   end
 end

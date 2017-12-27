@@ -84,8 +84,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       end_sec = @ends ? (@ends / 1_000).to_i : Time.now.utc.to_i
 
       sort_and_normalize(
-        prometheus_client.get(
-          "query_range",
+        prometheus_client.query_range(
           :query => resource,
           :start => start_sec.to_i,
           :end   => end_sec,
@@ -99,17 +98,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     end
 
     def sort_and_normalize(response, metric_title, conversion_factor)
-      response = JSON.parse(response.body)
-
-      if response["status"] == "error"
-        raise CollectionFailure, "[#{@target} #{@target.name}] " + response["error"]
-      end
-
-      unless response["data"] && response["data"]["result"] && response["data"]["result"][0]
+      unless response["result"] && response["result"][0]
         raise CollectionFailure, "[#{@target} #{@target.name}] No data in response"
       end
 
-      response["data"]["result"][0]["values"].map do |x|
+      response["result"][0]["values"].map do |x|
         # prometheus gives the time of last reading:
         # devide and multiply to convert time to start of interval window
         start_sec = (x[0] / @interval).to_i * @interval

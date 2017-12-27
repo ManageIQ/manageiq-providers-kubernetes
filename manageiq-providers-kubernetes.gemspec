@@ -13,12 +13,12 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,lib}/**/*"]
 
-  s.add_runtime_dependency "hawkular-client", "~> 4.1"
-  s.add_runtime_dependency "image-inspector-client",  "~>1.0.3"
-  s.add_runtime_dependency "kubeclient",      "~>2.4.0"
-  s.add_runtime_dependency "prometheus-alert-buffer-client", "~>0.2.0"
+  s.add_runtime_dependency("hawkular-client",                 "~> 4.1")
+  s.add_runtime_dependency("image-inspector-client",          "~>1.0.3")
+  s.add_runtime_dependency("kubeclient",                      "~>2.4.0")
+  s.add_runtime_dependency("prometheus-alert-buffer-client",  "~> 0.2.0")
 
-  s.add_development_dependency "codeclimate-test-reporter", "~> 1.0.0"
-  s.add_development_dependency "recursive-open-struct",     "~> 1.0.0"
-  s.add_development_dependency "simplecov"
+  s.add_development_dependency("codeclimate-test-reporter", "~> 1.0.0")
+  s.add_development_dependency("recursive-open-struct",     "~> 1.0.0")
+  s.add_development_dependency("simplecov")
 end

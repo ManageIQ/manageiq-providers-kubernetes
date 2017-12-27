@@ -1,5 +1,5 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClientMixin
-  require 'faraday'
+  require 'prometheus/api_client'
 
   def prometheus_client
     @prometheus_uri ||= prometheus_uri
@@ -10,22 +10,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_client_new(uri, credentials, options)
-    worker_class = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCollectorWorker
-
-    Faraday.new(
-      :url     => uri.to_s,
-      :proxy   => options[:http_proxy_uri].empty? ? nil : options[:http_proxy_uri],
-      :ssl     => {
-        :verify     => options[:verify_ssl] != OpenSSL::SSL::VERIFY_NONE,
-        :cert_store => options[:ssl_cert_store]
-      },
-      :request => {
-        :open_timeout => worker_class.worker_settings[:prometheus_open_timeout] || 5,
-        :timeout      => worker_class.worker_settings[:prometheus_request_timeout] || 30
-      },
-      :headers => {
-        :Authorization => "Bearer " + credentials[:token]
-      }
+    Prometheus::ApiClient.client(
+      :url         => uri.to_s,
+      :options     => options,
+      :credentials => credentials
     )
   end
 
@@ -37,7 +25,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
     URI::HTTPS.build(
       :host => prometheus_endpoint.hostname,
       :port => prometheus_endpoint.port,
-      :path => "/api/v1/"
     )
   end
 
@@ -46,10 +33,14 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_options
+    worker_class = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCollectorWorker
+
     {
       :http_proxy_uri => VMDB::Util.http_proxy_uri.to_s,
       :verify_ssl     => @ext_management_system.verify_ssl_mode(prometheus_endpoint),
       :ssl_cert_store => @ext_management_system.ssl_cert_store(prometheus_endpoint),
+      :open_timeout   => worker_class.worker_settings[:prometheus_open_timeout] || 5,
+      :timeout        => worker_class.worker_settings[:prometheus_request_timeout] || 30
     }
   end
 
@@ -58,18 +49,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_try_connect
-    begin
-      response = prometheus_client.get("query", :query => "ALL")
-    rescue StandardError => err
-      raise MiqException::MiqUnreachableError, err.message, err.backtrace
-    end
-
-    begin
-      data = JSON.parse(response.body)
-    rescue StandardError => err # if auth_proxy fail it returns an html doc
-      raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
-    end
-
+    # NOTE: we do not catch errors from prometheus_client here
+    #       prometheus_client will raise specific errors in case of connection
+    #       errors
+    data = prometheus_client.query(:query => "ALL")
     data.kind_of?(Hash)
   end
 end

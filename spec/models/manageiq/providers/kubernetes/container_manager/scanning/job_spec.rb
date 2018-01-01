@@ -50,6 +50,34 @@ class MockKubeClient
   end
 end
 
+class MockKubeClientTwoPullSecrets < MockKubeClient
+  def get_service_account(*_args)
+    array_recursive_ostruct(
+      :metadata         => {
+        :name => 'inspector-admin'
+      },
+      :imagePullSecrets => [
+        { :name => 'inspector-admin-dockercfg-blabla' },
+        { :name => 'some-other-secret' }
+      ]
+    )
+  end
+end
+
+class MockKubeClientPullSecretWOName < MockKubeClient
+  def get_service_account(*_args)
+    array_recursive_ostruct(
+      :metadata         => {
+        :name => 'inspector-admin'
+      },
+      :imagePullSecrets => [
+        { :name     => 'inspector-admin-dockercfg-blabla' },
+        { :not_name => 'some-other-secret' }
+      ]
+    )
+  end
+end
+
 class MockImageInspectorClient
   def initialize(for_id, repo_digest = nil)
     @for_id = for_id
@@ -217,7 +245,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       def create_pod_definition
         allow_any_instance_of(described_class).to receive_messages(:kubernetes_client => MockKubeClient.new)
         kc = @job.kubernetes_client
-        secret_name = kc.get_service_account[:imagePullSecrets][0][:name]
+        secret_name = @job.send(:inspector_admin_secrets)
         @job.send(:pod_definition, secret_name)
       end
 
@@ -271,21 +299,66 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
     end
 
     it 'should send correct dockercfg secrets' do
-      allow_any_instance_of(described_class).to receive_messages(:kubernetes_client => MockKubeClient.new)
+      allow(@job).to receive(:kubernetes_client).and_return(MockKubeClient.new)
       kc = @job.kubernetes_client
-      secret_name = kc.get_service_account[:imagePullSecrets][0][:name]
-      pod = @job.send(:pod_definition, secret_name)
+      secret_names = @job.send(:inspector_admin_secrets)
+      pod = @job.send(:pod_definition, secret_names)
+      secret_name = secret_names.first
       expect(pod[:spec][:containers][0][:command]).to include(
         "--dockercfg=" + described_class::INSPECTOR_ADMIN_SECRET_PATH + secret_name + "/.dockercfg")
       expect(pod[:spec][:containers][0][:volumeMounts]).to include(
         Kubeclient::Resource.new(
-          :name      => "inspector-admin-secret",
+          :name      => "inspector-admin-secret-" + secret_name,
           :mountPath => described_class::INSPECTOR_ADMIN_SECRET_PATH + secret_name,
           :readOnly  => true))
       expect(pod[:spec][:volumes]).to include(
         Kubeclient::Resource.new(
-          :name   => "inspector-admin-secret",
+          :name   => "inspector-admin-secret-" + secret_name,
           :secret => {:secretName => secret_name}))
+    end
+
+    context 'multiple pull secrets' do
+      describe '#inspector_admin_secrets' do
+        it 'returns a list with one secret name for one secret with name' do
+          allow(@job).to receive(:kubernetes_client).and_return(MockKubeClient.new)
+          secrets = @job.send(:inspector_admin_secrets)
+          expect(secrets.length).to eq(1)
+        end
+
+        it 'returns a list with a secret name for each secret' do
+          allow(@job).to receive(:kubernetes_client).and_return(MockKubeClientTwoPullSecrets.new)
+          secrets = @job.send(:inspector_admin_secrets)
+          expect(secrets.length).to eq(2)
+          expect(secrets).to contain_exactly('inspector-admin-dockercfg-blabla', 'some-other-secret')
+        end
+
+        it 'does not include secrets without a name' do
+          allow(@job).to receive(:kubernetes_client).and_return(MockKubeClientPullSecretWOName.new)
+          secrets = @job.send(:inspector_admin_secrets)
+          expect(secrets.length).to eq(1)
+        end
+      end
+
+      describe '#pod_definition' do
+        it 'will create the pod with multiple dockercfg and secrets' do
+          allow(@job).to receive(:kubernetes_client).and_return(MockKubeClientTwoPullSecrets.new)
+          secrets = @job.send(:inspector_admin_secrets)
+          pod = @job.send(:pod_definition, secrets)
+          secrets.each do |secret_name|
+            expect(pod[:spec][:containers][0][:command]).to include(
+              "--dockercfg=" + described_class::INSPECTOR_ADMIN_SECRET_PATH + secret_name + "/.dockercfg")
+            expect(pod[:spec][:containers][0][:volumeMounts]).to include(
+              Kubeclient::Resource.new(
+                :name      => "inspector-admin-secret-" + secret_name,
+                :mountPath => described_class::INSPECTOR_ADMIN_SECRET_PATH + secret_name,
+                :readOnly  => true))
+            expect(pod[:spec][:volumes]).to include(
+              Kubeclient::Resource.new(
+                :name   => "inspector-admin-secret-" + secret_name,
+                :secret => {:secretName => secret_name}))
+          end
+        end
+      end
     end
 
     context 'when the job is called with a non existing image' do

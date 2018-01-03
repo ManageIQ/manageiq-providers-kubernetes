@@ -58,14 +58,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
 
     _log.info("Getting inspector-admin secret for pod [#{pod_full_name}]")
     begin
-      inspector_admin_secret_name = inspector_admin_secret
+      inspector_admin_secret_names = inspector_admin_secrets
     rescue SocketError, KubeException => e
       msg = "getting inspector-admin secret failed"
       _log.error("#{msg}: [#{e}]")
       return queue_signal(:abort_job, msg, "error")
     end
 
-    pod = pod_definition(inspector_admin_secret_name)
+    pod = pod_definition(inspector_admin_secret_names)
 
     _log.info("Creating pod [#{pod_full_name}] to analyze docker image [#{options[:docker_image_id]}] [#{pod.to_json}]")
     begin
@@ -370,12 +370,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     "#{options[:pod_namespace]}/#{options[:pod_name]}"
   end
 
-  def inspector_admin_secret
+  def inspector_admin_secrets
     kubeclient = kubernetes_client
     begin
       inspector_sa = kubeclient.get_service_account(IMAGE_INSPECTOR_SA, options[:pod_namespace])
-      # TODO: support multiple imagePullSecrets. This depends on image-inspector support
-      return inspector_sa.try(:imagePullSecrets).to_a[0].try(:name)
+      return inspector_sa.try(:imagePullSecrets).to_a.collect { |sec| sec.try(:name) }.compact.uniq
     rescue KubeException => e
       raise e unless e.error_code == ERRCODE_NOTFOUND
       _log.warn("Service Account #{IMAGE_INSPECTOR_SA} does not exist.")
@@ -387,7 +386,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     @provider_options ||= ext_management_system.options.try(:fetch_path, :image_inspector_options) || {}
   end
 
-  def pod_definition(inspector_admin_secret_name)
+  def pod_definition(inspector_admin_secret_names)
     pod_def = {
       :apiVersion => "v1",
       :kind       => "Pod",
@@ -448,21 +447,23 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
       }
     }
 
-    add_secret_to_pod_def(pod_def, inspector_admin_secret_name) unless inspector_admin_secret_name.blank?
+    inspector_admin_secret_names.each do |secret_name|
+      add_secret_to_pod_def(pod_def, secret_name)
+    end
     add_cve_url(pod_def)
     Kubeclient::Resource.new(pod_def)
   end
 
-  def add_secret_to_pod_def(pod_def, inspector_admin_secret_name)
+  def add_secret_to_pod_def(pod_def, secret_name)
     pod_def[:spec][:containers][0][:command].append("--dockercfg=" + INSPECTOR_ADMIN_SECRET_PATH +
-                                                    inspector_admin_secret_name + "/.dockercfg")
+                                                    secret_name + "/.dockercfg")
     pod_def[:spec][:containers][0][:volumeMounts].append(
-      :name      => "inspector-admin-secret",
-      :mountPath => INSPECTOR_ADMIN_SECRET_PATH + inspector_admin_secret_name,
+      :name      => "inspector-admin-secret-" + secret_name,
+      :mountPath => INSPECTOR_ADMIN_SECRET_PATH + secret_name,
       :readOnly  => true)
     pod_def[:spec][:volumes].append(
-      :name   => "inspector-admin-secret",
-      :secret => {:secretName => inspector_admin_secret_name})
+      :name   => "inspector-admin-secret-" + secret_name,
+      :secret => {:secretName => secret_name})
   end
 
   def inspector_image

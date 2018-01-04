@@ -7,7 +7,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
   let(:default_authentication) { FactoryGirl.create(:authentication, :authtype => 'bearer') }
   let(:prometheus_alerts_endpoint) do
     EvmSpecHelper.local_miq_server(:zone => Zone.seed)
-    FactoryGirl.create(
+    FactoryGirl.build(
       :endpoint,
       :role       => 'prometheus_alerts',
       :hostname   => 'alerts-prometheus.example.com',
@@ -16,7 +16,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
     )
   end
   let(:prometheus_authentication) do
-    FactoryGirl.create(
+    FactoryGirl.build(
       :authentication,
       :authtype => 'prometheus_alerts',
       :auth_key => '_',

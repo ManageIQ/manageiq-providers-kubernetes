@@ -28,7 +28,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager do
   context "#authentication - no ssl" do
     let(:prometheus_alerts_endpoint) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)
-      FactoryGirl.create(
+      FactoryGirl.build(
         :endpoint,
         :role       => 'prometheus_alerts',
         :hostname   => 'alerts-prometheus.example.com',
@@ -53,7 +53,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager do
   context "#authentication - custom ssl" do
     let(:prometheus_alerts_endpoint) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)
-      FactoryGirl.create(
+      FactoryGirl.build(
         :endpoint,
         :role                  => 'prometheus_alerts',
         :hostname              => 'alerts-prometheus.example.com',

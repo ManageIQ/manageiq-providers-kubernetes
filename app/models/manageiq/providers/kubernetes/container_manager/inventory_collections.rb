@@ -150,7 +150,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent                 => manager,
           :builder_params         => {:ems_id => manager.id},
           :association            => :container_groups,
-          :secondary_refs         => {:by_namespace_and_name => [:namespace, :name]},
+          :secondary_refs         => {:by_container_project_and_name => [:container_project, :name]},
           :attributes_blacklist   => [:namespace],
           :delete_method          => :disconnect_inv,
           :custom_reconnect_block => custom_reconnect_block
@@ -217,7 +217,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :container_replicators,
-          :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+          :secondary_refs       => {:by_container_project_and_name => [:container_project, :name]},
           :attributes_blacklist => [:namespace],
         )
       )
@@ -231,7 +231,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :container_services,
-          :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+          :secondary_refs       => {:by_container_project_and_name => [:container_project, :name]},
           :attributes_blacklist => [:namespace],
           :saver_strategy       => :default # TODO(perf) Can't use batch strategy because of usage of M:N container_groups relation
         )
@@ -329,7 +329,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :parent               => manager,
           :builder_params       => {:ems_id => manager.id},
           :association          => :persistent_volume_claims,
-          :secondary_refs       => {:by_namespace_and_name => [:namespace, :name]},
+          :secondary_refs       => {:by_container_project_and_name => [:container_project, :name]},
           :attributes_blacklist => [:namespace],
         )
       )

@@ -1357,12 +1357,14 @@ module ManageIQ::Providers::Kubernetes
 
     def lazy_find_replicator(hash)
       return nil if hash.nil?
-      @inv_collections[:container_replicators].lazy_find_by(hash, :ref => :by_namespace_and_name)
+      search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
+      @inv_collections[:container_replicators].lazy_find_by(search, :ref => :by_container_project_and_name)
     end
 
     def lazy_find_container_group(hash)
       return nil if hash.nil?
-      @inv_collections[:container_groups].lazy_find_by(hash, :ref => :by_namespace_and_name)
+      search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
+      @inv_collections[:container_groups].lazy_find_by(search, :ref => :by_container_project_and_name)
     end
 
     def lazy_find_image(hash)
@@ -1383,7 +1385,8 @@ module ManageIQ::Providers::Kubernetes
 
     def lazy_find_persistent_volume_claim(hash)
       return nil if hash.nil?
-      @inv_collections[:persistent_volume_claims].lazy_find_by(hash, :ref => :by_namespace_and_name)
+      search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
+      @inv_collections[:persistent_volume_claims].lazy_find_by(search, :ref => :by_container_project_and_name)
     end
   end
 end

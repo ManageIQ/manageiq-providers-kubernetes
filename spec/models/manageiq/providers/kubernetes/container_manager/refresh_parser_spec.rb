@@ -210,6 +210,226 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
     end
   end
 
+  describe "parse_pod" do
+    # Several stages through which a pod goes, recorded from `oc get pods --watch --show-all -o json`.
+    pod_common = {
+      :apiVersion => "v1",
+      :kind       => "Pod",
+      :metadata   => {
+        :annotations       => {
+          :"openshift.io/scc" => "privileged"
+        },
+        :creationTimestamp => "2017-12-26T14:14:55Z",
+        :labels            => {
+          :"key-pod-label" => "value-pod-label"
+        },
+        :name              => "my-pod-0",
+        :namespace         => "my-project-0",
+        # :resourceVersion => ...
+        :selfLink          => "/api/v1/namespaces/my-project-0/pods/my-pod-0",
+        :uid               => "25da2bc6-ea47-11e7-a091-c6d6ab00a8c4"
+      },
+      :spec       => {
+        :containers                    => [
+          {
+            :image                    => "registry.access.redhat.com/jboss-decisionserver-6/decisionserver63-openshift",
+            :imagePullPolicy          => "Always",
+            :name                     => "my-container",
+            :ports                    => [
+              {
+                :containerPort => 6379,
+                :protocol      => "TCP"
+              }
+            ],
+            :resources                => {},
+            :securityContext          => {
+              :privileged     => true,
+              :seLinuxOptions => {
+                :level => "s0:c123,c456",
+                :role  => "admin",
+                :type  => "default",
+                :user  => "username"
+              }
+            },
+            :terminationMessagePath   => "/dev/termination-log",
+            :terminationMessagePolicy => "File",
+            :volumeMounts             => [
+              {
+                :mountPath => "/var/run/secrets/kubernetes.io/serviceaccount",
+                :name      => "default-token-dss72",
+                :readOnly  => true
+              }
+            ]
+          }
+        ],
+        :dnsPolicy                     => "ClusterFirst",
+        :imagePullSecrets              => [
+          {
+            :name => "default-dockercfg-975qh"
+          }
+        ],
+        :restartPolicy                 => "Always",
+        :schedulerName                 => "default-scheduler",
+        :securityContext               => {},
+        :serviceAccount                => "default",
+        :serviceAccountName            => "default",
+        :terminationGracePeriodSeconds => 30,
+        :volumes                       => [
+          {
+            :name   => "default-token-dss72",
+            :secret => {
+              :defaultMode => 420,
+              :secretName  => "default-token-dss72"
+            }
+          }
+        ]
+      },
+      :status     => {
+        :phase    => "Pending",
+        :qosClass => "BestEffort"
+      }
+    }
+
+    just_created_pod = pod_common.deep_merge(
+      :metadata => {:resourceVersion => "11523"},
+    )
+
+    scheduled_pod = pod_common.deep_merge(
+      :metadata => {:resourceVersion => "11526"},
+      :spec     => {:nodeName => "localhost"}, # Yes! Scheduler mutates spec.
+      :status   => {
+        :conditions => [
+          {
+            :lastProbeTime      => nil,
+            :lastTransitionTime => "2017-12-26T14:14:55Z",
+            :status             => "True",
+            :type               => "PodScheduled"
+          }
+        ],
+      }
+    )
+
+    container_creating_pod = pod_common.deep_merge(
+      :metadata => {:resourceVersion => "11534"},
+      :spec     => {:nodeName => "localhost"},
+      :status   => {
+        :conditions        => [
+          {
+            :lastProbeTime      => nil,
+            :lastTransitionTime => "2017-12-26T14:14:55Z",
+            :status             => "True",
+            :type               => "Initialized"
+          },
+          {
+            :lastProbeTime      => nil,
+            :lastTransitionTime => "2017-12-26T14:14:55Z",
+            :message            => "containers with unready status: [my-container]",
+            :reason             => "ContainersNotReady",
+            :status             => "False",
+            :type               => "Ready"
+          },
+          {
+            :lastProbeTime      => nil,
+            :lastTransitionTime => "2017-12-26T14:14:55Z",
+            :status             => "True",
+            :type               => "PodScheduled"
+          }
+        ],
+        :containerStatuses => [
+          {
+            :image        => "registry.access.redhat.com/jboss-decisionserver-6/decisionserver63-openshift",
+            :imageID      => "",
+            :lastState    => {},
+            :name         => "my-container",
+            :ready        => false,
+            :restartCount => 0,
+            :state        => {
+              :waiting => {
+                :reason => "ContainerCreating"
+              }
+            }
+          }
+        ],
+        :hostIP            => "10.0.2.15",
+        :startTime         => "2017-12-26T14:14:55Z"
+      }
+    )
+
+    # Following statuses stitched together from other pods but never mind.
+    err_pod = container_creating_pod.deep_merge(
+      :metadata          => {:resourceVersion => "11750"},
+      :containerStatuses => [
+        {
+          :image        => "registry.access.redhat.com/no-such-image",
+          :imageID      => "",
+          :lastState    => {},
+          :name         => "my-container",
+          :ready        => false,
+          :restartCount => 0,
+          :state        => {
+            :waiting => {
+              :message => "rpc error: code = 2 desc = Error response from daemon: {\"message\":\"unknown: Not Found\"}",
+              :reason  => "ErrImagePull"
+            }
+          }
+        }
+      ],
+      # same :hostIP => "10.0.2.15", but now we also got podIP.  Successfully "running" pods also get podIP.
+      :podIP             => "172.17.0.9",
+    )
+
+    graceful_deletion_pod = err_pod.deep_merge(
+      :metadata => {
+        :resourceVersion            => "11831",
+        :deletionGracePeriodSeconds => 30,
+        :deletionTimestamp          => "2017-12-26T14:15:06Z",
+      },
+    )
+
+    deleted_pod = graceful_deletion_pod.deep_merge(
+      :metadata          => {
+        :resourceVersion => "11833",
+        # :deletionGracePeriodSeconds, :deletionTimestamp unchanged.
+      },
+      :containerStatuses => [
+        {
+          :image        => "registry.access.redhat.com/no-such-image",
+          :imageID      => "",
+          :lastState    => {},
+          :name         => "my-container",
+          :ready        => false,
+          :restartCount => 0,
+          :state        => {
+            :terminated => {
+              :exitCode   => 0, # despite it never having run (image pull failed)!
+              :finishedAt => nil,
+              :startedAt  => nil
+            }
+          }
+        }
+      ],
+    )
+
+    pod_states = {
+      "just_created_pod"       => just_created_pod,
+      "scheduled_pod"          => scheduled_pod,
+      "container_creating_pod" => container_creating_pod,
+      "err_pod"                => err_pod,
+      "graceful_deletion_pod"  => graceful_deletion_pod,
+      "deleted_pod"            => deleted_pod
+    }
+
+    pod_states.each do |name, data|
+      it "sets correct STI types for #{name}" do
+        result = parser.send(:parse_pod, array_recursive_ostruct(data))
+
+        expect(result[:type]).to eq('ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup')
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1517676
+        expect(result[:containers].collect { |c| c[:type] }.uniq).to eq(['ManageIQ::Providers::Kubernetes::ContainerManager::Container'])
+      end
+    end
+  end
+
   describe "parse_container_state" do
     # check https://bugzilla.redhat.com/show_bug.cgi?id=1383498
     it "handles nil input" do

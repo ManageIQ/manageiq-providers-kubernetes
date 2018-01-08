@@ -132,6 +132,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     # @param key [String] the metrics key/group_id (e.g. cpu/usage).
     # @return [String] the metrics full key name (e.g. machine/example.com/cpu/usage).
     def get_metrics_key(raw_metrics, type, key)
+      raise CollectionFailure, "no #{type} metrics found for [#{@target.name}]" unless raw_metrics[type]
+
       # each object has only one metrics with some key/group_id ( e.g. each node has only one cpu/usage )
       raw_metrics[type].keys.find { |e| e.ends_with?(key) }
     end

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 76 ending 2018-01-01
+
+### Added
+- Parse and save quota scopes [(#190)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/190)
+
+### Fixed
+- Use prometheus client instead of faraday [(#195)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/195)
+- Fix alerts SSL validation trusting custom store  [(#192)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/192)
+- Make capture interval a multiple of 30s [(#187)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/187)
+- Make container events belong to pod [(#181)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/181)
+- Improve Prometheus metrics collection [(#132)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/132)
+
 ## Unreleased as of Sprint 75 ending 2017-12-11
 
 ### Added

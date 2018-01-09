@@ -602,7 +602,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         )
       end
 
-      # TODO: pending graph tag mapping implementation
       include_examples "kubernetes refresher VCR tests"
     end
 
@@ -613,7 +612,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         )
       end
 
-      # TODO: pending graph tag mapping implementation
       include_examples "kubernetes refresher VCR tests"
     end
   end

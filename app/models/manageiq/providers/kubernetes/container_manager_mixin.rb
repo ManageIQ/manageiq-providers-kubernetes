@@ -266,4 +266,17 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     # and these should automatically be translated to alerts.
     true
   end
+
+  def queue_metrics_capture
+    targets = Metric::Targets.capture_container_targets([self], {})
+
+    targets.each do |target|
+      begin
+        target.perf_capture_queue('realtime', :priority => MiqQueue::HIGH_PRIORITY)
+      rescue StandardError => err
+        _log.error("Failed to queue perf_capture for target [#{target.class.name}], [#{target.id}], [#{target.name}]: #{err}")
+        raise
+      end
+    end
+  end
 end

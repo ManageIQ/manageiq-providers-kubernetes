@@ -244,7 +244,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :model_class => ContainerServicePortConfig,
           :parent      => manager,
           :association => :container_service_port_configs,
-          :manager_ref => [:ems_ref, :protocol] # TODO(lsmola) make protocol part of the ems_ref?
+          :manager_ref => [:container_service, :name]
         )
       )
 

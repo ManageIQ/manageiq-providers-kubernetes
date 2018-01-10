@@ -195,8 +195,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :model_class => ContainerEnvVar,
           :parent      => manager,
           :association => :container_env_vars,
-          # TODO: old save matches on all :name, :value, :field_path - does this matter?
-          :manager_ref => [:container, :name],
+          :manager_ref => [:container, :name, :value, :field_path],
         )
       )
     @collections[:security_contexts]      =
@@ -244,7 +243,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :model_class => ContainerServicePortConfig,
           :parent      => manager,
           :association => :container_service_port_configs,
-          :manager_ref => [:ems_ref, :protocol] # TODO(lsmola) make protocol part of the ems_ref?
+          :manager_ref => [:container_service, :name]
         )
       )
 
@@ -317,8 +316,9 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         shared_options.merge(
           :model_class    => PersistentVolume,
           :parent         => manager,
-          :builder_params => {:parent => manager},
+          :builder_params => {:parent_id => manager.id, :parent_type => manager.class.base_class},
           :association    => :persistent_volumes,
+          :manager_ref    => [:parent_id, :parent_type, :ems_ref],
         )
       )
     @collections[:persistent_volume_claims] =

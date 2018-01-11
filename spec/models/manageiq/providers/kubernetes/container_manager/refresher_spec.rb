@@ -394,21 +394,30 @@ shared_examples "kubernetes refresher VCR tests" do
       end
     end
 
-    it "saves the objects in the DB" do
-      expect(ContainerGroup.count).to eq(10)
-      expect(Container.count).to eq(10)
-      expect(ContainerService.count).to eq(11)
-      expect(ContainerQuota.count).to eq(3)
-      expect(ContainerQuotaItem.count).to eq(15)
-      expect(ContainerLimit.count).to eq(3)
-      expect(ContainerLimitItem.count).to eq(12)
+    let(:container_volumes_count) { 22 }
+    let(:persintent_volumes_count) { 2 }
+    let(:object_counts) do
+      # using strings instead of actual model classes for compact rspec diffs
+      {
+        'ContainerGroup'        => 10,
+        'Container'             => 10,
+        'ContainerService'      => 11,
+        'ContainerQuota'        => 3,
+        'ContainerQuotaItem'    => 15,
+        'ContainerLimit'        => 3,
+        'ContainerLimitItem'    => 12,
+        'PersistentVolume'      => persintent_volumes_count,
+        'ContainerVolume'       => container_volumes_count + persintent_volumes_count,
+        'PersistentVolumeClaim' => 4,
+      }
+    end
 
-      expect(@ems.container_volumes.count).to eq(22)
-      expect(@ems.persistent_volumes.count).to eq(2)
-      expect(PersistentVolume.count).to eq(2)
-      expect(ContainerVolume.count).to eq(@ems.container_volumes.count +
-                                          @ems.persistent_volumes.count)
-      expect(PersistentVolumeClaim.count).to eq(4)
+    it "saves the objects in the DB" do
+      actual_counts = object_counts.collect { |k, _| [k, k.constantize.count] }.to_h
+      expect(actual_counts).to eq(object_counts)
+      expect(@ems.container_volumes.count).to eq(container_volumes_count)
+      expect(@ems.persistent_volumes.count).to eq(persintent_volumes_count)
+
       assert_specific_container_volume
       assert_specific_persistent_volume
       assert_specific_persistent_volume_claim
@@ -494,19 +503,27 @@ shared_examples "kubernetes refresher VCR tests" do
         expect(ContainerNode.count).to eq(2)
         expect(ContainerNode.active.count).to eq(1)
         expect(ContainerNode.archived.count).to eq(1)
-        expect(ContainerGroup.count).to eq(10)
-        expect(ContainerGroup.where(:deleted_on => nil).count).to eq(7)
+        expect(ContainerGroup.count).to eq(object_counts['ContainerGroup'])
+        expect(ContainerGroup.active.count).to eq(object_counts['ContainerGroup'] - 3)
+        expect(ContainerGroup.archived.count).to eq(3)
         expect(Container.count).to eq(10)
-        expect(Container.where(:deleted_on => nil).count).to eq(7)
+        expect(Container.active.count).to eq(object_counts['Container'] - 3)
+        expect(Container.archived.count).to eq(3)
       end
 
       it "removes the deleted objects from the DB" do
-        expect(ContainerService.count).to eq(9)
-        expect(ContainerQuota.count).to eq(1)
-        expect(ContainerQuotaItem.count).to eq(5)
-        expect(ContainerLimit.count).to eq(1)
-        expect(ContainerLimitItem.count).to eq(4)
-        expect(PersistentVolumeClaim.count).to eq(2)
+        deleted = {
+          'ContainerService'      => 2,
+          'ContainerQuota'        => 2,
+          'ContainerQuotaItem'    => 10,
+          'ContainerLimit'        => 2,
+          'ContainerLimitItem'    => 8,
+          'PersistentVolume'      => 0,
+          'PersistentVolumeClaim' => 2,
+        }
+        expected_counts = deleted.collect { |k, d| [k, object_counts[k] - d] }.to_h
+        actual_counts = expected_counts.collect { |k, _| [k, k.constantize.count] }.to_h
+        expect(actual_counts).to eq(expected_counts)
 
         expect(ContainerService.find_by(:name => "my-service-0")).to be_nil
         expect(ContainerService.find_by(:name => "my-service-1")).to be_nil
@@ -524,26 +541,24 @@ shared_examples "kubernetes refresher VCR tests" do
       it "disconnects objects" do
         pod0 = ContainerGroup.find_by(:name => "my-pod-0")
         pod1 = ContainerGroup.find_by(:name => "my-pod-1")
+        pod2 = ContainerGroup.find_by(:name => "my-pod-2")
 
-        [pod0, pod1].each do |pod|
+        [pod0, pod1, pod2].each do |pod|
           assert_disconnected(pod)
           expect(pod.container_project).not_to be_nil
           expect(pod.containers.count).to eq(1)
-          expect(pod.containers.count).to eq(1)
+          expect(pod.container_volumes.count).to eq(1)
         end
+        # ContainerVolume records don't get archived themselves, but some belong to archived pods.
+        expect(ContainerVolume.where(:type => 'ContainerVolume').count).to eq(container_volumes_count)
+        expect(@ems.container_volumes.count).to eq(container_volumes_count - 3)
 
         container0 = Container.find_by(:name => "my-container", :container_group => pod0)
         container1 = Container.find_by(:name => "my-container", :container_group => pod1)
+        container2 = Container.find_by(:name => "my-container", :container_group => pod2)
 
-        [container0, container1].each do |container|
-          assert_disconnected(container)
+        [container0, container1, container2].each do |container|
           expect(container).not_to be_nil
-        end
-
-        container0 = Container.find_by(:name => "my-container")
-        container1 = Container.find_by(:name => "my-container")
-
-        [container0, container1].each do |container|
           assert_disconnected(container)
           expect(container.container_project).not_to be_nil
         end

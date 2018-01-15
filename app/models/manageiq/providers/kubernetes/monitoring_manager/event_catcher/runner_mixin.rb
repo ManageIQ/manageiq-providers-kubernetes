@@ -49,14 +49,14 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
     #
     # {
     #     "annotations": {
-    #         "message": "Node ocp-compute01.10.35.48.236.nip.io is down",
-    #         "severity": "HIGH",
+    #         "description": "Node ocp-compute01.10.35.48.236.nip.io is down",
     #         "source": "ManageIQ",
     #         "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     #     },
     #     "endsAt": "0001-01-01T00:00:00Z",
     #     "generatorURL": "http://prometheus-4018548653-w3str:9090/graph?g0.expr=container_fs_usage_bytes%7Bcontainer_name%3D%22%22%2Cdevice%3D%22%2Fdev%2Fmapper%2Fvg0-lv_root%22%7D+%3E+4e%2B07&g0.tab=0",
     #     "labels": {
+    #         "severity": "error",
     #         "alertname": "Node down",
     #         "beta_kubernetes_io_arch": "amd64",
     #         "beta_kubernetes_io_os": "linux",
@@ -76,9 +76,10 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
     event = event.dup
 
     annotations = event["annotations"]
-    event[:url] = annotations["url"]
-    event[:severity] = parse_severity(annotations["severity"])
     labels = event["labels"]
+
+    event[:url] = annotations["url"]
+    event[:severity] = parse_severity(labels["severity"])
     # TODO(mtayer): remove after https://github.com/ManageIQ/manageiq/pull/16339
     event[:ems_ref] = incident_identifier(labels, annotations, event["startsAt"])
     event[:resolved] = event["status"] == "resolved"
@@ -86,7 +87,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
       :source     => "DATAWAREHOUSE",
       :timestamp  => Time.zone.now,
       :event_type => "datawarehouse_alert",
-      :message    => annotations["message"],
+      :message    => annotations["description"],
       :ems_ref    => incident_identifier(labels, annotations, event["startsAt"]),
       :full_data  => event.to_h
     }.merge(

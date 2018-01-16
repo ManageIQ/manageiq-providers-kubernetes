@@ -480,6 +480,9 @@ shared_examples "kubernetes refresher VCR tests" do
       # "my-project-2" - "my-pod-2", label of "my-route-2", parameters of "my-template-2"
 
       before(:each) do
+        # fake node that should get archived
+        @archived_node = FactoryGirl.create(:container_node, :name => "node", :ems_id => @ems.id)
+
         VCR.use_cassette("#{described_class.name.underscore}_after_deletions",
                          :allow_unused_http_interactions => true,
                          :match_requests_on              => [:path,]) do # , :record => :new_episodes) do
@@ -488,6 +491,9 @@ shared_examples "kubernetes refresher VCR tests" do
       end
 
       it "archives objects" do
+        expect(ContainerNode.count).to eq(2)
+        expect(ContainerNode.active.count).to eq(1)
+        expect(ContainerNode.archived.count).to eq(1)
         expect(ContainerGroup.count).to eq(10)
         expect(ContainerGroup.where(:deleted_on => nil).count).to eq(7)
         expect(Container.count).to eq(10)

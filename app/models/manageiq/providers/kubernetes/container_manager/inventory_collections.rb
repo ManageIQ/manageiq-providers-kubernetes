@@ -80,6 +80,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :builder_params => {:ems_id => manager.id},
         :association    => :container_nodes,
         :secondary_refs => {:by_name => [:name]},
+        :delete_method  => :disconnect_inv
       )
     )
     initialize_container_conditions_collection(manager, :container_nodes)

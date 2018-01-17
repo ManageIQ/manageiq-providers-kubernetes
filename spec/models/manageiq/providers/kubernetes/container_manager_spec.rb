@@ -250,4 +250,76 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(queue_item.instance_id).to eq(ems.monitoring_manager.id)
     end
   end
+
+  context "VirtualizationManager" do
+    it "Creates a virtualization manager when container manager is created with kubevirt endpoint" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints       => [
+          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryGirl.build(:endpoint, :role => 'kubevirt', :hostname => 'host'),
+        ],
+        :authentications => [
+          FactoryGirl.create(:authentication, :authtype => 'default'),
+          FactoryGirl.create(:authentication, :authtype => 'kubevirt'),
+        ]
+      )
+
+      expect(ems.infra_manager).not_to be_nil
+      expect(ems.infra_manager.parent_manager).to eq(ems)
+      expect(ems.infra_manager.endpoints).not_to be_nil
+      expect(ems.infra_manager.authentications).not_to be_nil
+      expect(ems.infra_manager.has_authentication_type?(:kubevirt)).to be true
+    end
+
+    it "Does not create a virtualization manager when there is no kubevirt endpoint" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryGirl.build(:endpoint, :role => 'hawkular', :hostname => 'host2'),
+        ]
+      )
+      expect(ems.infra_manager).to be_nil
+    end
+
+    it "Creates a virtualization manager when container manager is updated with a kubevirt endpoint" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
+        ]
+      )
+
+      ems.endpoints << FactoryGirl.build(:endpoint, :role => 'kubevirt', :hostname => 'host')
+
+      expect(ems.infra_manager).not_to be_nil
+      expect(ems.infra_manager.parent_manager).to eq(ems)
+      expect(ems.infra_manager.endpoints.where(:role => "kubevirt").count).to eq(1)
+    end
+
+    it "Does not create a virtualization manager when added a non kubevirt endpoint" do
+      ems = FactoryGirl.create(:ems_kubernetes)
+      ems.endpoints << FactoryGirl.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
+      expect(ems.infra_manager).to be_nil
+    end
+
+    it "Deletes the virtualization manager when container manager is removed the kubevirt endpoint" do
+      ems = FactoryGirl.create(
+        :ems_kubernetes,
+        :endpoints => [
+          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryGirl.build(:endpoint, :role => 'kubevirt', :hostname => 'host')
+        ]
+      )
+      expect(ems.infra_manager).not_to be_nil
+      expect(ems.infra_manager.parent_manager).to eq(ems)
+
+      allow(MiqServer).to receive(:my_zone).and_return("default")
+      ems.endpoints = [FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host')]
+      queue_item = MiqQueue.find_by(:method_name => 'orchestrate_destroy')
+      expect(queue_item).not_to be_nil
+      expect(queue_item.instance_id).to eq(ems.infra_manager.id)
+    end
+  end
 end

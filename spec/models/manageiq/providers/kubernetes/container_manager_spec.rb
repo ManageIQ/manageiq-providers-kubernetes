@@ -245,7 +245,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
 
       allow(MiqServer).to receive(:my_zone).and_return("default")
       ems.endpoints = [FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host3')]
-      queue_item = MiqQueue.find_by(:method_name => 'orchestrate_destroy')
+      queue_item = MiqQueue.find_by(:method_name => 'destroy')
       expect(queue_item).not_to be_nil
       expect(queue_item.instance_id).to eq(ems.monitoring_manager.id)
     end

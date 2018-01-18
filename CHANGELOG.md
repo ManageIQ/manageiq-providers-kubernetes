@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 77 ending 2018-01-15
+
+### Added
+- Cast quota values to float in parser to match float columns [(#205)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/205)
+- support multiple imagePullSecret secrets for inspector-admin SA [(#199)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/199)
+
+### Fixed
+- Add a queue metrics capture method to container manager [(#206)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/206)
+- ensure monitoring manager is created or deleted on provider update [(#188)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/188)
+
 ## Unreleased as of Sprint 76 ending 2018-01-01
 
 ### Added

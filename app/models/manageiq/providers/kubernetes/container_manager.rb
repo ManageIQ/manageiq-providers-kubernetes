@@ -56,4 +56,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   def self.event_monitor_class
     ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcher
   end
+
+  def self.display_name(number = 1)
+    n_('Container Provider (Kubernetes)', 'Container Providers (Kubernetes)', number)
+  end
 end

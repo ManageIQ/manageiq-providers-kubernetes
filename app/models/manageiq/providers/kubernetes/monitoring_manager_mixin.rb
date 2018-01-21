@@ -15,6 +15,10 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
              :zone,
              :to        => :parent_manager,
              :allow_nil => true
+
+    def self.hostname_required?
+      false
+    end
   end
 
   module ClassMethods

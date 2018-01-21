@@ -49,6 +49,30 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
   let(:node_annotations) { {"miqTarget" => 'ContainerNode'} }
   let(:ext_annotations) { {"miqTarget" => 'ExtManagementSystem'} }
 
+  context "#extract_event_data" do
+    it "extracts severity based on the severity label" do
+      expect(subject).to receive(:parse_severity).with("info").and_call_original
+      expect(
+        subject.extract_event_data(
+          "labels"      => {"severity" => "info"},
+          "annotations" => {"severity" => "ignoreme"},
+        )[:full_data]
+      ).to include(:severity => "info")
+    end
+
+    it "extracts messaged based on the description annotation" do
+      expect(
+        subject.extract_event_data(
+          "annotations" => {
+            "description" => "important",
+            "message"     => "ignoreme",
+          },
+          "labels"      => {},
+        )
+      ).to include(:message => "important")
+    end
+  end
+
   context "#find_target" do
     it "binds to container node by default" do
       target = FactoryGirl.create(:container_node, :name => 'testing')

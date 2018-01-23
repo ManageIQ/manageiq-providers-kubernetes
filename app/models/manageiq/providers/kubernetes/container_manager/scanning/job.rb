@@ -145,7 +145,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
       _log.error("analyzing image-inspector metadata for #{options[:docker_image_id]} failed with error: #{e}")
     end
 
-    if inspector_metadata.ImageAcquireSuccess == false
+    if inspector_metadata.ImageAcquireError.present?
       msg = "image acquiring error: #{inspector_metadata.ImageAcquireError}"
       _log.error(msg)
       return queue_signal(:abort_job, msg, 'error')

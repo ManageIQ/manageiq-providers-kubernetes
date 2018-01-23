@@ -1,0 +1,261 @@
+# instantiated at the end, for both classical and graph refresh
+shared_examples "kubernetes rollup tests" do
+  let(:ems) do
+    allow(MiqServer).to receive(:my_zone).and_return("default")
+    auth = AuthToken.new(:name => "test", :auth_key => "valid-token")
+    FactoryGirl.create(:ems_kubernetes, :hostname => "10.35.0.169",
+                       :ipaddress                 => "10.35.0.169",
+                       :port                      => 6443,
+                       :authentications           => [auth])
+  end
+
+  let(:container_project) do
+    FactoryGirl.create(:container_project, :ext_management_system => ems)
+  end
+
+  let(:container_node_a) do
+    hardware = FactoryGirl.create(:hardware,
+                                  :cpu_total_cores => 10,
+                                  :memory_mb       => 1024)
+
+    node = FactoryGirl.create(:container_node)
+
+    hardware.update_attributes(:computer_system => node.computer_system)
+    node
+  end
+
+  let(:container_node_b) do
+    hardware = FactoryGirl.create(:hardware,
+                                  :cpu_total_cores => 2,
+                                  :memory_mb       => 2048)
+
+    node = FactoryGirl.create(:container_node)
+
+    hardware.update_attributes(:computer_system => node.computer_system)
+    node
+  end
+
+  let(:container_group_a) do
+    FactoryGirl.create(:container_group,
+                       :container_project     => container_project,
+                       :container_node        => container_node_a,
+                       :ext_management_system => ems)
+  end
+
+  let(:container_group_b) do
+    FactoryGirl.create(:container_group,
+                       :container_project     => container_project,
+                       :container_node        => container_node_b,
+                       :ext_management_system => ems)
+  end
+
+  let(:container_image_a) do
+    FactoryGirl.create(:container_image,
+                       :ext_management_system => ems,
+                       :custom_attributes     => [custom_attribute_a])
+  end
+
+  let(:container_a) do
+    FactoryGirl.create(:container,
+                       :name                  => "A",
+                       :container_group       => container_group_a,
+                       :container_image       => container_image_a,
+                       :ext_management_system => ems)
+  end
+
+  let(:custom_attribute_a) do
+    FactoryGirl.create(:custom_attribute,
+                       :name    => 'com.redhat.component',
+                       :value   => 'EAP7',
+                       :section => 'docker_labels')
+  end
+
+  let(:container_b) do
+    FactoryGirl.create(:container,
+                       :name                  => "B",
+                       :container_group       => container_group_b,
+                       :container_image       => container_image_b,
+                       :ext_management_system => ems)
+  end
+
+  let(:container_image_b) do
+    FactoryGirl.create(:container_image,
+                       :ext_management_system => ems,
+                       :custom_attributes     => [custom_attribute_b])
+  end
+
+  let(:custom_attribute_b) do
+    FactoryGirl.create(:custom_attribute,
+                       :name    => 'com.redhat.component',
+                       :value   => 'EAP7',
+                       :section => 'docker_labels')
+  end
+
+  let(:start_time) { Time.parse('2012-09-01 00:00:00Z').utc }
+  let(:end_time) { start_time + 1.days + 10.seconds }
+
+  before do
+    Timecop.travel(end_time)
+  end
+
+  after do
+    Timecop.return
+  end
+
+  def add_metrics_for(resource, range, metric_params: {}, step: 20.seconds)
+    range.step_value(step).each do |time|
+      metric_params[:timestamp]           = time
+      metric_params[:resource_id]         = resource.id
+      metric_params[:resource_name]       = resource.name
+      metric_params[:parent_ems_id]       = ems.id
+      metric_params[:derived_vm_numvcpus] = resource.container_node.hardware.cpu_total_cores
+      if metric_params[:mem_usage_absolute_average].to_i > 0
+        metric_params[:derived_memory_used]      = (metric_params[:mem_usage_absolute_average] / 100.0) * resource.container_node.hardware.memory_mb
+        metric_params[:derived_memory_available] = resource.container_node.hardware.memory_mb - metric_params[:derived_memory_used]
+      end
+      resource.metrics << FactoryGirl.create(:metric, metric_params)
+    end
+  end
+
+  def rollup_up_to_project
+    # Queue hourly rollups for all ContainerGroups
+    ContainerGroup.all.each.each do |resource|
+      resource.perf_rollup_to_parents('realtime', start_time, start_time + 2.hours)
+    end
+
+    # ContainerGroup hourly rollups
+    MiqQueue.where(:class_name => "ContainerGroup", :method_name => "perf_rollup").map do |x|
+      x.deliver
+      x.destroy
+    end
+
+    # ContainerProject hourly rollups
+    MiqQueue.where(:class_name => "ContainerProject", :method_name => "perf_rollup").map do |x|
+      x.deliver
+      x.destroy
+    end
+  end
+
+  def assert_entities(project_rollup)
+    expect(project_rollup.assoc_ids[:container_nodes][:on]).to(
+      match_array([container_node_a.id, container_node_b.id])
+    )
+    expect(project_rollup.assoc_ids[:container_nodes][:off]).to(
+      match_array([])
+    )
+    expect(project_rollup.assoc_ids[:container_groups][:on]).to(
+      match_array([container_group_a.id, container_group_b.id])
+    )
+    expect(project_rollup.assoc_ids[:container_groups][:off]).to(
+      match_array([])
+    )
+  end
+
+  it "check project rollup can handle partial hour" do
+    # Add 10 minutes of 50% cpu_util of 10 cores total and of memory 1024MB
+    add_metrics_for(
+      container_group_a,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 50.0,
+        :mem_usage_absolute_average => 50.0,
+      }
+    )
+
+    # Add 10 minutes of 75% cpu_util of 2 cores total and and of memory 2048MB
+    add_metrics_for(
+      container_group_b,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 75.0,
+        :mem_usage_absolute_average => 75.0,
+      }
+    )
+
+    rollup_up_to_project
+    project_rollup = MetricRollup.where(:resource => container_project, :timestamp => start_time, :capture_interval_name => "hourly").first
+
+    # Check the Project rollup has the wanted elements
+    assert_entities(project_rollup)
+
+    # Right now we take the 10 minutes as the whole hour, so 75% of 2 cores, + 50% of 10 cores is 54.17% of 12 cores
+    expected_cpu_util = (75 * 2 + 50 * 10) / 12.0
+    expect(project_rollup.cpu_usage_rate_average.round(2)).to eq(expected_cpu_util.round(2))
+
+    # And memory is also taken as if the pods were running full hour
+    # TODO(lsmola) why don't we rollup :derived_memory_available and :mem_usage_absolute_average?
+    expect(project_rollup).to(
+      have_attributes(
+        :derived_memory_used        => 2048.0,
+        :derived_vm_numvcpus        => 12,
+        :derived_memory_available   => nil,
+        :mem_usage_absolute_average => nil
+      )
+    )
+
+    # TODO(lsmola) Described in https://bugzilla.redhat.com/show_bug.cgi?id=1506671
+    pending("We need to store also actual usage, with only 10.minutes running, the usage should be divided by 6")
+    expect(project_rollup.cpu_usage_rate_average.round(2)).to eq((expected_cpu_util / 6).round(2))
+    expect(project_rollup.derived_memory_used).to eq(2048 / 6.0)
+  end
+
+  it "checks pods running sequentially are not being multiplicated in project rollup" do
+    # Add 10 minutes of 100% cpu_util of 10 cores total and of memory 1024MB
+    add_metrics_for(
+      container_group_a,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 100.0,
+        :mem_usage_absolute_average => 100.0,
+      }
+    )
+
+    # then the pod a is killed and have another add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB
+    add_metrics_for(
+      container_group_b,
+      start_time + 10.minutes..(start_time + 20.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 100.0,
+        :mem_usage_absolute_average => 100.0,
+      }
+    )
+
+    rollup_up_to_project
+    project_rollup = MetricRollup.where(:resource => container_project, :timestamp => start_time, :capture_interval_name => "hourly").first
+
+    # Check the Project rollup has the wanted elements
+    assert_entities(project_rollup)
+
+    # TODO(lsmola) why don't we rollup :derived_memory_available and :mem_usage_absolute_average?
+    expect(project_rollup).to(
+      have_attributes(
+        :cpu_usage_rate_average     => 100,
+        :derived_memory_used        => 3072.0,
+        :derived_vm_numvcpus        => 12,
+        :derived_memory_available   => nil,
+        :mem_usage_absolute_average => nil
+      )
+    )
+
+    # TODO(lsmola) A side effect of https://bugzilla.redhat.com/show_bug.cgi?id=1506671, since we take short usage
+    # as usage of the whole hour, then Project rollups based on those rollups will be also wrong.
+    # TODO(lsmola) the main thing is that we will report project breaching it's quota. E.g if the project quota was
+    # 2048MB ram and 10 cores, this scenario was ok, since max usage was never higher. But we report that the usage
+    # was 3072MB and 12 cores.
+    pending("Right now we ignore, that the sub hour usage was sequential, so the Project rollup can go above possible quota")
+    # We had 10 cores on 100% for 10 minutes(1/6 of hour), then 2 cores on 100% for 10 minutes
+    expected_cpu_util = 10 / 6.0 + 2 / 6.0 # that is 2 cores avg used in 1h, 10 cores max in 1 hour
+    expected_cpu_util = (expected_cpu_util / 10.0) * 100 # So only 20% of the 10 cores were used in avg
+    expect(project_rollup.cpu_usage_rate_average).to eq(expected_cpu_util)
+    # There was max 10 cores in use in simultaneously, but this should be really the project quota, since that is the
+    # 100%
+    expect(project_rollup.derived_vm_numvcpus).to eq(10)
+    # We had 2048MB for 10 minutes then 1024MB for 10 minutes
+    expected_memory = 2048 / 6.0 + 1024 / 6.0 # So only 512MB were used in avg, and 2048 max
+    expect(project_rollup.derived_memory_used).to eq(expected_memory)
+  end
+end
+
+describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
+  include_examples "kubernetes rollup tests"
+end

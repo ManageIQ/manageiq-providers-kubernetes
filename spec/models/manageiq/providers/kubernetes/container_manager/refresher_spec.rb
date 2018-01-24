@@ -45,10 +45,9 @@ shared_examples "kubernetes refresher VCR tests" do
     assert_specific_container_service
     assert_specific_container_replicator(:expected_extra_tags => expected_extra_tags)
     assert_specific_container_project
-    assert_specific_container_quota
     assert_specific_container_limit
     assert_specific_container_image_and_registry
-    # Volumes, PVs, and PVCs are tested in _before_deletions VCR.
+    # Quotas, Volumes, PVs, and PVCs are tested in _before_deletions VCR.
   end
 
   it "will perform a full refresh on k8s" do
@@ -323,17 +322,36 @@ shared_examples "kubernetes refresher VCR tests" do
   end
 
   def assert_specific_container_quota
-    container_quota = ContainerQuota.find_by(:name => "quota")
+    expect(ContainerQuota.where(:name => "my-resource-quota-scopes2-2").pluck(:deleted_on)).to eq([nil]) # exactly one, active.
+    container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
     expect(container_quota.ems_created_on).to be_a(ActiveSupport::TimeWithZone)
-    expect(container_quota.container_quota_scopes.count).to eq(0)
-    expect(container_quota.container_quota_items.count).to eq(8)
-    cpu_quota = container_quota.container_quota_items.select { |x| x[:resource] == 'cpu' }[0]
-    expect(cpu_quota).to have_attributes(
-      :quota_desired  => 20,
-      :quota_enforced => 20,
-      :quota_observed => 0.1,
+    expect(container_quota.container_quota_scopes).to contain_exactly(
+      an_object_having_attributes(:scope => "Terminating"),
+      an_object_having_attributes(:scope => "NotBestEffort"),
     )
-    expect(container_quota.container_project.name).to eq("default")
+    expect(container_quota.container_project.name).to eq("my-project-2")
+  end
+
+  def assert_specific_container_quota_item
+    container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
+    expect(container_quota.container_quota_items.count).to eq(3)
+    cpu_quota = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
+    expect(cpu_quota).to have_attributes(
+      :quota_desired  => 5.7,
+      :quota_enforced => 5.7,
+      :quota_observed => 0.0,
+    )
+  end
+
+  def assert_modified_container_quota_item
+    container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
+    expect(container_quota.container_quota_items.count).to eq(3)
+    cpu_quota = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
+    expect(cpu_quota).to have_attributes(
+      :quota_desired  => 5.701,
+      :quota_enforced => 5.701,
+      :quota_observed => 0.0,
+    )
   end
 
   def assert_specific_container_limit
@@ -403,11 +421,12 @@ shared_examples "kubernetes refresher VCR tests" do
       # using strings instead of actual model classes for compact rspec diffs
       {
         'ContainerNode'         => 2, # including the fake node
-        'ContainerGroup'        => 10,
-        'Container'             => 10,
-        'ContainerService'      => 11,
-        'ContainerQuota'        => 3,
-        'ContainerQuotaItem'    => 15,
+        'ContainerGroup'        => 9,
+        'Container'             => 9,
+        'ContainerService'      => 6,
+        'ContainerQuota'        => 9,
+        'ContainerQuotaScope'   => 9,
+        'ContainerQuotaItem'    => 30,
         'ContainerLimit'        => 3,
         'ContainerLimitItem'    => 12,
         'PersistentVolume'      => persintent_volumes_count,
@@ -425,6 +444,8 @@ shared_examples "kubernetes refresher VCR tests" do
       assert_specific_container_volume
       assert_specific_persistent_volume
       assert_specific_persistent_volume_claim
+      assert_specific_container_quota
+      assert_specific_container_quota_item
     end
 
     def assert_specific_container_volume
@@ -505,8 +526,9 @@ shared_examples "kubernetes refresher VCR tests" do
       it "removes the deleted objects from the DB" do
         deleted = {
           'ContainerService'      => 2,
-          'ContainerQuota'        => 2,
-          'ContainerQuotaItem'    => 10,
+          'ContainerQuota'        => 6,
+          'ContainerQuotaScope'   => 6,
+          'ContainerQuotaItem'    => 2 * 10 + 1,
           'ContainerLimit'        => 2,
           'ContainerLimitItem'    => 8,
           'PersistentVolume'      => 0,
@@ -554,11 +576,11 @@ shared_examples "kubernetes refresher VCR tests" do
           assert_disconnected(pod)
           expect(pod.container_project).not_to be_nil
           expect(pod.containers.count).to eq(1)
-          expect(pod.container_volumes.count).to eq(1)
+          expect(pod.container_volumes.count).to eq(2) # default-token-*, my-pvc-pod-volume-2. TODO: test before deletions
         end
         # ContainerVolume records don't get archived themselves, but some belong to archived pods.
         expect(ContainerVolume.where(:type => 'ContainerVolume').count).to eq(container_volumes_count)
-        expect(@ems.container_volumes.count).to eq(container_volumes_count - 3)
+        expect(@ems.container_volumes.count).to eq(container_volumes_count - 12)
 
         container0 = Container.find_by(:name => "my-container", :container_group => pod0)
         container1 = Container.find_by(:name => "my-container", :container_group => pod1)
@@ -569,6 +591,11 @@ shared_examples "kubernetes refresher VCR tests" do
           assert_disconnected(container)
           expect(container.container_project).not_to be_nil
         end
+      end
+
+      it "updates quotas" do
+        assert_specific_container_quota
+        assert_modified_container_quota_item
       end
     end
   end

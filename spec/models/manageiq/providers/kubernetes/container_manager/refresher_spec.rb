@@ -392,6 +392,9 @@ shared_examples "kubernetes refresher VCR tests" do
                        :match_requests_on              => [:path,]) do # , :record => :new_episodes) do
         EmsRefresh.refresh(@ems)
       end
+
+      # fake node that should get archived on later refresh
+      FactoryGirl.create(:container_node, :name => "node", :ems_id => @ems.id)
     end
 
     let(:container_volumes_count) { 22 }
@@ -399,6 +402,7 @@ shared_examples "kubernetes refresher VCR tests" do
     let(:object_counts) do
       # using strings instead of actual model classes for compact rspec diffs
       {
+        'ContainerNode'         => 2, # including the fake node
         'ContainerGroup'        => 10,
         'Container'             => 10,
         'ContainerService'      => 11,
@@ -489,26 +493,11 @@ shared_examples "kubernetes refresher VCR tests" do
       # "my-project-2" - "my-pod-2", label of "my-route-2", parameters of "my-template-2"
 
       before(:each) do
-        # fake node that should get archived
-        @archived_node = FactoryGirl.create(:container_node, :name => "node", :ems_id => @ems.id)
-
         VCR.use_cassette("#{described_class.name.underscore}_after_deletions",
                          :allow_unused_http_interactions => true,
                          :match_requests_on              => [:path,]) do # , :record => :new_episodes) do
           EmsRefresh.refresh(@ems)
         end
-      end
-
-      it "archives objects" do
-        expect(ContainerNode.count).to eq(2)
-        expect(ContainerNode.active.count).to eq(1)
-        expect(ContainerNode.archived.count).to eq(1)
-        expect(ContainerGroup.count).to eq(object_counts['ContainerGroup'])
-        expect(ContainerGroup.active.count).to eq(object_counts['ContainerGroup'] - 3)
-        expect(ContainerGroup.archived.count).to eq(3)
-        expect(Container.count).to eq(10)
-        expect(Container.active.count).to eq(object_counts['Container'] - 3)
-        expect(Container.archived.count).to eq(3)
       end
 
       it "removes the deleted objects from the DB" do
@@ -538,7 +527,23 @@ shared_examples "kubernetes refresher VCR tests" do
         expect(PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-1")).to be_nil
       end
 
-      it "disconnects objects" do
+      it "archives & disconnects objects" do
+        archived = {
+          'ContainerNode'  => 1, # the fake node
+          'ContainerGroup' => 2 * 1 + 1,
+          'Container'      => 2 * 1 + 1,
+        }
+        actual_archived = archived.collect { |k, _| [k, k.constantize.archived.count] }.to_h
+        expect(actual_archived).to eq(archived)
+
+        expected_active = archived.collect { |k, a| [k, object_counts[k] - a] }.to_h
+        actual_active = archived.collect { |k, _| [k, k.constantize.active.count] }.to_h
+        expect(actual_active).to eq(expected_active)
+
+        expected_counts = archived.collect { |k, _| [k, object_counts[k]] }.to_h
+        actual_counts = archived.collect { |k, _| [k, k.constantize.count] }.to_h
+        expect(actual_counts).to eq(expected_counts)
+
         pod0 = ContainerGroup.find_by(:name => "my-pod-0")
         pod1 = ContainerGroup.find_by(:name => "my-pod-1")
         pod2 = ContainerGroup.find_by(:name => "my-pod-2")

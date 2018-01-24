@@ -117,10 +117,10 @@ shared_examples "kubernetes rollup tests" do
     end
   end
 
-  def rollup_up_to_project
+  def rollup_up_to_project(rollup_end_time = start_time + 2.hours)
     # Queue hourly rollups for all ContainerGroups
     ContainerGroup.all.each.each do |resource|
-      resource.perf_rollup_to_parents('realtime', start_time, start_time + 2.hours)
+      resource.perf_rollup_to_parents('realtime', start_time, rollup_end_time)
     end
 
     # ContainerGroup hourly rollups
@@ -253,6 +253,141 @@ shared_examples "kubernetes rollup tests" do
     # We had 2048MB for 10 minutes then 1024MB for 10 minutes
     expected_memory = 2048 / 6.0 + 1024 / 6.0 # So only 512MB were used in avg, and 2048 max
     expect(project_rollup.derived_memory_used).to eq(expected_memory)
+  end
+
+  it "daily project rollup computes correctly when metrics are missing" do
+    # Add 10 minutes of 100% cpu_util of 10 cores total and of memory 1024MB
+    add_metrics_for(
+      container_group_a,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 100.0,
+        :mem_usage_absolute_average => 100.0,
+      }
+    )
+
+    # Add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB
+    add_metrics_for(
+      container_group_b,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 100.0,
+        :mem_usage_absolute_average => 100.0,
+      }
+    )
+
+    rollup_up_to_project(start_time + 1.day)
+    # Do also Project daily rollup
+    MiqQueue.where(:class_name => "ContainerProject", :method_name => :perf_rollup).all.map(&:deliver)
+
+    project_daily_rollup = MetricRollup.where(:resource => container_project, :timestamp => start_time, :capture_interval_name => "daily").first
+
+    # We had 1 hour on 100% of 12 cores, then we had no metrics. So 100% divided by 24 hours, same for memory
+    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq((100 / 24.0).round(2))
+    expect(project_daily_rollup.derived_memory_used).to eq(3072 / 24.0)
+    expect(project_daily_rollup.derived_vm_numvcpus).to eq(12 / 24.0)
+
+    # Min/Max values are correct, given we take min/max of hourly rollups
+    expect(project_daily_rollup.min_max[:max_cpu_usage_rate_average]).to eq(100)
+    expect(project_daily_rollup.min_max[:min_cpu_usage_rate_average]).to eq(0)
+    expect(project_daily_rollup.min_max[:max_derived_vm_numvcpus]).to eq(12)
+    expect(project_daily_rollup.min_max[:min_derived_vm_numvcpus]).to eq(0)
+    expect(project_daily_rollup.min_max[:max_derived_memory_used]).to eq(3072)
+    expect(project_daily_rollup.min_max[:min_derived_memory_used]).to eq(0)
+
+    # TODO(lsmola) the problematic part is that we take :derived_vm_numvcpus from the Metrics, so when there are no
+    # metrics, the derived_vm_numvcpus is 0
+    # Example:
+    # So having 1h of 12 cores on 100%, then nothing. That should mean the daily usage was 12 cores/24h.
+    # So 0.5 core in average. Using percents, the max amount should be the project quota, so if the quota was 12cores
+    # we would have 100%/24 of 12 cores. That is again 0.5core (of course the quota can change in time, so it needs to
+    # be hourly quota)
+    #
+    # Bad result:
+    # Since when there are no metrics, only the 1 hourly rollups says it has derived_vm_numvcpus 12 cores. The other
+    # report 0. So then the average we are doing is also making average of the derived_vm_numvcpus. That is 1 time 12
+    # and 23 times 0 derived_vm_numvcpus.
+    # So the reports ends up saying that the daily project usage was 100% / 24h of 12 cores / 24h. So the result is
+    # 24x smaller than expected. So not 0.5 core avg used in a day, but 0.5/24.0 core avg used in a day.
+    pending("We should use quotas as a max derived_vm_numvcpus for project")
+    expect(project_daily_rollup.derived_vm_numvcpus).to eq(12)
+  end
+
+  it "daily project rollup computes correctly when metrics are present" do
+    # Add 10 minutes of 100% cpu_util of 10 cores total and of memory 1024MB
+    add_metrics_for(
+      container_group_a,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 100.0,
+        :mem_usage_absolute_average => 100.0,
+      }
+    )
+
+    # Add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB
+    add_metrics_for(
+      container_group_b,
+      start_time..(start_time + 10.minutes),
+      :metric_params => {
+        :cpu_usage_rate_average     => 100.0,
+        :mem_usage_absolute_average => 100.0,
+      }
+    )
+
+    # Add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB, for the rest of the hours in a day
+    (start_time + 1.hour..start_time + 1.day).step_value(1.hour).each do |time|
+      add_metrics_for(
+        container_group_b,
+        time..(time + 10.minutes),
+        :metric_params => {
+          :cpu_usage_rate_average     => 50.0,
+          :mem_usage_absolute_average => 50.0,
+        }
+      )
+    end
+
+    rollup_up_to_project(start_time + 1.day)
+    # Do also Project daily rollup
+    MiqQueue.where(:class_name => "ContainerProject", :method_name => :perf_rollup).all.map(&:deliver)
+
+    project_daily_rollup = MetricRollup.where(:resource => container_project, :timestamp => start_time, :capture_interval_name => "daily").first
+
+    # We had 1 hour on 100% of 12 cores, then we had 50% for the rest 23h. Same for memory
+    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq(((100 + 23*50) / 24.0).round(2))
+    expect(project_daily_rollup.derived_memory_used.round(2)).to eq(((3072 + 23*1024) / 24.0).round(2))
+    expect(project_daily_rollup.derived_vm_numvcpus.round(2)).to eq(((12 + 23*2) / 24.0).round(2))
+
+    # Min/Max values are correct, given we take min/max of hourly rollups
+    expect(project_daily_rollup.min_max[:max_cpu_usage_rate_average]).to eq(100)
+    expect(project_daily_rollup.min_max[:min_cpu_usage_rate_average]).to eq(50)
+    expect(project_daily_rollup.min_max[:max_derived_vm_numvcpus]).to eq(12)
+    expect(project_daily_rollup.min_max[:min_derived_vm_numvcpus]).to eq(2)
+    expect(project_daily_rollup.min_max[:max_derived_memory_used]).to eq(3072)
+    expect(project_daily_rollup.min_max[:min_derived_memory_used]).to eq(1024)
+
+    # TODO(lsmola) so, problem is that for daily, we do a normal average, instead of the weighted average for %
+    # https://github.com/Ladas/manageiq/blob/27abccad510b78b0e0e024c5a5d2117ed05fcca5/app/models/vim_performance_daily.rb#L55
+    # While for hourly we are doing correct weighted average
+    # https://github.com/Ladas/manageiq/blob/6150a4cac10c7ad76acddb448bb3039486ff32ca/app/models/metric/aggregation.rb#L42
+    # So that will lead to wrong value.
+    # Example:
+    # Here the 1st hour consumes 12 cores(of 12 total, so 100%), then each of the rest 23hours consumes 1 core (of 2 total, so 50%)
+    #
+    # Expected result:
+    # So average daily usage must be (12 + (23 * 1)) / 24.0 == 1.46 core.
+    # derived_vm_numvcpus: (12 + (23 * 2)) / 24.0 == 2.42 core
+    # cpu_usage_rate_average: 100 / ((12 + (23 * 2)) / 24.0) * ((12 + (23 * 1)) / 24.0) == 60.34% !!!
+    #
+    # Bad result:
+    # But we are seeing
+    # derived_vm_numvcpus: ((12 + 23*2) / 24.0) == 2.42 core, so this is correct
+    # cpu_usage_rate_average: ((100 + 23*50) / 24.0) == 52.08% (so just a simple avg of summed percent?!!!)
+    #
+    # So what is the correct weighted average:
+    # 100.0 / ((12 + 23*2)) * ((100*12 + 23*50*2) / 100.0 ) == 60.34% (this is how we compute it in Metric::Aggregation::Aggregate.column)
+    # so it's 100% / (58 cores total) * (12+23 == 35cores used) == 60.34% of cores used
+    pending("We have to use weighted averages also for daily rollup, if we doing average of % values, with different bases")
+    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq((100.0/58*35).round(2))
   end
 end
 

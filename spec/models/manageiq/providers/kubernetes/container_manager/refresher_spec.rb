@@ -554,8 +554,8 @@ shared_examples "kubernetes refresher VCR tests" do
       it "archives & disconnects objects" do
         archived = {
           'ContainerNode'  => 1, # the fake node
-          'ContainerGroup' => 2 * 1 + 1,
-          'Container'      => 2 * 1 + 1,
+          'ContainerGroup' => 2 * 2 + 1,
+          'Container'      => 2 * 2 + 1,
         }
         actual_archived = archived.collect { |k, _| [k, k.constantize.archived.count] }.to_h
         expect(actual_archived).to eq(archived)

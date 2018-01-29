@@ -45,10 +45,9 @@ shared_examples "kubernetes refresher VCR tests" do
     assert_specific_container_service
     assert_specific_container_replicator(:expected_extra_tags => expected_extra_tags)
     assert_specific_container_project
-    assert_specific_container_quota
     assert_specific_container_limit
     assert_specific_container_image_and_registry
-    # Volumes, PVs, and PVCs are tested in _before_deletions VCR.
+    # Quotas, Volumes, PVs, and PVCs are tested in _before_deletions VCR.
   end
 
   it "will perform a full refresh on k8s" do
@@ -323,17 +322,36 @@ shared_examples "kubernetes refresher VCR tests" do
   end
 
   def assert_specific_container_quota
-    container_quota = ContainerQuota.find_by(:name => "quota")
+    expect(ContainerQuota.where(:name => "my-resource-quota-scopes2-2").pluck(:deleted_on)).to eq([nil]) # exactly one, active.
+    container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
     expect(container_quota.ems_created_on).to be_a(ActiveSupport::TimeWithZone)
-    expect(container_quota.container_quota_scopes.count).to eq(0)
-    expect(container_quota.container_quota_items.count).to eq(8)
-    cpu_quota = container_quota.container_quota_items.select { |x| x[:resource] == 'cpu' }[0]
-    expect(cpu_quota).to have_attributes(
-      :quota_desired  => 20,
-      :quota_enforced => 20,
-      :quota_observed => 0.1,
+    expect(container_quota.container_quota_scopes).to contain_exactly(
+      an_object_having_attributes(:scope => "Terminating"),
+      an_object_having_attributes(:scope => "NotBestEffort"),
     )
-    expect(container_quota.container_project.name).to eq("default")
+    expect(container_quota.container_project.name).to eq("my-project-2")
+  end
+
+  def assert_specific_container_quota_item
+    container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
+    expect(container_quota.container_quota_items.count).to eq(3)
+    cpu_quota = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
+    expect(cpu_quota).to have_attributes(
+      :quota_desired  => 5.7,
+      :quota_enforced => 5.7,
+      :quota_observed => 0.0,
+    )
+  end
+
+  def assert_modified_container_quota_item
+    container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
+    expect(container_quota.container_quota_items.count).to eq(3)
+    cpu_quota = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
+    expect(cpu_quota).to have_attributes(
+      :quota_desired  => 5.701,
+      :quota_enforced => 5.701,
+      :quota_observed => 0.0,
+    )
   end
 
   def assert_specific_container_limit
@@ -392,23 +410,28 @@ shared_examples "kubernetes refresher VCR tests" do
                        :match_requests_on              => [:path,]) do # , :record => :new_episodes) do
         EmsRefresh.refresh(@ems)
       end
+
+      # fake node that should get archived on later refresh
+      FactoryGirl.create(:container_node, :name => "node", :ems_id => @ems.id)
     end
 
-    let(:container_volumes_count) { 22 }
-    let(:persintent_volumes_count) { 2 }
+    let(:container_volumes_count) { 21 }
+    let(:persintent_volumes_count) { 3 }
     let(:object_counts) do
       # using strings instead of actual model classes for compact rspec diffs
       {
-        'ContainerGroup'        => 10,
-        'Container'             => 10,
-        'ContainerService'      => 11,
-        'ContainerQuota'        => 3,
-        'ContainerQuotaItem'    => 15,
+        'ContainerNode'         => 2, # including the fake node
+        'ContainerGroup'        => 9,
+        'Container'             => 9,
+        'ContainerService'      => 6,
+        'ContainerQuota'        => 9,
+        'ContainerQuotaScope'   => 9,
+        'ContainerQuotaItem'    => 30,
         'ContainerLimit'        => 3,
         'ContainerLimitItem'    => 12,
         'PersistentVolume'      => persintent_volumes_count,
         'ContainerVolume'       => container_volumes_count + persintent_volumes_count,
-        'PersistentVolumeClaim' => 4,
+        'PersistentVolumeClaim' => 6,
       }
     end
 
@@ -421,46 +444,49 @@ shared_examples "kubernetes refresher VCR tests" do
       assert_specific_container_volume
       assert_specific_persistent_volume
       assert_specific_persistent_volume_claim
+      assert_specific_container_quota
+      assert_specific_container_quota_item
     end
 
     def assert_specific_container_volume
       # Not in template but typical.  TODO: add CV to template.
-      @container_volume = ContainerVolume.find_by(:name => "cassandra-data")
+      @container_volume = ContainerVolume.find_by(:name => "my-pvc-pod-volume-2")
       expect(@container_volume).to have_attributes(
         :type       => "ContainerVolume",
-        :name       => "cassandra-data",
-        :claim_name => "metrics-cassandra-1",
+        :claim_name => "my-persistentvolumeclaim-2",
       )
       expect(@container_volume.persistent_volume_claim).to eq(
-        PersistentVolumeClaim.find_by(:name => "metrics-cassandra-1")
+        PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-2")
       )
       expect(@container_volume.parent_type).to eq('ContainerGroup')
-      expect(@container_volume.parent.name).to match(/hawkular-cassandra-1-...../)
+      expect(@container_volume.parent.name).to eq("my-pod-2")
     end
 
     def assert_specific_persistent_volume
       # Not in template but typical.  TODO: add PV to template.
-      @persistent_volume = PersistentVolume.find_by(:name => "metrics-volume")
+      @persistent_volume = PersistentVolume.find_by(:name => "my-persistentvolume-2")
       expect(@persistent_volume).to have_attributes(
-        :type         => "PersistentVolume",
-        :common_path  => "/exports/metrics",
-        :status_phase => "Bound",
-        :capacity     => {:storage => 10.gigabytes},
+        :type           => "PersistentVolume",
+        :access_modes   => "ReadWriteOnce",
+        :capacity       => {:storage => 10.megabytes},
+        :common_path    => "/tmp/my-persistentvolume-2",
+        :reclaim_policy => "Retain",
+        :status_phase   => "Bound",
       )
       expect(@persistent_volume.parent).to eq(@ems)
-      expect(@persistent_volume.persistent_volume_claim.name).to eq("metrics-cassandra-1")
+      expect(@persistent_volume.persistent_volume_claim.name).to eq("my-persistentvolumeclaim-2")
 
       # through shortcuts: PV -> PVC -> CVs -> ContainerGroups
       expect(@persistent_volume.container_volumes).to eq(
-        [ContainerVolume.find_by(:name => "cassandra-data")]
+        [ContainerVolume.find_by(:name => "my-pvc-pod-volume-2")]
       )
       expect(@persistent_volume.container_groups.size).to eq(1)
-      expect(@persistent_volume.container_groups[0].name).to match(/hawkular-cassandra-1-...../)
+      expect(@persistent_volume.container_groups[0].name).to eq("my-pod-2")
     end
 
     def assert_specific_persistent_volume_claim
       # Pending PVC (in template):
-      @pending_pvc = PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-0")
+      @pending_pvc = PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-pending-2")
       expect(@pending_pvc).to have_attributes(
         :phase    => "Pending",
         :capacity => {}, # requested 8Gi but not bound to PV => no capacity
@@ -469,15 +495,16 @@ shared_examples "kubernetes refresher VCR tests" do
       expect(@pending_pvc.persistent_volume).to eq(nil)
 
       # Bound PVC (TODO: not in template but typical):
-      @bound_pvc = PersistentVolumeClaim.find_by(:name => "metrics-cassandra-1")
+      @bound_pvc = PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-2")
       expect(@bound_pvc).to have_attributes(
         :phase    => "Bound",
-        :capacity => {:storage => 10.gigabytes},
+        :requests => {:storage => 8.megabytes},
+        :capacity => {:storage => 10.megabytes},
       )
-      expect(@bound_pvc.container_project.name).to eq("openshift-infra")
+      expect(@bound_pvc.container_project.name).to eq("my-project-2")
 
-      pv = PersistentVolume.find_by(:name => "metrics-volume")
-      cv = ContainerVolume.find_by(:name => "cassandra-data", :type => "ContainerVolume")
+      pv = PersistentVolume.find_by(:name => "my-persistentvolume-2")
+      cv = ContainerVolume.find_by(:name => "my-pvc-pod-volume-2", :type => "ContainerVolume")
       expect(@bound_pvc.container_volumes).to contain_exactly(pv, cv)
       expect(@bound_pvc.persistent_volume).to eq(pv)
     end
@@ -489,9 +516,6 @@ shared_examples "kubernetes refresher VCR tests" do
       # "my-project-2" - "my-pod-2", label of "my-route-2", parameters of "my-template-2"
 
       before(:each) do
-        # fake node that should get archived
-        @archived_node = FactoryGirl.create(:container_node, :name => "node", :ems_id => @ems.id)
-
         VCR.use_cassette("#{described_class.name.underscore}_after_deletions",
                          :allow_unused_http_interactions => true,
                          :match_requests_on              => [:path,]) do # , :record => :new_episodes) do
@@ -499,27 +523,16 @@ shared_examples "kubernetes refresher VCR tests" do
         end
       end
 
-      it "archives objects" do
-        expect(ContainerNode.count).to eq(2)
-        expect(ContainerNode.active.count).to eq(1)
-        expect(ContainerNode.archived.count).to eq(1)
-        expect(ContainerGroup.count).to eq(object_counts['ContainerGroup'])
-        expect(ContainerGroup.active.count).to eq(object_counts['ContainerGroup'] - 3)
-        expect(ContainerGroup.archived.count).to eq(3)
-        expect(Container.count).to eq(10)
-        expect(Container.active.count).to eq(object_counts['Container'] - 3)
-        expect(Container.archived.count).to eq(3)
-      end
-
       it "removes the deleted objects from the DB" do
         deleted = {
           'ContainerService'      => 2,
-          'ContainerQuota'        => 2,
-          'ContainerQuotaItem'    => 10,
+          'ContainerQuota'        => 6,
+          'ContainerQuotaScope'   => 6,
+          'ContainerQuotaItem'    => 2 * 10 + 1,
           'ContainerLimit'        => 2,
           'ContainerLimitItem'    => 8,
           'PersistentVolume'      => 0,
-          'PersistentVolumeClaim' => 2,
+          'PersistentVolumeClaim' => 4,
         }
         expected_counts = deleted.collect { |k, d| [k, object_counts[k] - d] }.to_h
         actual_counts = expected_counts.collect { |k, _| [k, k.constantize.count] }.to_h
@@ -538,7 +551,23 @@ shared_examples "kubernetes refresher VCR tests" do
         expect(PersistentVolumeClaim.find_by(:name => "my-persistentvolumeclaim-1")).to be_nil
       end
 
-      it "disconnects objects" do
+      it "archives & disconnects objects" do
+        archived = {
+          'ContainerNode'  => 1, # the fake node
+          'ContainerGroup' => 2 * 2 + 1,
+          'Container'      => 2 * 2 + 1,
+        }
+        actual_archived = archived.collect { |k, _| [k, k.constantize.archived.count] }.to_h
+        expect(actual_archived).to eq(archived)
+
+        expected_active = archived.collect { |k, a| [k, object_counts[k] - a] }.to_h
+        actual_active = archived.collect { |k, _| [k, k.constantize.active.count] }.to_h
+        expect(actual_active).to eq(expected_active)
+
+        expected_counts = archived.collect { |k, _| [k, object_counts[k]] }.to_h
+        actual_counts = archived.collect { |k, _| [k, k.constantize.count] }.to_h
+        expect(actual_counts).to eq(expected_counts)
+
         pod0 = ContainerGroup.find_by(:name => "my-pod-0")
         pod1 = ContainerGroup.find_by(:name => "my-pod-1")
         pod2 = ContainerGroup.find_by(:name => "my-pod-2")
@@ -547,11 +576,11 @@ shared_examples "kubernetes refresher VCR tests" do
           assert_disconnected(pod)
           expect(pod.container_project).not_to be_nil
           expect(pod.containers.count).to eq(1)
-          expect(pod.container_volumes.count).to eq(1)
+          expect(pod.container_volumes.count).to eq(2) # default-token-*, my-pvc-pod-volume-2. TODO: test before deletions
         end
         # ContainerVolume records don't get archived themselves, but some belong to archived pods.
         expect(ContainerVolume.where(:type => 'ContainerVolume').count).to eq(container_volumes_count)
-        expect(@ems.container_volumes.count).to eq(container_volumes_count - 3)
+        expect(@ems.container_volumes.count).to eq(container_volumes_count - 12)
 
         container0 = Container.find_by(:name => "my-container", :container_group => pod0)
         container1 = Container.find_by(:name => "my-container", :container_group => pod1)
@@ -562,6 +591,11 @@ shared_examples "kubernetes refresher VCR tests" do
           assert_disconnected(container)
           expect(container.container_project).not_to be_nil
         end
+      end
+
+      it "updates quotas" do
+        assert_specific_container_quota
+        assert_modified_container_quota_item
       end
     end
   end
@@ -602,7 +636,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         )
       end
 
-      # TODO: pending graph tag mapping implementation
       include_examples "kubernetes refresher VCR tests"
     end
 
@@ -613,7 +646,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         )
       end
 
-      # TODO: pending graph tag mapping implementation
       include_examples "kubernetes refresher VCR tests"
     end
   end

@@ -1,6 +1,7 @@
 module ManageIQ::Providers
   class Kubernetes::ContainerManager::MetricsCapture < BaseManager::MetricsCapture
     class CollectionFailure < RuntimeError; end
+    class NoMetricsFoundError < RuntimeError; end
 
     class TargetValidationError < RuntimeError
       def log_severity
@@ -95,8 +96,10 @@ module ManageIQ::Providers
       Benchmark.realtime_block(:collect_data) do
         begin
           context.collect_metrics
-        rescue => e
-          _log.error("Hawkular metrics service unavailable: #{e.message}")
+        rescue NoMetricsFoundError => e
+          _log.debug("Metrics unavailable: #{e.message}")
+        rescue StandardError => e
+          _log.error("Metrics unavailable: #{e.message}")
           ems.update_attributes(:last_metrics_error       => :unavailable,
                                 :last_metrics_update_date => Time.now.utc) if ems
           raise

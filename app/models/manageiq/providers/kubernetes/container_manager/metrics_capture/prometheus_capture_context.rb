@@ -99,7 +99,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
 
     def sort_and_normalize(response, metric_title, conversion_factor)
       unless response["result"] && response["result"][0]
-        raise CollectionFailure, "[#{@target} #{@target.name}] No data in response"
+        raise NoMetricsFoundError, "[#{@target} #{@target.name}] No data in response"
       end
 
       response["result"][0]["values"].map do |x|

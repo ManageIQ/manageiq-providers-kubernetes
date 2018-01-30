@@ -2,6 +2,12 @@ module ManageIQ::Providers
   class Kubernetes::ContainerManager::MetricsCapture < BaseManager::MetricsCapture
     class CollectionFailure < RuntimeError; end
 
+    class NoDataWarning < RuntimeError
+      def log_severity
+        :warn
+      end
+    end
+
     class TargetValidationError < RuntimeError
       def log_severity
         :error

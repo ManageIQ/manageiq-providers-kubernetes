@@ -213,7 +213,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
         #    "cpu/usage_rate" => "machine/<utl>/cpu/usage_rate"
         full_key = get_metrics_key(raw_metrics, 'gauge', key)
         unless full_key
-          raise CollectionFailure, "#{key} missing while query metrics"
+          raise NoMetricsFoundError, "#{key} missing while query metrics"
         end
 
         # insert the raw metrics into the @ts_values global object

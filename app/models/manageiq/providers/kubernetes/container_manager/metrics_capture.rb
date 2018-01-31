@@ -97,9 +97,9 @@ module ManageIQ::Providers
         begin
           context.collect_metrics
         rescue NoMetricsFoundError => e
-          _log.debug("Metrics unavailable: #{e.message}")
+          _log.warn("Metrics missing: [#{target_name}] #{e.message}")
         rescue StandardError => e
-          _log.error("Metrics unavailable: #{e.message}")
+          _log.error("Metrics unavailable: [#{target_name}] #{e.message}")
           ems.update_attributes(:last_metrics_error       => :unavailable,
                                 :last_metrics_update_date => Time.now.utc) if ems
           raise

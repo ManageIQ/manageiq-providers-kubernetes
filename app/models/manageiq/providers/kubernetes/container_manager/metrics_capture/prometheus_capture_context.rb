@@ -93,6 +93,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
         metric_title,
         conversion_factor
       )
+    rescue NoMetricsFoundError
+      raise
     rescue StandardError => e
       raise CollectionFailure, "#{e.class.name}: #{e.message}"
     end

@@ -237,7 +237,7 @@ shared_examples "kubernetes rollup tests" do
     # then the pod a is killed and have another add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
       container_group_2core_2GB,
-      start_time + 10.minutes..(start_time + 20.minutes),
+      (start_time + 10.minutes)..(start_time + 20.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
         :mem_usage_absolute_average => 100.0,

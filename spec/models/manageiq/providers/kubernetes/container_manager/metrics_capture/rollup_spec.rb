@@ -56,14 +56,14 @@ shared_examples "kubernetes rollup tests" do
     node
   end
 
-  let(:container_group_a) do
+  let(:container_group_10core_1GB) do
     FactoryGirl.create(:container_group,
                        :container_project     => container_project,
                        :container_node        => container_node_a,
                        :ext_management_system => ems)
   end
 
-  let(:container_group_b) do
+  let(:container_group_2core_2GB) do
     FactoryGirl.create(:container_group,
                        :container_project     => container_project,
                        :container_node        => container_node_b,
@@ -79,7 +79,7 @@ shared_examples "kubernetes rollup tests" do
   let(:container_a) do
     FactoryGirl.create(:container,
                        :name                  => "A",
-                       :container_group       => container_group_a,
+                       :container_group       => container_group_10core_1GB,
                        :container_image       => container_image_a,
                        :ext_management_system => ems)
   end
@@ -94,7 +94,7 @@ shared_examples "kubernetes rollup tests" do
   let(:container_b) do
     FactoryGirl.create(:container,
                        :name                  => "B",
-                       :container_group       => container_group_b,
+                       :container_group       => container_group_2core_2GB,
                        :container_image       => container_image_b,
                        :ext_management_system => ems)
   end
@@ -168,7 +168,7 @@ shared_examples "kubernetes rollup tests" do
       match_array([])
     )
     expect(project_rollup.assoc_ids[:container_groups][:on]).to(
-      match_array([container_group_a.id, container_group_b.id])
+      match_array([container_group_10core_1GB.id, container_group_2core_2GB.id])
     )
     expect(project_rollup.assoc_ids[:container_groups][:off]).to(
       match_array([])
@@ -176,9 +176,9 @@ shared_examples "kubernetes rollup tests" do
   end
 
   it "check project rollup can handle partial hour" do
-    # Add 10 minutes of 50% cpu_util of 10 cores total and of memory 1024MB
+    # Add 10 minutes of 50% cpu_util and mem util
     add_metrics_for(
-      container_group_a,
+      container_group_10core_1GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 50.0,
@@ -186,9 +186,9 @@ shared_examples "kubernetes rollup tests" do
       }
     )
 
-    # Add 10 minutes of 75% cpu_util of 2 cores total and and of memory 2048MB
+    # Add 10 minutes of 75% cpu_util and mem util
     add_metrics_for(
-      container_group_b,
+      container_group_2core_2GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 75.0,
@@ -224,9 +224,9 @@ shared_examples "kubernetes rollup tests" do
   end
 
   it "checks pods running sequentially are not being multiplicated in project rollup" do
-    # Add 10 minutes of 100% cpu_util of 10 cores total and of memory 1024MB
+    # Add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
-      container_group_a,
+      container_group_10core_1GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
@@ -234,9 +234,9 @@ shared_examples "kubernetes rollup tests" do
       }
     )
 
-    # then the pod a is killed and have another add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB
+    # then the pod a is killed and have another add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
-      container_group_b,
+      container_group_2core_2GB,
       start_time + 10.minutes..(start_time + 20.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
@@ -280,9 +280,9 @@ shared_examples "kubernetes rollup tests" do
   end
 
   it "daily project rollup computes correctly when metrics are missing" do
-    # Add 10 minutes of 100% cpu_util of 10 cores total and of memory 1024MB
+    # Add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
-      container_group_a,
+      container_group_10core_1GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
@@ -290,9 +290,9 @@ shared_examples "kubernetes rollup tests" do
       }
     )
 
-    # Add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB
+    # Add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
-      container_group_b,
+      container_group_2core_2GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
@@ -333,14 +333,17 @@ shared_examples "kubernetes rollup tests" do
     # and 23 times 0 derived_vm_numvcpus.
     # So the reports ends up saying that the daily project usage was 100% / 24h of 12 cores / 24h. So the result is
     # 24x smaller than expected. So not 0.5 core avg used in a day, but 0.5/24.0 core avg used in a day.
+    #
+    # The reason of bad result is the same as for the spec with present metrics, we keep this as placeholder for having
+    # quotas as the maximums, so the percentages make sense.
     pending("We should use quotas as a max derived_vm_numvcpus for project")
     expect(project_daily_rollup.derived_vm_numvcpus).to eq(12)
   end
 
   it "daily project rollup computes correctly when metrics are present" do
-    # Add 10 minutes of 100% cpu_util of 10 cores total and of memory 1024MB
+    # Add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
-      container_group_a,
+      container_group_10core_1GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
@@ -348,9 +351,9 @@ shared_examples "kubernetes rollup tests" do
       }
     )
 
-    # Add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB
+    # Add 10 minutes of 100% cpu_util and mem util
     add_metrics_for(
-      container_group_b,
+      container_group_2core_2GB,
       start_time..(start_time + 10.minutes),
       :metric_params => {
         :cpu_usage_rate_average     => 100.0,
@@ -358,10 +361,10 @@ shared_examples "kubernetes rollup tests" do
       }
     )
 
-    # Add 10 minutes of 100% cpu_util of 2 cores total and and of memory 2048MB, for the rest of the hours in a day
+    # Add rest of the day as 50% cpu_util and mem util
     (start_time + 1.hour..start_time + 1.day).step_value(1.hour).each do |time|
       add_metrics_for(
-        container_group_b,
+        container_group_2core_2GB,
         time..(time + 10.minutes),
         :metric_params => {
           :cpu_usage_rate_average     => 50.0,

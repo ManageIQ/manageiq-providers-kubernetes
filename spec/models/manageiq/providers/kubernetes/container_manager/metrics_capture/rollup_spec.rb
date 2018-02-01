@@ -113,7 +113,7 @@ shared_examples "kubernetes rollup tests" do
   end
 
   let(:start_time) { Time.parse('2012-09-01 00:00:00Z').utc }
-  let(:end_time) { start_time + 1.days + 10.seconds }
+  let(:end_time) { start_time + 1.day + 10.seconds }
 
   before do
     Timecop.travel(end_time)
@@ -381,9 +381,9 @@ shared_examples "kubernetes rollup tests" do
     project_daily_rollup = MetricRollup.where(:resource => container_project, :timestamp => start_time, :capture_interval_name => "daily").first
 
     # We had 1 hour on 100% of 12 cores, then we had 50% for the rest 23h. Same for memory
-    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq(((100 + 23*50) / 24.0).round(2))
-    expect(project_daily_rollup.derived_memory_used.round(2)).to eq(((3072 + 23*1024) / 24.0).round(2))
-    expect(project_daily_rollup.derived_vm_numvcpus.round(2)).to eq(((12 + 23*2) / 24.0).round(2))
+    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq(((100 + 23 * 50) / 24.0).round(2))
+    expect(project_daily_rollup.derived_memory_used.round(2)).to eq(((3072 + 23 * 1024) / 24.0).round(2))
+    expect(project_daily_rollup.derived_vm_numvcpus.round(2)).to eq(((12 + 23 * 2) / 24.0).round(2))
 
     # Min/Max values are correct, given we take min/max of hourly rollups
     expect(project_daily_rollup.min_max[:max_cpu_usage_rate_average]).to eq(100)
@@ -415,7 +415,7 @@ shared_examples "kubernetes rollup tests" do
     # 100.0 / ((12 + 23*2)) * ((100*12 + 23*50*2) / 100.0 ) == 60.34% (this is how we compute it in Metric::Aggregation::Aggregate.column)
     # so it's 100% / (58 cores total) * (12+23 == 35cores used) == 60.34% of cores used
     pending("We have to use weighted averages also for daily rollup, if we doing average of % values, with different bases")
-    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq((100.0/58*35).round(2))
+    expect(project_daily_rollup.cpu_usage_rate_average.round(2)).to eq((100.0 / 58 * 35).round(2))
   end
 end
 

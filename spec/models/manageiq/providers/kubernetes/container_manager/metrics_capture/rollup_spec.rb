@@ -123,7 +123,10 @@ shared_examples "kubernetes rollup tests" do
     Timecop.return
   end
 
-  def add_metrics_for(resource, range, metric_params: {}, step: 20.seconds)
+  # TODO(lsmola) with 60s interval, we need also a spec for the fact that there can be 2 samples. Then if we take
+  # pod1 using 100 cores only in <12:00:00, 12:00:30) and pod2 using 100 cores only in <12:00:30, 12:01:00). The
+  # project avg should be 100 cores, not 200 cores.
+  def add_metrics_for(resource, range, metric_params: {}, step: 60.seconds)
     range.step_value(step).each do |time|
       metric_params[:timestamp]           = time
       metric_params[:resource_id]         = resource.id

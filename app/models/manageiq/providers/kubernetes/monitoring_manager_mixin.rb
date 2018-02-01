@@ -69,6 +69,6 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   end
 
   def verify_ssl
-    prometheus_alerts_endpoint.verify_ssl?
+    parent_manager.verify_ssl_mode(prometheus_alerts_endpoint) == OpenSSL::SSL::VERIFY_PEER
   end
 end

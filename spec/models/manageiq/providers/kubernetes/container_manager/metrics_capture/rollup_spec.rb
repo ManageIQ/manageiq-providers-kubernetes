@@ -2,11 +2,27 @@
 shared_examples "kubernetes rollup tests" do
   let(:ems) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
-    auth = AuthToken.new(:name => "test", :auth_key => "valid-token")
-    FactoryGirl.create(:ems_kubernetes, :hostname => "10.35.0.169",
-                       :ipaddress                 => "10.35.0.169",
-                       :port                      => 6443,
-                       :authentications           => [auth])
+    hostname = 'capture.context.com'
+    token = 'theToken'
+
+    @ems = FactoryGirl.create(
+      :ems_kubernetes,
+      :name                      => 'KubernetesProvider',
+      :connection_configurations => [{:endpoint       => {:role       => :default,
+                                                          :hostname   => hostname,
+                                                          :port       => "8443",
+                                                          :verify_ssl => false},
+                                      :authentication => {:role     => :bearer,
+                                                          :auth_key => token,
+                                                          :userid   => "_"}},
+                                     {:endpoint       => {:role       => :hawkular,
+                                                          :hostname   => hostname,
+                                                          :port       => "443",
+                                                          :verify_ssl => false},
+                                      :authentication => {:role     => :hawkular,
+                                                          :auth_key => token,
+                                                          :userid   => "_"}}]
+    )
   end
 
   let(:container_project) do
@@ -348,6 +364,7 @@ shared_examples "kubernetes rollup tests" do
 
     rollup_up_to_project(start_time + 1.day)
     # Do also Project daily rollup
+
     MiqQueue.where(:class_name => "ContainerProject", :method_name => :perf_rollup).all.map(&:deliver)
 
     project_daily_rollup = MetricRollup.where(:resource => container_project, :timestamp => start_time, :capture_interval_name => "daily").first

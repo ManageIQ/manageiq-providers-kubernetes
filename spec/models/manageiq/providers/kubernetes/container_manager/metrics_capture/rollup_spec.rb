@@ -1,5 +1,10 @@
 # instantiated at the end, for both classical and graph refresh
 shared_examples "kubernetes rollup tests" do
+  before(:each) do
+    _guid, _server, _zone = EvmSpecHelper.create_guid_miq_server_zone
+    TimeProfile.seed # We need this to get TimeProfile for daily rollup
+  end
+
   let(:ems) do
     allow(MiqServer).to receive(:my_zone).and_return("default")
     hostname = 'capture.context.com'

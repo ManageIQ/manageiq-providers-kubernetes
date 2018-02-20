@@ -101,6 +101,16 @@ class MockImageInspectorClient
   end
 end
 
+class MockCantAccessImageInspectorClient
+  def fetch_metadata
+    raise ImageInspectorClient::InspectorClientException.new(404, "test error message")
+  end
+
+  def fetch_oscap_arf
+    raise ImageInspectorClient::InspectorClientException.new(404, "test error message")
+  end
+end
+
 class MockFailedImageInspectorClient < MockImageInspectorClient
   def initialize(oscap_status, oscap_msg, image_acq_error = "", *args)
     super(*args)
@@ -475,6 +485,19 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         expect(@job.status).to eq 'warn'
         expect(@job.message).to eq OSCAP_ERROR_MSG
         expect(@image.last_scan_result.scan_result_message).to eq OSCAP_ERROR_MSG
+      end
+    end
+
+    context 'fetch_metadata fails to access pod' do
+      it 'reports failure when fetch_metadata fails to access pod' do
+        IMG_ACQ_ERR = "can't find image".freeze
+        allow_any_instance_of(described_class).to receive_messages(
+          :image_inspector_client => MockCantAccessImageInspectorClient.new
+        )
+        @job.signal(:start)
+        expect(@job.state).to eq 'finished'
+        expect(@job.status).to eq 'error'
+        expect(@job.message).to include "test error message"
       end
     end
 

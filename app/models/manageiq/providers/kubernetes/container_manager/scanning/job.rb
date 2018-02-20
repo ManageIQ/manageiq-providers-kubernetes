@@ -142,7 +142,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     begin
       inspector_metadata = image_inspector_client.fetch_metadata
     rescue ImageInspectorClient::InspectorClientException => e
-      _log.error("analyzing image-inspector metadata for #{options[:docker_image_id]} failed with error: #{e}")
+      msg = "analyzing image-inspector metadata for #{options[:docker_image_id]} failed with error: #{e}"
+      _log.error(msg)
+      return queue_signal(:abort_job, msg, 'error')
     end
 
     if inspector_metadata.ImageAcquireError.present?

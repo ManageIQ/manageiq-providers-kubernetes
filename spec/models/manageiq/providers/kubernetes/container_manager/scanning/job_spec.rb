@@ -296,7 +296,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         pod = create_pod_definition
         expect(pod[:spec][:containers][0][:command]
           .select { |cmd| cmd.starts_with?("--cve-url=") }.first.split('=').last).to eq("cve_url1")
-        expect(pod[:spec][:containers][0][:image]).to eq("registry1/repository1:2.1")
+        expect(pod[:spec][:containers][0][:image]).to eq("registry1/repository1:2.4")
       end
     end
 

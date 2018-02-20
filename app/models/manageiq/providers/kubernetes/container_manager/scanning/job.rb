@@ -3,7 +3,7 @@ require 'kubeclient'
 
 class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   PROVIDER_CLASS = ManageIQ::Providers::Kubernetes::ContainerManager
-  INSPECTOR_IMAGE_TAG = '2.1'.freeze
+  INSPECTOR_IMAGE_TAG = '2.4'.freeze
   INSPECTOR_PORT = 8080
   DOCKER_SOCKET = '/var/run/docker.sock'
   SCAN_CATEGORIES = %w(system software)

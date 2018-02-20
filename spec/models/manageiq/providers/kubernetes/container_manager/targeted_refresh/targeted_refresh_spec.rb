@@ -421,24 +421,20 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       expect(ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser).not_to receive(:ems_inv_to_hashes)
     end
 
-    context "with :default saver" do
-      before(:each) do
-        stub_settings_merge(
-          :ems_refresh => {:kubernetes => {:inventory_collections => {:saver_strategy => :default}}}
-        )
+    [
+      {:saver_strategy => :default},
+      {:saver_strategy => :batch, :use_ar_object => true},
+      {:saver_strategy => :batch, :use_ar_object => false}
+    ].each do |saver_options|
+      context "with #{saver_options}" do
+        before(:each) do
+          stub_settings_merge(
+            :ems_refresh => {:kubernetes => {:inventory_collections => saver_options}}
+          )
+        end
+
+        include_examples "openshift refresher VCR targeted refresh tests"
       end
-
-      include_examples "openshift refresher VCR targeted refresh tests"
-    end
-
-    context "with :batch saver" do
-      before(:each) do
-        stub_settings_merge(
-          :ems_refresh => {:kubernetes => {:inventory_collections => {:saver_strategy => :batch}}}
-        )
-      end
-
-      include_examples "openshift refresher VCR targeted refresh tests"
     end
   end
 end

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 80 ending 2018-02-26
+
+### Fixed
+- abort container ssa if can't fetch metadata [(#233)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/233)
+
 ## Unreleased as of Sprint 79 ending 2018-02-12
 
 ### Added

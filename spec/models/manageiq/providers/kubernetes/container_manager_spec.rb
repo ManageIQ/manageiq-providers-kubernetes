@@ -322,4 +322,62 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(queue_item.instance_id).to eq(ems.infra_manager.id)
     end
   end
+
+  describe '#supports' do
+    let(:ems) { FactoryGirl.create(:ems_kubernetes) }
+
+    it 'supports alert labels' do
+      expect(ems.supports_alert_labels?).to be_truthy
+    end
+  end
+
+  describe '#alert_labels' do
+    let(:ems) { FactoryGirl.create(:ems_kubernetes) }
+
+    it 'returns an empty array if there is no event matching the alert status' do
+      alert_status = FactoryGirl.create(:miq_alert_status, :event_ems_ref => '123')
+      expect(ems.alert_labels(alert_status)).to eq([])
+    end
+
+    it 'returns an empty array if the full data of the event is nil' do
+      FactoryGirl.create(:event_stream, :ems_ref => '123', :full_data => nil)
+      alert_status = FactoryGirl.create(:miq_alert_status, :event_ems_ref => '123')
+      expect(ems.alert_labels(alert_status)).to eq([])
+    end
+
+    it 'returns an empty array if the full data of the event does not contain labels' do
+      data = {
+        # No labels here!
+      }
+      FactoryGirl.create(:event_stream, :ems_ref => '123', :full_data => data)
+      alert_status = FactoryGirl.create(:miq_alert_status, :event_ems_ref => '123')
+      expect(ems.alert_labels(alert_status)).to eq([])
+    end
+
+    it 'returns an empty array if the full data of the event contains an empty set of labels' do
+      data = {
+        'labels' => {}
+      }
+      FactoryGirl.create(:event_stream, :ems_ref => '123', :full_data => data)
+      alert_status = FactoryGirl.create(:miq_alert_status, :event_ems_ref => '123')
+      expect(ems.alert_labels(alert_status)).to eq([])
+    end
+
+    it 'returns the labels contained in the full data of the event' do
+      data = {
+        'labels' => {
+          'myfirstname'  => 'myfirstvalue',
+          'mysecondname' => 'mysecondvalue'
+        }
+      }
+      FactoryGirl.create(:event_stream, :ems_ref => '123', :full_data => data)
+      alert_status = FactoryGirl.create(:miq_alert_status, :event_ems_ref => '123')
+      labels = ems.alert_labels(alert_status)
+      expect(labels.length).to eq(2)
+      expect(labels[0].name).to eq('myfirstname')
+      expect(labels[0].value).to eq('myfirstvalue')
+      expect(labels[1].name).to eq('mysecondname')
+      expect(labels[1].value).to eq('mysecondvalue')
+    end
+  end
 end

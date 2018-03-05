@@ -18,6 +18,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
 
   include ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options
+  include ManageIQ::Providers::Kubernetes::ContainerManager::AlertLabels
 
   # See HasMonitoringManagerMixin
   has_one :monitoring_manager,

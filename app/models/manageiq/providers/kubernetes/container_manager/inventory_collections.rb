@@ -38,6 +38,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
         :builder_params       => {:ems_id => manager.id},
         :association          => :container_quotas,
         :attributes_blacklist => [:namespace],
+        :delete_method        => :disconnect_inv,
       )
     )
     @collections[:container_quota_scopes] = ::ManagerRefresh::InventoryCollection.new(
@@ -50,10 +51,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     )
     @collections[:container_quota_items] = ::ManagerRefresh::InventoryCollection.new(
       shared_options.merge(
-        :model_class => ContainerQuotaItem,
-        :parent      => manager,
-        :association => :container_quota_items,
-        :manager_ref => [:container_quota, :resource],
+        :model_class   => ContainerQuotaItem,
+        :parent        => manager,
+        :association   => :container_quota_items,
+        # Archive and create new on changes, not only on deletion - by including the data in what we match on.
+        :manager_ref   => [:container_quota, :resource, :quota_desired, :quota_enforced, :quota_observed],
+        :delete_method => :disconnect_inv,
       )
     )
     @collections[:container_limits] = ::ManagerRefresh::InventoryCollection.new(

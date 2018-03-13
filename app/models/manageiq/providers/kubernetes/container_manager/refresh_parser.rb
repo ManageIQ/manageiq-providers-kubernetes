@@ -1,3 +1,4 @@
+require 'bigdecimal'
 require 'shellwords'
 
 module ManageIQ::Providers::Kubernetes
@@ -934,15 +935,15 @@ module ManageIQ::Providers::Kubernetes
       end
 
       resource_quota.spec.hard.to_h.each do |resource_name, quota|
-        new_result_h[resource_name][:quota_desired] = parse_quantity(quota).to_f
+        new_result_h[resource_name][:quota_desired] = parse_quantity_decimal(quota)
       end
 
       resource_quota.status.hard.to_h.each do |resource_name, quota|
-        new_result_h[resource_name][:quota_enforced] = parse_quantity(quota).to_f
+        new_result_h[resource_name][:quota_enforced] = parse_quantity_decimal(quota)
       end
 
       resource_quota.status.used.to_h.each do |resource_name, quota|
-        new_result_h[resource_name][:quota_observed] = parse_quantity(quota).to_f
+        new_result_h[resource_name][:quota_observed] = parse_quantity_decimal(quota)
       end
 
       new_result_h.values
@@ -1090,13 +1091,25 @@ module ManageIQ::Providers::Kubernetes
       new_result
     end
 
-    def parse_quantity(resource) # parse a string with a suffix into a int\float
-      return nil if resource.nil?
+    # parse a string with a suffix into a int/float
+    def parse_quantity(value)
+      return nil if value.nil?
 
       begin
-        resource.iec_60027_2_to_i
+        value.iec_60027_2_to_i
       rescue
-        resource.decimal_si_to_f
+        value.decimal_si_to_f
+      end
+    end
+
+    # parse a string with a suffix into a BigDecimal
+    def parse_quantity_decimal(value)
+      return nil if value.nil?
+
+      begin
+        BigDecimal(value.iec_60027_2_to_i)
+      rescue
+        value.decimal_si_to_big_decimal
       end
     end
 

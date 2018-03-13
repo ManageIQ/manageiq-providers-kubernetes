@@ -335,8 +335,8 @@ shared_examples "kubernetes refresher VCR tests" do
   def assert_specific_container_quota_item
     container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
     expect(container_quota.container_quota_items.count).to eq(3)
-    cpu_quota = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
-    expect(cpu_quota).to have_attributes(
+    cpu_item = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
+    expect(cpu_item).to have_attributes(
       :quota_desired  => 5.7,
       :quota_enforced => 5.7,
       :quota_observed => 0.0,
@@ -346,11 +346,21 @@ shared_examples "kubernetes refresher VCR tests" do
   def assert_modified_container_quota_item
     container_quota = ContainerQuota.find_by(:name => "my-resource-quota-scopes2-2")
     expect(container_quota.container_quota_items.count).to eq(3)
-    cpu_quota = container_quota.container_quota_items.find_by(:resource => 'requests.cpu')
-    expect(cpu_quota).to have_attributes(
-      :quota_desired  => 5.701,
-      :quota_enforced => 5.701,
-      :quota_observed => 0.0,
+
+    cpu_items = container_quota.all_container_quota_items.where(:resource => 'requests.cpu')
+    expect(cpu_items.archived.all).to contain_exactly(
+      an_object_having_attributes(
+        :quota_desired  => 5.7,
+        :quota_enforced => 5.7,
+        :quota_observed => 0.0,
+      )
+    )
+    expect(cpu_items.active.all).to contain_exactly(
+      an_object_having_attributes(
+        :quota_desired  => 5.701,
+        :quota_enforced => 5.701,
+        :quota_observed => 0.0,
+      )
     )
   end
 
@@ -526,9 +536,6 @@ shared_examples "kubernetes refresher VCR tests" do
       it "removes the deleted objects from the DB" do
         deleted = {
           'ContainerService'      => 2,
-          'ContainerQuota'        => 6,
-          'ContainerQuotaScope'   => 6,
-          'ContainerQuotaItem'    => 2 * 10 + 1,
           'ContainerLimit'        => 2,
           'ContainerLimitItem'    => 8,
           'PersistentVolume'      => 0,
@@ -540,9 +547,6 @@ shared_examples "kubernetes refresher VCR tests" do
 
         expect(ContainerService.find_by(:name => "my-service-0")).to be_nil
         expect(ContainerService.find_by(:name => "my-service-1")).to be_nil
-
-        expect(ContainerQuota.find_by(:name => "my-resource-quota-0")).to be_nil
-        expect(ContainerQuota.find_by(:name => "my-resource-quota-1")).to be_nil
 
         expect(ContainerLimit.find_by(:name => "my-limit-range-0")).to be_nil
         expect(ContainerLimit.find_by(:name => "my-limit-range-1")).to be_nil
@@ -556,15 +560,20 @@ shared_examples "kubernetes refresher VCR tests" do
           'ContainerNode'  => 1, # the fake node
           'ContainerGroup' => 2 * 2 + 1,
           'Container'      => 2 * 2 + 1,
+          'ContainerQuota'     => 2 * 3,
+          'ContainerQuotaItem' => 2 * 10 + 2,
+        }
+        added = {
+          'ContainerQuotaItem' => 1,
         }
         actual_archived = archived.collect { |k, _| [k, k.constantize.archived.count] }.to_h
         expect(actual_archived).to eq(archived)
 
-        expected_active = archived.collect { |k, a| [k, object_counts[k] - a] }.to_h
+        expected_active = archived.collect { |k, a| [k, object_counts[k] - a + added.fetch(k, 0)] }.to_h
         actual_active = archived.collect { |k, _| [k, k.constantize.active.count] }.to_h
         expect(actual_active).to eq(expected_active)
 
-        expected_counts = archived.collect { |k, _| [k, object_counts[k]] }.to_h
+        expected_counts = archived.collect { |k, _| [k, object_counts[k] + added.fetch(k, 0)] }.to_h
         actual_counts = archived.collect { |k, _| [k, k.constantize.count] }.to_h
         expect(actual_counts).to eq(expected_counts)
 
@@ -591,10 +600,16 @@ shared_examples "kubernetes refresher VCR tests" do
           assert_disconnected(container)
           expect(container.container_project).not_to be_nil
         end
-      end
 
-      it "updates quotas" do
         assert_specific_container_quota
+        # All items of archived quotas are archived
+        expect(ContainerQuotaItem.active.joins(:container_quota).merge(ContainerQuota.archived)).to be_empty
+        # Archived items of alive quotas:
+        archived_items = ContainerQuotaItem.archived.joins(:container_quota).merge(ContainerQuota.active)
+        expect(archived_items.pluck(:resource)).to contain_exactly(
+          'pods', # observed changed
+          'requests.cpu', # requested changed
+        )
         assert_modified_container_quota_item
       end
     end

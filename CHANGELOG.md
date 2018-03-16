@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Gaprindashvili-2 released 2018-03-06
+
+### Fixed
+- Change alert definition meta [(#217)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/217)
+
 ## Unreleased as of Sprint 80 ending 2018-02-26
 
 ### Fixed

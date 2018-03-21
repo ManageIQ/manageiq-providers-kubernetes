@@ -433,7 +433,7 @@ shared_examples "kubernetes refresher VCR tests" do
         'ContainerNode'         => 2, # including the fake node
         'ContainerGroup'        => 9,
         'Container'             => 9,
-        'ContainerService'      => 6,
+        'ContainerService'      => 12,
         'ContainerQuota'        => 9,
         'ContainerQuotaScope'   => 9,
         'ContainerQuotaItem'    => 30,
@@ -535,7 +535,7 @@ shared_examples "kubernetes refresher VCR tests" do
 
       it "removes the deleted objects from the DB" do
         deleted = {
-          'ContainerService'      => 2,
+          'ContainerService'      => 6,
           'ContainerLimit'        => 2,
           'ContainerLimitItem'    => 8,
           'PersistentVolume'      => 0,

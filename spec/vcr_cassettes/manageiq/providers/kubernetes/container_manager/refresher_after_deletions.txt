@@ -5,7 +5,7 @@ kubernetes v1.6.1+5115d708d7
 features: Basic-Auth GSSAPI Kerberos SPNEGO
 
 Server https://192.168.99.100:8443
-openshift v3.6.1+008f2d5
+openshift v3.6.1+269e828-9
 kubernetes v1.6.1+5115d708d7
 
 CAVEAT: status shown here might differ from moment captured in VCR!
@@ -25,44 +25,46 @@ projects/openshift-infra                   Active    <none>
 NAMESPACE      NAME                   TYPE      FROM      LATEST    LABELS
 my-project-2   bc/my-build-config-2   Source    Git       1         <none>
 NAMESPACE      NAME                         TYPE      FROM          STATUS                            STARTED         DURATION   LABELS
-my-project-2   builds/my-build-config-2-1   Source    Git@022d87e   Failed (PullBuilderImageFailed)   3 minutes ago   9s         buildconfig=my-build-config-2,openshift.io/build-config.name=my-build-config-2,openshift.io/build.start-policy=Serial
-NAMESPACE      NAME                    DOCKER REPO                                       TAGS                           UPDATED          LABELS
-my-project-1   is/origin-ruby-sample   172.30.1.1:5000/my-project-1/origin-ruby-sample                                                   <none>
-my-project-2   is/origin-ruby-sample   172.30.1.1:5000/my-project-2/origin-ruby-sample                                                   <none>
-openshift      is/httpd                172.30.1.1:5000/openshift/httpd                   latest,2.4                     45 minutes ago   <none>
-openshift      is/jenkins              172.30.1.1:5000/openshift/jenkins                 latest,1,2                     45 minutes ago   <none>
-openshift      is/mariadb              172.30.1.1:5000/openshift/mariadb                 latest,10.1                    45 minutes ago   <none>
-openshift      is/mongodb              172.30.1.1:5000/openshift/mongodb                 latest,3.2,2.6 + 1 more...     45 minutes ago   <none>
-openshift      is/mysql                172.30.1.1:5000/openshift/mysql                   latest,5.7,5.6 + 1 more...     45 minutes ago   <none>
-openshift      is/nodejs               172.30.1.1:5000/openshift/nodejs                  latest,0.10,4 + 1 more...      45 minutes ago   <none>
-openshift      is/perl                 172.30.1.1:5000/openshift/perl                    latest,5.24,5.20 + 1 more...   45 minutes ago   <none>
-openshift      is/php                  172.30.1.1:5000/openshift/php                     5.6,5.5,latest + 1 more...     45 minutes ago   <none>
-openshift      is/postgresql           172.30.1.1:5000/openshift/postgresql              latest,9.5,9.4 + 1 more...     45 minutes ago   <none>
-openshift      is/python               172.30.1.1:5000/openshift/python                  latest,3.5,3.4 + 2 more...     45 minutes ago   <none>
-openshift      is/redis                172.30.1.1:5000/openshift/redis                   latest,3.2                     45 minutes ago   <none>
-openshift      is/ruby                 172.30.1.1:5000/openshift/ruby                    latest,2.3,2.2 + 1 more...     45 minutes ago   <none>
-openshift      is/wildfly              172.30.1.1:5000/openshift/wildfly                 10.0,9.0,8.1 + 2 more...       45 minutes ago   <none>
+my-project-2   builds/my-build-config-2-1   Source    Git@7ccd324   Failed (PullBuilderImageFailed)   3 minutes ago   9s         buildconfig=my-build-config-2,openshift.io/build-config.name=my-build-config-2,openshift.io/build.start-policy=Serial
+NAMESPACE      NAME                    DOCKER REPO                                       TAGS                           UPDATED       LABELS
+my-project-1   is/origin-ruby-sample   172.30.1.1:5000/my-project-1/origin-ruby-sample                                                <none>
+my-project-2   is/origin-ruby-sample   172.30.1.1:5000/my-project-2/origin-ruby-sample                                                <none>
+openshift      is/httpd                172.30.1.1:5000/openshift/httpd                   2.4,latest                     2 hours ago   <none>
+openshift      is/jenkins              172.30.1.1:5000/openshift/jenkins                 1,2,latest                     2 hours ago   <none>
+openshift      is/mariadb              172.30.1.1:5000/openshift/mariadb                 latest,10.1                    2 hours ago   <none>
+openshift      is/mongodb              172.30.1.1:5000/openshift/mongodb                 latest,3.2,2.6 + 1 more...     2 hours ago   <none>
+openshift      is/mysql                172.30.1.1:5000/openshift/mysql                   5.6,5.5,latest + 1 more...     2 hours ago   <none>
+openshift      is/nodejs               172.30.1.1:5000/openshift/nodejs                  latest,0.10,4 + 1 more...      2 hours ago   <none>
+openshift      is/perl                 172.30.1.1:5000/openshift/perl                    latest,5.24,5.20 + 1 more...   2 hours ago   <none>
+openshift      is/php                  172.30.1.1:5000/openshift/php                     5.6,5.5,latest + 1 more...     2 hours ago   <none>
+openshift      is/postgresql           172.30.1.1:5000/openshift/postgresql              9.2,latest,9.5 + 1 more...     2 hours ago   <none>
+openshift      is/python               172.30.1.1:5000/openshift/python                  latest,3.5,3.4 + 2 more...     2 hours ago   <none>
+openshift      is/redis                172.30.1.1:5000/openshift/redis                   3.2,latest                     2 hours ago   <none>
+openshift      is/ruby                 172.30.1.1:5000/openshift/ruby                    latest,2.3,2.2 + 1 more...     2 hours ago   <none>
+openshift      is/wildfly              172.30.1.1:5000/openshift/wildfly                 10.0,9.0,8.1 + 2 more...       2 hours ago   <none>
 NAMESPACE   NAME                 REVISION   DESIRED   CURRENT   TRIGGERED BY   LABELS
 default     dc/docker-registry   1          1         1         config         docker-registry=default
 default     dc/router            1          1         1         config         router=router
 NAMESPACE      NAME                            DESIRED   CURRENT   READY     AGE       CONTAINER(S)   IMAGE(S)                                  SELECTOR                                                                                LABELS
-default        rc/docker-registry-1            1         1         1         45m       registry       openshift/origin-docker-registry:v3.6.1   deployment=docker-registry-1,deploymentconfig=docker-registry,docker-registry=default   docker-registry=default,openshift.io/deployment-config.name=docker-registry
-default        rc/router-1                     1         1         1         45m       router         openshift/origin-haproxy-router:v3.6.1    deployment=router-1,deploymentconfig=router,router=router                               openshift.io/deployment-config.name=router,router=router
+default        rc/docker-registry-1            1         1         1         2h        registry       openshift/origin-docker-registry:v3.6.1   deployment=docker-registry-1,deploymentconfig=docker-registry,docker-registry=default   docker-registry=default,openshift.io/deployment-config.name=docker-registry
+default        rc/router-1                     1         1         1         2h        router         openshift/origin-haproxy-router:v3.6.1    deployment=router-1,deploymentconfig=router,router=router                               openshift.io/deployment-config.name=router,router=router
 my-project-2   rc/my-replicationcontroller-2   0         0         0         3m        nginx          nginx                                     app=nginx                                                                               app=nginx
 NAMESPACE      NAME                HOST/PORT                                       PATH      SERVICES       PORT      TERMINATION   WILDCARD   LABELS
 my-project-2   routes/my-route-2   my-route-2-my-project-2.192.168.99.100.nip.io             service-name   <all>                   None       <none>
-NAMESPACE      NAME                  CLUSTER-IP       EXTERNAL-IP   PORT(S)                   AGE       SELECTOR                  LABELS
-default        svc/docker-registry   172.30.1.1       <none>        5000/TCP                  45m       docker-registry=default   docker-registry=default
-default        svc/kubernetes        172.30.0.1       <none>        443/TCP,53/UDP,53/TCP     45m       <none>                    component=apiserver,provider=kubernetes
-default        svc/router            172.30.162.207   <none>        80/TCP,443/TCP,1936/TCP   45m       router=router             router=router
-my-project-2   svc/my-service-2      172.30.88.74     <none>        5000/TCP                  3m        docker-registry=default   <none>
+NAMESPACE      NAME                                CLUSTER-IP       EXTERNAL-IP   PORT(S)                   AGE       SELECTOR                      LABELS
+default        svc/docker-registry                 172.30.1.1       <none>        5000/TCP                  2h        docker-registry=default       docker-registry=default
+default        svc/kubernetes                      172.30.0.1       <none>        443/TCP,53/UDP,53/TCP     2h        <none>                        component=apiserver,provider=kubernetes
+default        svc/router                          172.30.35.134    <none>        80/TCP,443/TCP,1936/TCP   2h        router=router                 router=router
+my-project-2   svc/my-service-2                    172.30.206.57    <none>        5000/TCP                  3m        docker-registry=default       <none>
+my-project-2   svc/my-service-empty-2              172.30.90.240    <none>        5000/TCP                  3m        no-such-label=no-such-value   <none>
+my-project-2   svc/my-service-without-selector-2   172.30.108.199   <none>        5000/TCP                  3m        <none>                        <none>
 NAMESPACE   NAME                           DESIRED   SUCCESSFUL   AGE       CONTAINER(S)        IMAGE(S)                  SELECTOR                                              LABELS
-default     jobs/persistent-volume-setup   1         1            45m       storage-setup-job   openshift/origin:v3.6.1   controller-uid=020bdba8-042d-11e8-a0fb-fe55f1b688bb   controller-uid=020bdba8-042d-11e8-a0fb-fe55f1b688bb,job-name=persistent-volume-setup
+default     jobs/persistent-volume-setup   1         1            2h        storage-setup-job   openshift/origin:v3.6.1   controller-uid=930ff5b2-2cef-11e8-953d-72145be3db17   controller-uid=930ff5b2-2cef-11e8-953d-72145be3db17,job-name=persistent-volume-setup
 NAMESPACE      NAME                               READY     STATUS      RESTARTS   AGE       IP           NODE        LABELS
-default        po/docker-registry-1-40btz         1/1       Running     0          45m       172.17.0.5   localhost   deployment=docker-registry-1,deploymentconfig=docker-registry,docker-registry=default
-default        po/persistent-volume-setup-m77b2   0/1       Completed   0          45m       172.17.0.2   localhost   controller-uid=020bdba8-042d-11e8-a0fb-fe55f1b688bb,job-name=persistent-volume-setup
-default        po/router-1-1dvkj                  1/1       Running     0          45m       10.0.2.15    localhost   deployment=router-1,deploymentconfig=router,router=router
-my-project-2   po/my-build-config-2-1-build       0/1       Error       0          3m        172.17.0.6   localhost   openshift.io/build.name=my-build-config-2-1
+default        po/docker-registry-1-jxwdz         1/1       Running     0          2h        172.17.0.5   localhost   deployment=docker-registry-1,deploymentconfig=docker-registry,docker-registry=default
+default        po/persistent-volume-setup-2gnwl   0/1       Completed   0          2h        172.17.0.4   localhost   controller-uid=930ff5b2-2cef-11e8-953d-72145be3db17,job-name=persistent-volume-setup
+default        po/router-1-z44bc                  1/1       Running     0          2h        10.0.2.15    localhost   deployment=router-1,deploymentconfig=router,router=router
+my-project-2   po/my-build-config-2-1-build       0/1       Error       0          3m        172.17.0.4   localhost   openshift.io/build.name=my-build-config-2-1
 
 == oc get resourceQuotas --all-namespaces --show-kind --show-labels ==
 NAMESPACE      NAME                                AGE       LABELS
@@ -83,28 +85,28 @@ my-project-2   pvc/my-persistentvolumeclaim-pending-2   Pending                 
 
 == oc get images --show-kind --sort-by=.dockerImageReference ==
 NAME                                                                      DOCKER REF
-sha256:84656bdae1ba29611352a3c46ced7220833e8352c1856e1524748bb8197c1595   centos/httpd-24-centos7@sha256:84656bdae1ba29611352a3c46ced7220833e8352c1856e1524748bb8197c1595
-sha256:59ba2aab339925abb56f0755b1d65a71a6792b435c4da95c3b826ff2ac503892   centos/mariadb-101-centos7@sha256:59ba2aab339925abb56f0755b1d65a71a6792b435c4da95c3b826ff2ac503892
-sha256:ba6cdbacfa6b28d6dca3954c9ce370650822236450165a5a266f900c37d02b77   centos/mongodb-26-centos7@sha256:ba6cdbacfa6b28d6dca3954c9ce370650822236450165a5a266f900c37d02b77
-sha256:9f4e502727a43c281ba2f58909319c79dd9ae83103f26e5e19417b2d22e2d744   centos/mongodb-32-centos7@sha256:9f4e502727a43c281ba2f58909319c79dd9ae83103f26e5e19417b2d22e2d744
-sha256:f1dd9b03bcb448db19adb4cd0aa5a409c491c4e81ab7c2dac51a55955e08f5f5   centos/mysql-56-centos7@sha256:f1dd9b03bcb448db19adb4cd0aa5a409c491c4e81ab7c2dac51a55955e08f5f5
-sha256:5cc8f3c8b3b0b9bc1e44fbe0256415881203f48bffc0fb1bc7f3a45fb023460e   centos/mysql-57-centos7@sha256:5cc8f3c8b3b0b9bc1e44fbe0256415881203f48bffc0fb1bc7f3a45fb023460e
-sha256:76ceae9de9c4359ea33f3a87e61090ebc3e191339dfeb3a44be78f339d73b579   centos/nodejs-4-centos7@sha256:76ceae9de9c4359ea33f3a87e61090ebc3e191339dfeb3a44be78f339d73b579
-sha256:53fe41de8a94f8e5270c43a32050b91e8833888aa920cbbcb33172434dd2ee40   centos/nodejs-6-centos7@sha256:53fe41de8a94f8e5270c43a32050b91e8833888aa920cbbcb33172434dd2ee40
-sha256:c86bc47542bbff36218c0806add908136c8abbe3b90c2c03e0e212e1640ff800   centos/perl-520-centos7@sha256:c86bc47542bbff36218c0806add908136c8abbe3b90c2c03e0e212e1640ff800
-sha256:b4b0a567d8bb1fec44bd44fc2950c5b311227e4b70c2604ecc8844870151b8db   centos/perl-524-centos7@sha256:b4b0a567d8bb1fec44bd44fc2950c5b311227e4b70c2604ecc8844870151b8db
-sha256:5a54c20e05d0fb188afa492ca4bd231bb64717f111c0946d271ab84d7492cf2e   centos/php-56-centos7@sha256:5a54c20e05d0fb188afa492ca4bd231bb64717f111c0946d271ab84d7492cf2e
-sha256:36c9c22ba5c7c36dfb14fbdb7650f7261e4813fcd2f64dd46fe52bc54bca76ca   centos/php-70-centos7@sha256:36c9c22ba5c7c36dfb14fbdb7650f7261e4813fcd2f64dd46fe52bc54bca76ca
-sha256:023cc755dd9d2a9460f89ce4449fa9050dbd974a8abe72a2ccf7a6261b3a81de   centos/postgresql-94-centos7@sha256:023cc755dd9d2a9460f89ce4449fa9050dbd974a8abe72a2ccf7a6261b3a81de
-sha256:87bf125972705895b5fc7e3891b7e2b1a97d4aefdc5594173e1ce5c6ad4c31d3   centos/postgresql-95-centos7@sha256:87bf125972705895b5fc7e3891b7e2b1a97d4aefdc5594173e1ce5c6ad4c31d3
-sha256:05b9747fd2a97824332bee6d6c233c66ade7aaf1fb6747b231db824baf92674b   centos/python-27-centos7@sha256:05b9747fd2a97824332bee6d6c233c66ade7aaf1fb6747b231db824baf92674b
-sha256:83e58f41931d25091eff119a9dd1b6a75243a473f074d573532e13860c4bbf4e   centos/python-34-centos7@sha256:83e58f41931d25091eff119a9dd1b6a75243a473f074d573532e13860c4bbf4e
-sha256:ecc09fe19238b8f609bdba769d2b49f0055c3ec0d2fb88245c5897ef4616ad9a   centos/python-35-centos7@sha256:ecc09fe19238b8f609bdba769d2b49f0055c3ec0d2fb88245c5897ef4616ad9a
-sha256:e27763779f45c6cb5a0b6a107fcf771661aee8db0936b9cb1cb1296c0da6634c   centos/redis-32-centos7@sha256:e27763779f45c6cb5a0b6a107fcf771661aee8db0936b9cb1cb1296c0da6634c
-sha256:968c8d8427fd4034add4ca5b0e9e029c54d3cc844f3e43efb2e5385f1dcf97d0   centos/ruby-22-centos7@sha256:968c8d8427fd4034add4ca5b0e9e029c54d3cc844f3e43efb2e5385f1dcf97d0
-sha256:263b9f21277307bcc6177467b0616cd35ca1ac5a18347ee7b5ad71556294669b   centos/ruby-23-centos7@sha256:263b9f21277307bcc6177467b0616cd35ca1ac5a18347ee7b5ad71556294669b
+sha256:46bcbdaaee98e7b3706a5a149b93c2e0559d6e6d0911ec0b68091a4baf5789a3   centos/httpd-24-centos7@sha256:46bcbdaaee98e7b3706a5a149b93c2e0559d6e6d0911ec0b68091a4baf5789a3
+sha256:9a63575c89f52d36df385a4fc0a0a080e7263cc6a3a62c69d33a60486b18666f   centos/mariadb-101-centos7@sha256:9a63575c89f52d36df385a4fc0a0a080e7263cc6a3a62c69d33a60486b18666f
+sha256:ccaa7f9a56c322f167b1dacb451fd3a7247e450039a9432328c9bf2a7bf4eb54   centos/mongodb-26-centos7@sha256:ccaa7f9a56c322f167b1dacb451fd3a7247e450039a9432328c9bf2a7bf4eb54
+sha256:7c5b2677d81a6f6fc7219d3307b774beb0a4ef973d23d787ee3cdfca6258af06   centos/mongodb-32-centos7@sha256:7c5b2677d81a6f6fc7219d3307b774beb0a4ef973d23d787ee3cdfca6258af06
+sha256:11193190f8e7d515f1996a31ebebc3e70eedda544c1c929d57f4d6414f7972af   centos/mysql-56-centos7@sha256:11193190f8e7d515f1996a31ebebc3e70eedda544c1c929d57f4d6414f7972af
+sha256:feffabaae04e2eac689b5ea97a8be1833847a4f21efeac596e72bd837977c6e8   centos/mysql-57-centos7@sha256:feffabaae04e2eac689b5ea97a8be1833847a4f21efeac596e72bd837977c6e8
+sha256:2a1e43ea5a3664e8fd128e2fad139fefa7622f4f71b9d1c9a7a41f5b43b8f9b6   centos/nodejs-4-centos7@sha256:2a1e43ea5a3664e8fd128e2fad139fefa7622f4f71b9d1c9a7a41f5b43b8f9b6
+sha256:fc1cdb56b788edbaf0571d135851a7c3a826f7bb4680dc00e615374453bdba15   centos/nodejs-6-centos7@sha256:fc1cdb56b788edbaf0571d135851a7c3a826f7bb4680dc00e615374453bdba15
+sha256:81b594f03086a3b6e2346f7574293509e8a08bc851a87027078db28bb3cacbe7   centos/perl-520-centos7@sha256:81b594f03086a3b6e2346f7574293509e8a08bc851a87027078db28bb3cacbe7
+sha256:e00cafeaac99bdfb51e557d9121906694e7beba6a339cc42d06609eb28ce9cec   centos/perl-524-centos7@sha256:e00cafeaac99bdfb51e557d9121906694e7beba6a339cc42d06609eb28ce9cec
+sha256:67d9054a06b7a82d39ef235764fd5eb288bdcaf3cc2d2278d549c8156515128f   centos/php-56-centos7@sha256:67d9054a06b7a82d39ef235764fd5eb288bdcaf3cc2d2278d549c8156515128f
+sha256:cdaba352981df86e204ba47129aa64433c888757dde5eea36057996f25e67f26   centos/php-70-centos7@sha256:cdaba352981df86e204ba47129aa64433c888757dde5eea36057996f25e67f26
+sha256:72b7ce264d882f130ff5a1cebb8a0f559d2f33b7191c8d0fc3d00c95b7aec037   centos/postgresql-94-centos7@sha256:72b7ce264d882f130ff5a1cebb8a0f559d2f33b7191c8d0fc3d00c95b7aec037
+sha256:5db4f5c14918abcd46a600fd2687c64f8119c98786dbe9fdc7551d0c122072bb   centos/postgresql-95-centos7@sha256:5db4f5c14918abcd46a600fd2687c64f8119c98786dbe9fdc7551d0c122072bb
+sha256:f2fdcde08f5a75a8e064c9e85a550cef3c69ef548f99ca89e2db5a20ae8310ee   centos/python-27-centos7@sha256:f2fdcde08f5a75a8e064c9e85a550cef3c69ef548f99ca89e2db5a20ae8310ee
+sha256:7299dfadce86f74b8f73e6238406f4ff1299d8a56b9e98f36dbcfde75b3e835f   centos/python-34-centos7@sha256:7299dfadce86f74b8f73e6238406f4ff1299d8a56b9e98f36dbcfde75b3e835f
+sha256:37e05dc1c0523a19cd0e99def926ff020803a312bf9df832740fd48d0b7b54a9   centos/python-35-centos7@sha256:37e05dc1c0523a19cd0e99def926ff020803a312bf9df832740fd48d0b7b54a9
+sha256:0f982e9af7248a7c7200e419b9eda6af0909e49e192abefcb4d0bd6bd0d807bd   centos/redis-32-centos7@sha256:0f982e9af7248a7c7200e419b9eda6af0909e49e192abefcb4d0bd6bd0d807bd
+sha256:9f01356ebc7d2449d00e54aa8ff48544011cc93a7e045cb4ec219f0611d0ab87   centos/ruby-22-centos7@sha256:9f01356ebc7d2449d00e54aa8ff48544011cc93a7e045cb4ec219f0611d0ab87
+sha256:3ad17e48e799111a72d22cf7e34fabe807676f83fdd353166cdf412abfb82acc   centos/ruby-23-centos7@sha256:3ad17e48e799111a72d22cf7e34fabe807676f83fdd353166cdf412abfb82acc
 sha256:7cf1c8ef7baa7a750d5c36e82d7f4a21a300c37aaa24baff593de0031ae080f0   openshift/jenkins-1-centos7@sha256:7cf1c8ef7baa7a750d5c36e82d7f4a21a300c37aaa24baff593de0031ae080f0
-sha256:0adcef7b4cff4f6a4f0a99410099d80d2f2c6071e662535ca03029e6e9b656dc   openshift/jenkins-2-centos7@sha256:0adcef7b4cff4f6a4f0a99410099d80d2f2c6071e662535ca03029e6e9b656dc
+sha256:61bfc2b65f755879767be59343c2d523904870fb206e26ca4796eb5a1ae50d40   openshift/jenkins-2-centos7@sha256:61bfc2b65f755879767be59343c2d523904870fb206e26ca4796eb5a1ae50d40
 sha256:1a0e9ae0f6bf9b5f808534f3152dc068c48ad1bc428e94822dce84722a3decad   openshift/mongodb-24-centos7@sha256:1a0e9ae0f6bf9b5f808534f3152dc068c48ad1bc428e94822dce84722a3decad
 sha256:7cd33ccc63b8005810aedee0444472cc84c3e3c38fe9cd147edb964e712a1068   openshift/mysql-55-centos7@sha256:7cd33ccc63b8005810aedee0444472cc84c3e3c38fe9cd147edb964e712a1068
 sha256:bd971b467b08b8dbbbfee26bad80dcaa0110b184e0a8dd6c1b0460a6d6f5d332   openshift/nodejs-010-centos7@sha256:bd971b467b08b8dbbbfee26bad80dcaa0110b184e0a8dd6c1b0460a6d6f5d332
@@ -113,7 +115,7 @@ sha256:1478800585f06a6c0feeb8301ceb54059d54816762de9f6b1182c3d52c75ac84   opensh
 sha256:dbd4b6fef477e49bff9703ee70d20a2c48f68023562ebecc264d0b87a7fa270e   openshift/postgresql-92-centos7@sha256:dbd4b6fef477e49bff9703ee70d20a2c48f68023562ebecc264d0b87a7fa270e
 sha256:7bbc639e8cb6404682957a671f16408b0d039998671c96bd2cb34a224a820e5a   openshift/python-33-centos7@sha256:7bbc639e8cb6404682957a671f16408b0d039998671c96bd2cb34a224a820e5a
 sha256:751a3cd1905914389fe568c25b3d5367cd705a0e4f81970a361f670ce891baf7   openshift/ruby-20-centos7@sha256:751a3cd1905914389fe568c25b3d5367cd705a0e4f81970a361f670ce891baf7
-sha256:4e35cc537cd1d345985ee61d3a5991cf0e8ad8202f2a1d93aed09c184e6a29dc   openshift/wildfly-81-centos7@sha256:4e35cc537cd1d345985ee61d3a5991cf0e8ad8202f2a1d93aed09c184e6a29dc
-sha256:7accb1b78679c3e7d7fd8f4a554420785d3be6dd8a3bf47af1ff4c87396b832e   openshift/wildfly-90-centos7@sha256:7accb1b78679c3e7d7fd8f4a554420785d3be6dd8a3bf47af1ff4c87396b832e
-sha256:01fde7095217610427a3fb133e0ff6003cc5958f65e956fa58aecde3f57d45ff   openshift/wildfly-100-centos7@sha256:01fde7095217610427a3fb133e0ff6003cc5958f65e956fa58aecde3f57d45ff
-sha256:4b8efd59cdac114d222be2760e0b45d44d3c10f6267558a6c252ca632baa9de6   openshift/wildfly-101-centos7@sha256:4b8efd59cdac114d222be2760e0b45d44d3c10f6267558a6c252ca632baa9de6
+sha256:00419dd0ab6248057f521367d47702d92d6e4c8d6177e1003688067aecea39de   openshift/wildfly-81-centos7@sha256:00419dd0ab6248057f521367d47702d92d6e4c8d6177e1003688067aecea39de
+sha256:b24db92dd03610c512c4e8841f884833218bab4b302b151b86387fe43e12100b   openshift/wildfly-90-centos7@sha256:b24db92dd03610c512c4e8841f884833218bab4b302b151b86387fe43e12100b
+sha256:b03961a41f2161b090a9b47430eb411a7f6cf54794c54e4983e7f86ab8fa9ad7   openshift/wildfly-100-centos7@sha256:b03961a41f2161b090a9b47430eb411a7f6cf54794c54e4983e7f86ab8fa9ad7
+sha256:a2661f20f2e870520a73765f783de105c61916235a541332acd1501c2ee76280   openshift/wildfly-101-centos7@sha256:a2661f20f2e870520a73765f783de105c61916235a541332acd1501c2ee76280

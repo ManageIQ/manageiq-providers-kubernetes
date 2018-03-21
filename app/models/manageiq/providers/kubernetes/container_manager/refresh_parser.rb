@@ -109,6 +109,7 @@ module ManageIQ::Providers::Kubernetes
           :container_endpoints, :by_namespace_and_name, se[:namespace], se[:name],
           :container_groups
         )
+        se[:container_groups] ||= []
         se[:project] = @data_index.fetch_path(path_for_entity("namespace"), :by_name, se[:namespace])
 
         # TODO: this loop only uses last port config - BUG?
@@ -540,7 +541,7 @@ module ManageIQ::Providers::Kubernetes
         tags = h.delete(:tags)
         children = h.extract!(:container_service_port_configs)
 
-        h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name])
+        h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name]) || []
 
         container_service = collection.build(h)
 

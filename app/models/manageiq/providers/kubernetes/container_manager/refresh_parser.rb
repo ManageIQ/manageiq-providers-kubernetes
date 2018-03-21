@@ -541,7 +541,7 @@ module ManageIQ::Providers::Kubernetes
         tags = h.delete(:tags)
         children = h.extract!(:container_service_port_configs)
 
-        h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name])
+        h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name]) || []
 
         container_service = collection.build(h)
 

@@ -191,13 +191,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     :bearer
   end
 
-  def scan_job_create(entity)
-    check_policy_prevent(:request_containerimage_scan, entity, User.current_user.userid, :raw_scan_job_create)
+  def scan_job_create(entity, userid)
+    check_policy_prevent(:request_containerimage_scan, entity, userid, :raw_scan_job_create)
   end
 
   def raw_scan_job_create(target_class, target_id = nil, userid = nil, target_name = nil)
     raise MiqException::Error, _("target_class must be a class not an instance") if target_class.kind_of?(ContainerImage)
-    userid ||= User.current_user.userid
     Job.create_job(
       "ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job",
       :userid          => userid,

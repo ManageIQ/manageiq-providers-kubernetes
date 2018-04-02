@@ -37,7 +37,9 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::TargetCollectionMixin
   end
 
   def pod_list
-    target.targets.map { |target| JSON.parse(target.options[:payload], :object_class => OpenStruct) }
+    targets = target.targets.map { |target| JSON.parse(target.options[:payload], :object_class => OpenStruct) }
+    # Return only the latest occurrence of each pod
+    targets.index_by { |x| x.metadata.uid }.values
   end
 
   private

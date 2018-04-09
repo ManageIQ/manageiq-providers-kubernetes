@@ -422,9 +422,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     end
 
     [
-      {:saver_strategy => :default},
-      {:saver_strategy => :batch, :use_ar_object => true},
-      {:saver_strategy => :batch, :use_ar_object => false}
+      {:saver_strategy => "default"},
+      {:saver_strategy => "batch", :use_ar_object => true},
+      {:saver_strategy => "batch", :use_ar_object => false}
     ].each do |saver_options|
       context "with #{saver_options}" do
         before(:each) do

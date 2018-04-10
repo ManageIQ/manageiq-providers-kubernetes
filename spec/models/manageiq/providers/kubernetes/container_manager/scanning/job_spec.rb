@@ -152,7 +152,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         # https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/54/files
         image = FactoryGirl.create(:container_image, :ext_management_system => @ems)
         User.current_user = FactoryGirl.create(:user, :userid => "bob")
-        job = @ems.raw_scan_job_create(image.class, image.id)
+        job = @ems.raw_scan_job_create(image.class, image.id, User.current_user.userid)
         expect(job).to have_attributes(
           :dispatch_status => "pending",
           :state           => "waiting_to_start",

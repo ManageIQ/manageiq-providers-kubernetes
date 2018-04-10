@@ -236,7 +236,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
           :association          => :container_services,
           :secondary_refs       => {:by_container_project_and_name => [:container_project, :name]},
           :attributes_blacklist => [:namespace],
-          :saver_strategy       => :default # TODO(perf) Can't use batch strategy because of usage of M:N container_groups relation
+          :saver_strategy       => "default" # TODO(perf) Can't use batch strategy because of usage of M:N container_groups relation
         )
       )
     initialize_custom_attributes_collections(@collections[:container_services], %w(labels selectors))

@@ -207,6 +207,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
 
       User.current_user = FactoryGirl.create(:user)
       @job = @ems.raw_scan_job_create(@image.class, @image.id)
+      @job.options[:image_name] = IMAGE_NAME
       allow(MiqQueue).to receive(:put_unless_exists) do |args|
         @job.signal(*args[:args])
       end
@@ -368,6 +369,19 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
               Kubeclient::Resource.new(
                 :name   => "inspector-admin-secret-" + secret_name,
                 :secret => {:secretName => secret_name}))
+          end
+        end
+
+        it 'will create the pod with complex image names' do
+          samples = ["my.re.po/image20_a.b-c_d", "image-1"]
+          allow(@job).to receive(:kubernetes_client).and_return(MockKubeClientTwoPullSecrets.new)
+          secrets = @job.send(:inspector_admin_secrets)
+
+          samples.each do |image_name|
+            @job.options[:image_name] = image_name
+            pod = @job.send(:pod_definition, secrets)
+            # regexp for DNS-1123 label validation
+            expect(pod[:spec][:hostname].match(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/).captures[0]).not_to be_empty
           end
         end
       end

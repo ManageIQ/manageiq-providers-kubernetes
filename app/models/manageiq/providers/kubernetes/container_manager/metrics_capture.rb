@@ -51,24 +51,39 @@ module ManageIQ::Providers
       }
     }
 
+    def hawkular_force_legacy?
+      worker_class = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCollectorWorker
+
+      worker_class.worker_settings[:hawkular_force_legacy] || false
+    end
+
+    def prometheus_capture_context(target, start_time, end_time)
+      PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
+    end
+
+    def hawkular_capture_context(target, start_time, end_time)
+      # if we have new version of hawkular endpoints (/m endpoint)
+      # use the new collector
+      context = HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
+      if hawkular_force_legacy? || !context.m_endpoint?
+        _log.info("Using Hawkular legacy metrics collector")
+        HawkularLegacyCaptureContext.new(target, start_time, end_time, INTERVAL)
+      else
+        context
+      end
+    end
+
     def capture_context(ems, target, start_time, end_time)
       # make start_time align to minutes
       start_time = start_time.beginning_of_minute
 
-      # check for prometheus endpoint, ems must be set
+      # check for prometheus/hawkular endpoints, ems must be set
       if ems.connection_configurations.prometheus.try(:endpoint)
-        PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
+        return prometheus_capture_context(target, start_time, end_time)
+      end
 
-      # check for hawkualr endpoint
-      elsif ems.connection_configurations.hawkular.try(:endpoint)
-        context = HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
-
-        # check for old versions of hawkular endpoints (no /m endpoint)
-        unless context.m_endpoint?
-          context = HawkularLegacyCaptureContext.new(target, start_time, end_time, INTERVAL)
-        end
-
-        context
+      if ems.connection_configurations.hawkular.try(:endpoint)
+        return hawkular_capture_context(target, start_time, end_time)
       end
     end
 

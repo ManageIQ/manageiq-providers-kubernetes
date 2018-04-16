@@ -1,31 +1,136 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
   before do
+    # @miq_server is required for worker_settings to work
+    @miq_server = EvmSpecHelper.local_miq_server(:is_master => true)
+    @hawkular_force_legacy_settings = {
+      :workers => {
+        :worker_base => {
+          :queue_worker_base => {
+            :ems_metrics_collector_worker => {
+              :ems_metrics_collector_worker_kubernetes => {
+                :hawkular_force_legacy => true
+              }
+            }
+          }
+        }
+      }
+    }
+
     @ems_kubernetes = FactoryGirl.create(
       :ems_kubernetes,
       :connection_configurations => [{:endpoint       => {:role => :hawkular},
                                       :authentication => {:role => :hawkular}}],
     )
 
-    @node = FactoryGirl.create(:kubernetes_node,
-                               :name                  => 'node',
-                               :ext_management_system => @ems_kubernetes,
-                               :ems_ref               => 'target')
+    @ems_kubernetes_prometheus = FactoryGirl.create(
+      :ems_kubernetes,
+      :connection_configurations => [{:endpoint       => {:role => :prometheus},
+                                      :authentication => {:role => :prometheus}}],
+    )
+
+    @node = FactoryGirl.create(
+      :kubernetes_node,
+      :name                  => 'node',
+      :ext_management_system => @ems_kubernetes,
+      :ems_ref               => 'target'
+    )
+
+    @node_prometheus = FactoryGirl.create(
+      :kubernetes_node,
+      :name                  => 'node',
+      :ext_management_system => @ems_kubernetes_prometheus,
+      :ems_ref               => 'target'
+    )
 
     @node.computer_system.hardware = FactoryGirl.create(
       :hardware,
       :cpu_total_cores => 2,
-      :memory_mb       => 2048)
+      :memory_mb       => 2048
+    )
 
-    @group = FactoryGirl.create(:container_group,
-                                :ext_management_system => @ems_kubernetes,
-                                :container_node        => @node,
-                                :ems_ref               => 'group')
+    @node_prometheus.computer_system.hardware = FactoryGirl.create(
+      :hardware,
+      :cpu_total_cores => 2,
+      :memory_mb       => 2048
+    )
 
-    @container = FactoryGirl.create(:kubernetes_container,
-                                    :name                  => 'container',
-                                    :container_group       => @group,
-                                    :ext_management_system => @ems_kubernetes,
-                                    :ems_ref               => 'target')
+    @group = FactoryGirl.create(
+      :container_group,
+      :ext_management_system => @ems_kubernetes,
+      :container_node        => @node,
+      :ems_ref               => 'group'
+    )
+
+    @container = FactoryGirl.create(
+      :kubernetes_container,
+      :name                  => 'container',
+      :container_group       => @group,
+      :ext_management_system => @ems_kubernetes,
+      :ems_ref               => 'target'
+    )
+  end
+
+  context "#capture_context" do
+    it "detect prometheus metrics provider" do
+      metric_capture = described_class.new(@node_prometheus)
+      context = metric_capture.capture_context(
+        @ems_kubernetes_prometheus,
+        @node_prometheus,
+        5.minutes.ago,
+        0.minutes.ago
+      )
+
+      expect(context).to be_a(described_class::PrometheusCaptureContext)
+    end
+
+    it "detect hawkular metrics provider without m metric endpoint" do
+      allow_any_instance_of(described_class::HawkularCaptureContext)
+        .to receive(:m_endpoint?)
+        .and_return(false)
+
+      metric_capture = described_class.new(@node)
+      context = metric_capture.capture_context(
+        @ems_kubernetes,
+        @node,
+        5.minutes.ago,
+        0.minutes.ago
+      )
+
+      expect(context).to be_a(described_class::HawkularLegacyCaptureContext)
+    end
+
+    it "detect hawkular metrics provider" do
+      allow_any_instance_of(described_class::HawkularCaptureContext)
+        .to receive(:m_endpoint?)
+        .and_return(true)
+
+      metric_capture = described_class.new(@node)
+      context = metric_capture.capture_context(
+        @ems_kubernetes,
+        @node,
+        5.minutes.ago,
+        0.minutes.ago
+      )
+
+      expect(context).to be_a(described_class::HawkularCaptureContext)
+    end
+
+    it "detect hawkular metrics provider, force legacy collector" do
+      stub_settings_merge(@hawkular_force_legacy_settings)
+      allow_any_instance_of(described_class::HawkularCaptureContext)
+        .to receive(:m_endpoint?)
+        .and_return(true)
+
+      metric_capture = described_class.new(@node)
+      context = metric_capture.capture_context(
+        @ems_kubernetes,
+        @node,
+        5.minutes.ago,
+        0.minutes.ago
+      )
+
+      expect(context).to be_a(described_class::HawkularLegacyCaptureContext)
+    end
   end
 
   context "#perf_collect_metrics" do

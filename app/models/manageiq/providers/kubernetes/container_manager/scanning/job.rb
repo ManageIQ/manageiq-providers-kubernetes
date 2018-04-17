@@ -51,6 +51,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     update!(:options => options.merge(
       :docker_image_id => image.docker_id,
       :image_full_name => image.full_name,
+      :image_name      => image.name,
       :pod_name        => "manageiq-img-scan-#{guid[0..4]}",
       :pod_port        => INSPECTOR_PORT,
       :pod_namespace   => namespace
@@ -400,6 +401,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
         }
       },
       :spec       => {
+        # determines the 'target name' in the report
+        :hostname      => options[:image_name].match(/(?:.*\/)*(.*)$/).captures[0].downcase.tr("._-", "").truncate(63),
         :restartPolicy => 'Never',
         :containers    => [
           {

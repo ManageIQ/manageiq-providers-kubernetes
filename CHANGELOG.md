@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 84 ending 2018-04-23
+
+### Fixed
+- Change evaluation target in openscap reports to image name [(#248)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/248)
+- Propagate userid through to create a scanning job with current userid [(#244)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/244)
+
 ## Unreleased as of Sprint 83 ending 2018-04-09
 
 ### Fixed

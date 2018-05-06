@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Gaprindashvili-2
+## Gaprindashvili-3
+
+### Added
+- Keep quota history by archiving [(#198)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/198)
+
+### Fixed
+- Avoid refresh crash on Service without matchin Endpoints [(#242)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/242)
+- Propagate userid through to create a scanning job with current userid [(#244)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/244)
+- change evaluation target in openscap reports to image name [(#248)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/248)
+
+## Gaprindashvili-2 - Released 2018-03-07
 
 ### Fixed
 - Change alert definition meta [(#217)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/217)

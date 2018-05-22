@@ -23,7 +23,7 @@ shared_examples "kubernetes refresher VCR tests" do
   # Smoke test the use of ContainerLabelTagMapping during refresh.
   before :each do
     mapping = FactoryGirl.create(:tag_mapping_with_category, :label_name => 'name')
-    @name_category = mapping.tag.category
+    @name_category = mapping.tag.classification
 
     @user_tag = FactoryGirl.create(:classification_cost_center_with_tags).entries.first.tag
   end

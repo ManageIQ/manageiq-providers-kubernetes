@@ -2,13 +2,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
   before do
     # @miq_server is required for worker_settings to work
     @miq_server = EvmSpecHelper.local_miq_server(:is_master => true)
-    @hawkular_force_legacy_settings = {
+    @hawkular_force_legacy_settings_false = {
       :workers => {
         :worker_base => {
           :queue_worker_base => {
             :ems_metrics_collector_worker => {
               :ems_metrics_collector_worker_kubernetes => {
-                :hawkular_force_legacy => true
+                :hawkular_force_legacy => false
               }
             }
           }
@@ -84,6 +84,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     end
 
     it "detect hawkular metrics provider without m metric endpoint" do
+      stub_settings_merge(@hawkular_force_legacy_settings_false)
       allow_any_instance_of(described_class::HawkularCaptureContext)
         .to receive(:m_endpoint?)
         .and_return(false)
@@ -100,6 +101,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     end
 
     it "detect hawkular metrics provider" do
+      stub_settings_merge(@hawkular_force_legacy_settings_false)
       allow_any_instance_of(described_class::HawkularCaptureContext)
         .to receive(:m_endpoint?)
         .and_return(true)
@@ -116,7 +118,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     end
 
     it "detect hawkular metrics provider, force legacy collector" do
-      stub_settings_merge(@hawkular_force_legacy_settings)
       allow_any_instance_of(described_class::HawkularCaptureContext)
         .to receive(:m_endpoint?)
         .and_return(true)

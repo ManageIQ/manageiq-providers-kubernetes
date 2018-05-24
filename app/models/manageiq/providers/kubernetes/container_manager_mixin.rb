@@ -81,8 +81,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
   def verify_kubevirt_credentials
     ensure_infra_manager
-    infra_manager.verify_credentials
-    infra_manager.verify_virt_supported
+    options = {
+      :token => authentication_token(:kubevirt),
+    }
+    infra_manager.verify_credentials(:kubevirt, options)
+    infra_manager.verify_virt_supported(options)
   end
 
   # UI methods for determining availability of fields

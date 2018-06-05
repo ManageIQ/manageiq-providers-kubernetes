@@ -5,24 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Unreleased as of Sprint 84 ending 2018-04-23
-
-### Fixed
-- Change evaluation target in openscap reports to image name [(#248)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/248)
-- Propagate userid through to create a scanning job with current userid [(#244)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/244)
-
-## Unreleased as of Sprint 83 ending 2018-04-09
-
-### Fixed
-- Change saver_strategy value to String [(#246)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/246)
-
-## Unreleased as of Sprint 82 ending 2018-03-26
+## Gaprindashvili-3 - Released 2018-05-15
 
 ### Added
 - Keep quota history by archiving [(#198)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/198)
 
 ### Fixed
 - Avoid refresh crash on Service without matchin Endpoints [(#242)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/242)
+- Propagate userid through to create a scanning job with current userid [(#244)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/244)
+- change evaluation target in openscap reports to image name [(#248)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/248)
+
+## Unreleased as of Sprint 83 ending 2018-04-09
+
+### Fixed
+- Change saver_strategy value to String [(#246)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/246)
 
 ## Gaprindashvili-2 released 2018-03-06
 

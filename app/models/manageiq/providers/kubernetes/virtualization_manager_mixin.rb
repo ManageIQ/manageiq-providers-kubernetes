@@ -7,7 +7,6 @@ module ManageIQ::Providers::Kubernetes::VirtualizationManagerMixin
     delegate :authentication_check,
              :authentication_for_summary,
              :authentication_status,
-             :authentication_status_ok,
              :authentication_token,
              :authentications,
              :endpoints,

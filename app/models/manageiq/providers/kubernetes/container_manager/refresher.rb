@@ -1,6 +1,5 @@
 module ManageIQ::Providers::Kubernetes
   class ContainerManager::Refresher < ManageIQ::Providers::BaseManager::Refresher
-    include ::EmsRefresh::Refreshers::EmsRefresherMixin
     include ManageIQ::Providers::Kubernetes::ContainerManager::RefresherMixin
 
     def target_collection_collector_class

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 88 ending 2018-06-18
+
+### Fixed
+- Kubevirt should report its own status [(#259)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/259)
+
 ## Gaprindashvili-3 - Released 2018-05-15
 
 ### Added

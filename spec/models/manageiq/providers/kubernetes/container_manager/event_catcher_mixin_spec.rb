@@ -77,7 +77,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           :container_name       => 'heapster',
           :container_group_name => 'heapster-aas69',
           :container_namespace  => 'openshift-infra',
-          :event_type           => 'POD_KILLING'
+          :event_type           => 'POD_KILLING',
+          :event_uid            => 'fa735ca9-4f7d-11e6-b177-525400c7c086',
         }
         event = array_recursive_ostruct(:object => kubernetes_event)
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)
@@ -162,7 +163,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           :uid                       => '7599d451-4c1c-11e6-89dd-525400c7c086',
           :container_replicator_name => 'mysql-1',
           :container_namespace       => 'proj',
-          :event_type                => 'REPLICATOR_SUCCESSFULCREATE'
+          :event_type                => 'REPLICATOR_SUCCESSFULCREATE',
+          :event_uid                 => '4c513e6d-525d-11e6-8564-525400c7c086',
         }
         event = array_recursive_ostruct(:object => kubernetes_event)
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)
@@ -213,7 +215,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
                                   'c75d2b66-6d5b-49e0-b906-1d8abaf3e73b',
           :uid                 => 'd30a880d-dfa7-11e5-af89-525400c7c086',
           :container_node_name => 'vm-test-03.example.com',
-          :event_type          => 'NODE_REBOOTED'
+          :event_type          => 'NODE_REBOOTED',
+          :event_uid           => 'a4b92ae1-5251-11e6-8564-525400c7c086',
         }
       end
 

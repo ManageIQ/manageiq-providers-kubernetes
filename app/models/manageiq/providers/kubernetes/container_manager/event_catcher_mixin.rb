@@ -66,7 +66,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       :namespace => event.object.involvedObject.namespace,
       :reason    => event.object.reason,
       :message   => event.object.message,
-      :uid       => event.object.involvedObject.uid
+      :uid       => event.object.involvedObject.uid,
+      :event_uid => event.object.metadata.uid,
     }
 
     unless event.object.involvedObject.fieldPath.nil?

@@ -24,7 +24,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventParserMixin
         :container_namespace       => event[:container_namespace],
         :container_name            => event[:container_name],
         :full_data                 => event,
-        :ems_id                    => ems_id
+        :ems_id                    => ems_id,
+        :ems_ref                   => event[:event_uid],
       }
 
       event_hash[ems_ref_key] = event[:uid]

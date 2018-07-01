@@ -63,14 +63,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
 
     ems_ref = parse_notice_pod_ems_ref(object)
 
-    ManagerRefresh::Target.new(
+    target_opts = {
       :manager     => ems,
       :association => :container_groups,
-      :manager_ref => ems_ref,
-      :options     => {
-        :payload => object.to_json,
-      }
-    )
+      :manager_ref => ems_ref
+    }
+
+    ManagerRefresh::Target.new(target_opts).tap { |target| target.payload = object.to_json }
   end
 
   def stop_watch_thread

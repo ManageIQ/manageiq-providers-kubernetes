@@ -6,10 +6,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager < 
     initialize_container_inventory_collections
   end
 
-  def add_collection_directly(collection)
-    @collections[collection.name] = collection
-  end
-
   protected
 
   def targeted?

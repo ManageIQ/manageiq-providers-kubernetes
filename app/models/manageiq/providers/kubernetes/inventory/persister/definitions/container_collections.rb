@@ -34,97 +34,136 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
       add_collection(container, name)
     end
 
+    initialize_container_conditions
 
+    initialize_custom_attributes
 
-    initialize_custom_attributes_collections(@collections[:container_projects], %w(labels additional_attributes))
-    initialize_taggings_collection(@collections[:container_projects])
+    initialize_taggings
+  end
 
-    initialize_container_conditions_collection(manager, :container_nodes)
-    initialize_custom_attributes_collections(@collections[:container_nodes], %w(labels additional_attributes))
-    initialize_taggings_collection(@collections[:container_nodes])
+  protected
 
-    initialize_container_conditions_collection(manager, :container_groups)
-    initialize_custom_attributes_collections(@collections[:container_groups], %w(labels node_selectors))
-    initialize_taggings_collection(@collections[:container_groups])
+  def initialize_container_conditions
+    %i(container_groups
+       container_nodes).each do |name|
+      add_container_conditions(manager, name)
+    end
+  end
 
-    initialize_custom_attributes_collections(@collections[:container_replicators], %w(labels selectors))
-    initialize_taggings_collection(@collections[:container_replicators])
+  def initialize_custom_attributes
+    %i(container_nodes
+       container_projects).each do |name|
+      add_custom_attributes(name, %w(labels additional_attributes))
+    end
 
-    initialize_custom_attributes_collections(@collections[:container_services], %w(labels selectors))
-    initialize_taggings_collection(@collections[:container_services])
+    %i(container_groups).each do |name|
+      add_custom_attributes(name, %w(labels node_selectors))
+    end
 
-    initialize_custom_attributes_collections(@collections[:container_routes], %w(labels))
-    initialize_taggings_collection(@collections[:container_routes])
+    %i(container_replicators
+       container_services).each do |name|
+      add_custom_attributes(name, %w(labels selectors))
+    end
 
-    initialize_custom_attributes_collections(@collections[:container_templates], %w(labels))
-    initialize_taggings_collection(@collections[:container_templates])
+    %i(container_builds
+       container_build_pods
+       container_routes
+       container_templates).each do |name|
+      add_custom_attributes(name, %w(labels))
+    end
+  end
 
-    initialize_custom_attributes_collections(@collections[:container_builds], %w(labels))
-    initialize_taggings_collection(@collections[:container_builds])
+  def initialize_taggings
+    %i(container_builds
+       container_groups
+       container_nodes
+       container_projects
+       container_replicators
+       container_routes
+       container_services
+       container_templates).each do |name|
 
-    initialize_custom_attributes_collections(@collections[:container_build_pods], %w(labels))
-
+      add_taggings(name)
+    end
   end
 
   # ContainerCondition is polymorphic child of ContainerNode & ContainerGroup.
-  def initialize_container_conditions_collection(manager, association)
+  def add_container_conditions(manager, association)
     relation = manager.public_send(association)
     query = ContainerCondition.where(
       :container_entity_type => relation.model.base_class.name,
       :container_entity_id   => relation, # nested SELECT. TODO: compare to a JOIN.
+    )
+
+    add_collection(container,
+                   [:container_conditions_for, relation.model.base_class.name],
+                   {},
+                   {:auto_inventory_attributes => false}) do |builder|
+
+      builder.add_properties(
+        :model_class => ContainerCondition,
+        :association => nil,
+        :name        => "container_conditions_for_#{association}".to_sym,
+        :arel        => query,
+        :manager_ref => %i(container_entity name),
       )
-    @collections[[:container_conditions_for, relation.model.base_class.name]] =
-      ::ManagerRefresh::InventoryCollection.new(
-        shared_options.merge(
-          :model_class => ContainerCondition,
-          :name        => "container_conditions_for_#{association}".to_sym,
-          :arel        => query,
-          :manager_ref => [:container_entity, :name],
-          )
-      )
+    end
   end
 
   # CustomAttribute is polymorphic child of many models
-  def initialize_custom_attributes_collections(parent_collection, sections)
-    type = parent_collection.model_class.base_class.name
-    relation = parent_collection.full_collection_for_comparison
+  def add_custom_attributes(parent, sections)
+    parent_collection = @collections[parent]
+
+    type = parent_type(parent_collection)
+    relation = parent_id(parent_collection)
+
     sections.each do |section|
-      query = CustomAttribute.where(
+      query = ::CustomAttribute.where(
         :resource_type => type,
         :resource_id   => relation,
         :section       => section.to_s
       )
-      @collections[[:custom_attributes_for, type, section.to_s]] =
-        ::ManagerRefresh::InventoryCollection.new(
-          shared_options.merge(
-            :model_class                  => CustomAttribute,
-            :name                         => "custom_attributes_for_#{parent_collection.name}_#{section}".to_sym,
-            :arel                         => query,
-            :manager_ref                  => [:resource, :section, :name],
-            :parent_inventory_collections => [parent_collection.name],
-            )
+
+      add_collection(container, [:custom_attributes_for, type, section.to_s], {}, { :auto_inventory_attributes => false }) do |builder|
+        builder.add_properties(
+          :model_class                  => ::CustomAttribute,
+          :association                  => nil,
+          :name                         => "custom_attributes_for_#{parent_collection.name}_#{section}".to_sym,
+          :arel                         => query,
+          :manager_ref                  => %i(resource section name),
+          :parent_inventory_collections => [parent_collection.name],
         )
+      end
     end
   end
 
-  def initialize_taggings_collection(parent_collection)
-    type = parent_collection.model_class.base_class.name
-    relation = parent_collection.full_collection_for_comparison
+  def add_taggings(parent)
+    parent_collection = @collections[parent]
+    type = parent_type(parent_collection)
+    relation = parent_id(parent_collection)
+
     query = Tagging.where(
       :taggable_type => type,
       :taggable_id   => relation,
-      ).joins(:tag).merge(Tag.controlled_by_mapping)
+    ).joins(:tag).merge(Tag.controlled_by_mapping)
 
-    @collections[[:taggings_for, type]] =
-      ::ManagerRefresh::InventoryCollection.new(
-        shared_options.merge(
-          :model_class                  => Tagging,
-          :name                         => "taggings_for_#{parent_collection.name}".to_sym,
-          :arel                         => query,
-          :manager_ref                  => [:taggable, :tag],
-          :parent_inventory_collections => [parent_collection.name],
-          )
+    add_collection(container, [:taggings_for, type], {}, {:auto_inventory_attributes => false}) do |builder|
+      builder.add_properties(
+        :model_class                  => ::Tagging,
+        :association                  => nil,
+        :name                         => "taggings_for_#{parent_collection.name}".to_sym,
+        :arel                         => query,
+        :manager_ref                  => %i(taggable tag),
+        :parent_inventory_collections => [parent_collection.name],
       )
+    end
   end
 
+  def parent_type(parent_collection)
+    parent_collection.model_class.base_class.name
+  end
+
+  def parent_id(parent_collection)
+    parent_collection.full_collection_for_comparison
+  end
 end

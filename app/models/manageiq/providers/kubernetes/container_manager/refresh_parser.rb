@@ -64,7 +64,7 @@ module ManageIQ::Providers::Kubernetes
     end
 
     def persister_inv_to_persister(persister, inventory, options)
-      persister.add_collection(@tag_mapper.tags_to_resolve_collection)
+      persister.add_collection_directly(@tag_mapper.tags_to_resolve_collection)
       # TODO(lsmola) expose persister and use that and use that instead of @inv_collections
       @inv_collections = persister.collections
 

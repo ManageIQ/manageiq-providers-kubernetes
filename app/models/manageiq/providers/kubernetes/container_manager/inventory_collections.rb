@@ -408,7 +408,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollections
     lambda do |inventory_collection, inventory_objects_index, attributes_index|
       relation = inventory_collection.model_class.where(:ems_id => inventory_collection.parent.id).archived
 
-
       # Skip reconnect if there are no archived entities
       return if relation.archived.count <= 0
       raise "Allowed only manager_ref size of 1, got #{inventory_collection.manager_ref}" if inventory_collection.manager_ref.count > 1

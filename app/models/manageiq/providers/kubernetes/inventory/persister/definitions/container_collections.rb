@@ -7,8 +7,8 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        container_build_pods
        container_env_vars
        container_groups
-       container_images
        container_image_registries
+       container_images
        container_limits
        container_limit_items
        container_nodes
@@ -88,6 +88,8 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
   end
 
   # ContainerCondition is polymorphic child of ContainerNode & ContainerGroup.
+  # @param manager [ExtManagementSystem]
+  # @param association [Symbol]
   def add_container_conditions(manager, association)
     relation = manager.public_send(association)
     query = ContainerCondition.where(
@@ -111,11 +113,13 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
   end
 
   # CustomAttribute is polymorphic child of many models
+  # @param parent [Symbol]
+  # @param sections [Array<String>]
   def add_custom_attributes(parent, sections)
     parent_collection = @collections[parent]
 
-    type = parent_type(parent_collection)
-    relation = parent_id(parent_collection)
+    type = parent_collection.model_class.base_class.name
+    relation = parent_collection.full_collection_for_comparison
 
     sections.each do |section|
       query = ::CustomAttribute.where(
@@ -137,10 +141,11 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
     end
   end
 
-  def add_taggings(parent)
-    parent_collection = @collections[parent]
-    type = parent_type(parent_collection)
-    relation = parent_id(parent_collection)
+  # @param parent_name [Symbol]
+  def add_taggings(parent_name)
+    parent_collection = @collections[parent_name]
+    type = parent_collection.model_class.base_class.name
+    relation = parent_collection.full_collection_for_comparison
 
     query = Tagging.where(
       :taggable_type => type,
@@ -157,13 +162,5 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
         :parent_inventory_collections => [parent_collection.name],
       )
     end
-  end
-
-  def parent_type(parent_collection)
-    parent_collection.model_class.base_class.name
-  end
-
-  def parent_id(parent_collection)
-    parent_collection.full_collection_for_comparison
   end
 end

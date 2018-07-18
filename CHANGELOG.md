@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 90 ending 2018-07-16
+
+### Added
+- Persister: InventoryCollection building through add_collection() [(#265)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/265)
+
+## Gaprindashvili-4 - Released 2018-07-16
+
+### Fixed
+- Default to force Hawkular legacy metrics collector [(#257)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/257)
+- Set EmsEvent ems_ref to event's uid, to avoid same-second collision [(#264)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/264)
+
 ## Unreleased as of Sprint 89 ending 2018-07-02
 
 ### Fixed

@@ -4,30 +4,49 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   attr_accessor :ems, :finish, :watch_threads, :watch_streams, :queue
 
   def do_before_work_loop
-    self.ems   = @emss.first
-    self.queue = Queue.new
+    self.ems = @emss.first
 
-    self.finish = Concurrent::AtomicBoolean.new(false)
-    self.watch_streams = start_watches
-    self.watch_threads = start_watch_threads
+    if ems.supports_streaming_refresh?
+      setup_streaming_refresh
+    else
+      super
+    end
   end
 
   def do_work
-    notices = []
+    if ems.supports_streaming_refresh?
+      notices = []
 
-    notices << queue.pop until queue.empty?
-    return if notices.empty?
+      notices << queue.pop until queue.empty?
+      return if notices.empty?
 
-    _log.info("#{log_header} Processing #{notices.length} notices...")
-    targeted_refresh(notices)
-    _log.info("#{log_header} Processing #{notices.length} notices...Complete")
+      _log.info("#{log_header} Processing #{notices.length} notices...")
+      targeted_refresh(notices)
+      _log.info("#{log_header} Processing #{notices.length} notices...Complete")
+    else
+      super
+    end
+  end
+
+  def message_delivery_suspended?
+    # If we are using streaming refresh don't dequeue EmsRefresh queue items
+    ems.supports_streaming_refresh? || super
   end
 
   def before_exit(_message, _exit_code)
-    stop_watch_threads
+    super
+    stop_watch_threads if ems.supports_streaming_refresh?
   end
 
   private
+
+  def setup_streaming_refresh
+    self.queue  = Queue.new
+    self.finish = Concurrent::AtomicBoolean.new(false)
+
+    self.watch_streams = start_watches
+    self.watch_threads = start_watch_threads
+  end
 
   def targeted_refresh(notices)
     inventory = ManageIQ::Providers::Kubernetes::Inventory.new(

@@ -14,6 +14,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       # checking `provider.port` first prevents this from overriding it.
       provider.port || provider.class::DEFAULT_PORT
     end
+
+    supports :streaming_refresh do
+      unsupported_reason_add(:streaming_refresh, "Streaming refresh not enabled") unless streaming_refresh_enabled?
+    end
   end
 
   def monitoring_manager_needed?
@@ -24,6 +28,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
   def supports_metrics?
     endpoints.where(:role => METRICS_ROLES).exists?
+  end
+
+  def streaming_refresh_enabled?
+    Settings.ems_refresh[emstype.to_sym]&.streaming_refresh
   end
 
   module ClassMethods

@@ -15,14 +15,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def do_work
     if ems.supports_streaming_refresh?
-      notices = []
-
-      notices << queue.pop until queue.empty?
-      return if notices.empty?
-
-      _log.info("#{log_header} Processing #{notices.length} notices...")
-      targeted_refresh(notices)
-      _log.info("#{log_header} Processing #{notices.length} notices...Complete")
+      do_work_streaming_refresh
     else
       super
     end
@@ -46,6 +39,17 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
     self.watch_streams = start_watches
     self.watch_threads = start_watch_threads
+  end
+
+  def do_work_streaming_refresh
+    notices = []
+
+    notices << queue.pop until queue.empty?
+    return if notices.empty?
+
+    _log.info("#{log_header} Processing #{notices.length} notices...")
+    targeted_refresh(notices)
+    _log.info("#{log_header} Processing #{notices.length} notices...Complete")
   end
 
   def targeted_refresh(notices)

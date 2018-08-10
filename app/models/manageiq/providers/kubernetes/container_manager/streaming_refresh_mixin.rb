@@ -32,11 +32,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   def start_watches
     connection = ems.connect(:service => "kubernetes")
     entity_types.each_with_object({}) do |entity, watch_streams|
-      watch_method = "watch_#{entity}"
-
-      resource_version = "0"
-      watch_streams[entity] = connection.send(watch_method, :resource_version => resource_version)
+      watch_streams[entity] = start_watch(connection, entity)
     end
+  end
+
+  def start_watch(connection, entity, resource_version: "0")
+    connection.send("watch_#{entity}", :resource_version => resource_version)
   end
 
   def start_watch_threads

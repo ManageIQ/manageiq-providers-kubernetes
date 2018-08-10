@@ -100,7 +100,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def stop_watch_threads
     safe_log("#{log_header} Stopping watch threads...")
-    self.finish.value = true
+    finish.value = true
     watch_threads.each_value { |thread| thread.join(10) }
     safe_log("#{log_header} Stopping watch threads...Complete")
   end

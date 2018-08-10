@@ -19,7 +19,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     return if notices.empty?
 
     _log.info("#{log_header} Processing #{notices.length} notices...")
-    # TODO: parse & save notices
+    targeted_refresh(notices)
     _log.info("#{log_header} Processing #{notices.length} notices...Complete")
   end
 
@@ -28,6 +28,29 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   end
 
   private
+
+  def targeted_refresh(notices)
+    inventory = ManageIQ::Providers::Kubernetes::Inventory.new(
+      watches_persister_klass.new(ems),
+      watches_collector_klass.new(ems, notices),
+      watches_parser_klass.new
+    )
+
+    inventory.parse
+    inventory.persister.persist!
+  end
+
+  def watches_collector_klass
+    ems.class.parent::Inventory::Collector::Watches
+  end
+
+  def watches_parser_klass
+    ems.class.parent::Inventory::Parser::Watches
+  end
+
+  def watches_persister_klass
+    ems.class.parent::Inventory::Persister::TargetCollection
+  end
 
   def start_watches
     connection = ems.connect(:service => "kubernetes")

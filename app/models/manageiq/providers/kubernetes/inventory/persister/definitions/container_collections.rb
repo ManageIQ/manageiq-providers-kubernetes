@@ -185,7 +185,7 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
       p_collection = inventory_collection.parent_inventory_collections.first
       rel = p_collection.db_collection_for_comparison_for(p_collection.targeted_scope.primary_references)
 
-      query = Tagging.where(
+      Tagging.where(
         :taggable_type => type,
         :taggable_id   => rel,
       ).joins(:tag).merge(Tag.controlled_by_mapping)

@@ -1,12 +1,13 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   include Vmdb::Logging
 
-  attr_accessor :ems, :finish, :watch_threads, :watch_streams, :queue
+  attr_accessor :ems, :finish, :resource_versions, :watch_threads, :watch_streams, :queue
 
   def do_before_work_loop
     self.ems = @emss.first
 
     if ems.supports_streaming_refresh?
+      full_refresh
       setup_streaming_refresh
     else
       super
@@ -33,6 +34,27 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   private
 
+  def full_refresh
+    inventory = ManageIQ::Providers::Kubernetes::Inventory.new(
+      persister_klass.new(ems),
+      collector_klass.new(ems, ems),
+      parser_klass.new
+    )
+
+    inventory.parse
+    inventory.persister.persist!
+
+    save_resource_versions(inventory)
+  end
+
+  def save_resource_versions(inventory)
+    self.resource_versions = {}
+
+    entity_types.each do |entity_type|
+      resource_versions[entity_type] = inventory.collector.send(entity_type).resourceVersion
+    end
+  end
+
   def setup_streaming_refresh
     self.queue  = Queue.new
     self.finish = Concurrent::AtomicBoolean.new(false)
@@ -54,7 +76,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def targeted_refresh(notices)
     inventory = ManageIQ::Providers::Kubernetes::Inventory.new(
-      watches_persister_klass.new(ems),
+      targeted_persister_klass.new(ems),
       watches_collector_klass.new(ems, notices),
       watches_parser_klass.new
     )
@@ -63,26 +85,38 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     inventory.persister.persist!
   end
 
+  def collector_klass
+    ems.class.parent::Inventory::Collector::ContainerManager
+  end
+
   def watches_collector_klass
     ems.class.parent::Inventory::Collector::Watches
+  end
+
+  def parser_klass
+    ems.class.parent::Inventory::Parser::ContainerManager
   end
 
   def watches_parser_klass
     ems.class.parent::Inventory::Parser::Watches
   end
 
-  def watches_persister_klass
+  def persister_klass
+    ems.class.parent::Inventory::Persister::ContainerManager
+  end
+
+  def targeted_persister_klass
     ems.class.parent::Inventory::Persister::TargetCollection
   end
 
   def start_watches
     connection = ems.connect(:service => "kubernetes")
     entity_types.each_with_object({}) do |entity, watch_streams|
-      watch_streams[entity] = start_watch(connection, entity)
+      watch_streams[entity] = start_watch(connection, entity, resource_versions[entity])
     end
   end
 
-  def start_watch(connection, entity, resource_version: "0")
+  def start_watch(connection, entity, resource_version = "0")
     connection.send("watch_#{entity}", :resource_version => resource_version)
   end
 

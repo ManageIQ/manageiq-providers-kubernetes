@@ -5,7 +5,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::Watches < ManageIQ:
     super(manager, nil)
   end
 
+  def namespaces
+    @namespaces ||= notices['Namespace']&.map { |notice| notice.object } || []
+  end
+
   def pods
-    @pods ||= notices['Pod']&.map { |pod_notice| pod_notice.object } || []
+    @pods ||= notices['Pod']&.map { |notice| notice.object } || []
   end
 end

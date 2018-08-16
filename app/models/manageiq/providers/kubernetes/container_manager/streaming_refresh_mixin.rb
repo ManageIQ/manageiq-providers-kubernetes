@@ -133,6 +133,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def kubernetes_entity_types
     %w(
+      namespaces
       pods
     )
   end

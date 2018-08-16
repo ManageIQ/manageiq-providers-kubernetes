@@ -43,7 +43,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   end
 
   def full_refresh
-    inventory = refresh(collector_klass.new(ems, ems), parser_klass.new, persister_klass.new(ems))
+    _log.info("Running initial refresh...")
+    inventory = refresh(
+      collector_klass.new(ems, ems),
+      parser_klass.new,
+      persister_klass.new(ems)
+    )
+    _log.info("Running initial refresh...Complete")
 
     self.initial = false
     save_resource_versions(inventory)
@@ -54,7 +60,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     notices << queue.pop until queue.empty?
     return if notices.empty?
 
-    refresh(watches_collector_klass.new(ems, notices), watches_parser_klass.new, targeted_persister_klass.new(ems))
+    _log.info("Processing #{notices.count} Updates...")
+    refresh(
+      watches_collector_klass.new(ems, notices),
+      parser_klass.new,
+      targeted_persister_klass.new(ems)
+    )
+    _log.info("Processing #{notices.count} Updates...Complete")
   end
 
   def save_resource_versions(inventory)

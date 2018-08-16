@@ -4,4 +4,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::Watches < ManageIQ:
     self.notices = notices.group_by { |notice| notice.object[:kind] }
     super(manager, nil)
   end
+
+  def pods
+    @pods ||= notices['Pod']&.map { |pod_notice| pod_notice.object } || []
+  end
 end

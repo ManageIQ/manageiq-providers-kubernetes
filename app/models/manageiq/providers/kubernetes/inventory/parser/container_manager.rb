@@ -2,6 +2,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def parse
     parse_namespaces(collector.namespaces)
     parse_pods(collector.pods)
+
+    # Service catalog entities
+    parse_container_service_classes(collector.cluster_service_classes)
+    parse_container_service_instances(collector.service_instances)
+    parse_container_service_plans(collector.cluster_service_plans)
   end
 
   private
@@ -30,6 +35,106 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
         :message           => pod.status.message,
         :reason            => pod.status.reason,
         :container_project => lazy_find_project(pod),
+      )
+    )
+  end
+
+  # def container_service_bindings(service_bindings)
+  #   service_bindings.each do |service_binding|
+  #     persister.container_service_bindings.build(
+  #       parse_base_item(service_binding).except(:namespace).merge(
+  #         :container_project          => lazy_find_project(service_binding),
+  #         :container_service_instance => persister.container_service_instances.lazy_find(
+  #           service_binding.spec.serviceInstanceRef.name
+  #         ),
+  #         :extra                      => {
+  #           :spec   => service_binding.spec,
+  #           :status => service_binding.status
+  #         }
+  #       )
+  #     )
+  #   end
+  # end
+
+  # def container_service_brokers(service_brokers)
+  #   service_brokers.each do |service_broker|
+  #     persister.container_service_brokers.build(
+  #       parse_base_item(service_broker).except(:namespace).merge(
+  #         :url               => service_broker.spec.url,
+  #         :container_project => lazy_find_project(service_broker),
+  #         :extra             => {:status => service_broker.status}
+  #       )
+  #     )
+  #   end
+  # end
+
+  def parse_container_service_classes(service_classes)
+    service_classes.each do |service_class|
+      parse_container_service_class(service_class)
+    end
+  end
+
+  def parse_container_service_class(service_class)
+    persister.container_service_classes.build(
+      parse_base_item(service_class).except(:namespace, :ems_ref, :name).merge(
+        :name              => service_class.spec.externalName,
+        :ems_ref           => service_class.spec.externalID,
+        :description       => service_class.spec.description,
+        :container_project => lazy_find_project(service_class),
+        :extra             => {
+          :spec   => service_class.spec,
+          :status => service_class.status
+        }
+      )
+    )
+  end
+
+  def parse_container_service_instances(service_instances)
+    service_instances.each do |service_instance|
+      parse_container_service_instance(service_instance)
+    end
+  end
+
+  def parse_container_service_instance(service_instance)
+    persister.container_service_instances.build(
+      parse_base_item(service_instance).except(:namespace, :ems_ref).merge(
+        :ems_ref                 => service_instance.spec.externalID,
+        :generate_name           => service_instance.metadata.generate_name,
+        :container_project       => lazy_find_project(service_instance),
+        :container_service_class => persister.container_service_classes.lazy_find(
+          service_instance.spec.clusterServiceClassRef.name
+        ),
+        :container_service_plan  => persister.container_service_plans.lazy_find(
+          service_instance.spec.clusterServicePlanRef.name
+        ),
+        :extra                   => {
+          :spec   => service_instance.spec,
+          :status => service_instance.status
+        }
+      )
+    )
+  end
+
+  def parse_container_service_plans(service_plans)
+    service_plans.each do |service_plan|
+      parse_container_service_plan(service_plan)
+    end
+  end
+
+  def parse_container_service_plan(service_plan)
+    persister.container_service_plans.build(
+      parse_base_item(service_plan).except(:namespace, :ems_ref, :name).merge(
+        :name                    => service_plan.spec.externalName,
+        :ems_ref                 => service_plan.spec.externalID,
+        :description             => service_plan.spec.description,
+        :container_project       => lazy_find_project(service_plan),
+        :container_service_class => persister.container_service_classes.lazy_find(
+          service_plan.spec.clusterServiceClassRef.name
+        ),
+        :extra                   => {
+          :spec   => service_plan.spec,
+          :status => service_plan.status
+        }
       )
     )
   end

@@ -68,6 +68,15 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     def kubernetes_version
       'v1'
     end
+
+    def kubernetes_service_catalog_connect(hostname, port, options)
+      options = {:path => '/apis/servicecatalog.k8s.io', :version => service_catalog_api_version}.merge(options)
+      kubernetes_connect(hostname, port, options)
+    end
+
+    def service_catalog_api_version
+      'v1beta1'
+    end
   end
 
   PERF_ROLLUP_CHILDREN = :container_nodes

@@ -20,6 +20,9 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        container_volumes
        container_replicators
        container_routes
+       container_service_classes
+       container_service_instances
+       container_service_plans
        container_services
        container_service_port_configs
        container_templates

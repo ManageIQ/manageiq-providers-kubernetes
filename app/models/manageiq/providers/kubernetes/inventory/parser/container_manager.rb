@@ -39,35 +39,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     )
   end
 
-  # def container_service_bindings(service_bindings)
-  #   service_bindings.each do |service_binding|
-  #     persister.container_service_bindings.build(
-  #       parse_base_item(service_binding).except(:namespace).merge(
-  #         :container_project          => lazy_find_project(service_binding),
-  #         :container_service_instance => persister.container_service_instances.lazy_find(
-  #           service_binding.spec.serviceInstanceRef.name
-  #         ),
-  #         :extra                      => {
-  #           :spec   => service_binding.spec,
-  #           :status => service_binding.status
-  #         }
-  #       )
-  #     )
-  #   end
-  # end
-
-  # def container_service_brokers(service_brokers)
-  #   service_brokers.each do |service_broker|
-  #     persister.container_service_brokers.build(
-  #       parse_base_item(service_broker).except(:namespace).merge(
-  #         :url               => service_broker.spec.url,
-  #         :container_project => lazy_find_project(service_broker),
-  #         :extra             => {:status => service_broker.status}
-  #       )
-  #     )
-  #   end
-  # end
-
   def parse_container_service_classes(service_classes)
     service_classes.each do |service_class|
       parse_container_service_class(service_class)

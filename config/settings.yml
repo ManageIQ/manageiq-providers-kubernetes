@@ -58,6 +58,7 @@
 :ems_refresh:
   :kubernetes:
     :refresh_interval: 15.minutes
+    :streaming_refresh: false
     :inventory_object_refresh: true
     :inventory_collections:
       :saver_strategy: batch

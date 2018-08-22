@@ -18,6 +18,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     supports :streaming_refresh do
       unsupported_reason_add(:streaming_refresh, "Streaming refresh not enabled") unless streaming_refresh_enabled?
     end
+
+    def streaming_refresh_enabled?
+      Settings.ems_refresh[emstype.to_sym]&.streaming_refresh
+    end
   end
 
   def monitoring_manager_needed?
@@ -28,10 +32,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
   def supports_metrics?
     endpoints.where(:role => METRICS_ROLES).exists?
-  end
-
-  def streaming_refresh_enabled?
-    Settings.ems_refresh[emstype.to_sym]&.streaming_refresh
   end
 
   module ClassMethods

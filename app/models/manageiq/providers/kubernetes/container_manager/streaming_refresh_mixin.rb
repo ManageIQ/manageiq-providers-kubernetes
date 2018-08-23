@@ -38,6 +38,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
       full_refresh
       start_watch_threads
     else
+      ensure_watch_threads
       targeted_refresh
     end
   end
@@ -88,10 +89,20 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     _log.info("#{log_header} Starting watch threads...")
 
     entity_types.each do |entity_type|
-      watch_threads[entity_type] = Thread.new { watch_thread(entity_type) }
+      watch_threads[entity_type] = start_watch_thread(entity_type)
     end
 
     _log.info("#{log_header} Starting watch threads...Complete")
+  end
+
+  def ensure_watch_threads
+    entity_types.each do |entity_type|
+      next if watch_threads[entity_type].alive?
+
+      _log.info("#{log_header} Restarting #{entity_type} watch thread")
+
+      watch_threads[entity_type] = start_watch_thread(entity_type)
+    end
   end
 
   def stop_watch_threads
@@ -103,14 +114,26 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     safe_log("#{log_header} Stopping watch threads...Complete")
   end
 
+  def start_watch_thread(entity_type)
+    Thread.new { watch_thread(entity_type) }
+  end
+
   def watch_thread(entity_type)
     _log.info("#{log_header} #{entity_type} watch thread started")
 
     resource_version = resource_versions[entity_type] || "0"
     watch_stream     = start_watch(entity_type, resource_version)
 
-    until finish.value
-      watch_stream.each { |notice| queue.push(notice) }
+    until finished?
+      watch_stream.each do |notice|
+        # Update the collection resourceVersion to be the most recent
+        # object's resourceVersion so that if this watch has to be restarted
+        # it will pick up where it left off.
+        resource_version = notice.object.metadata.resourceVersion
+        resource_versions[entity_type] = resource_version
+
+        queue.push(notice)
+      end
     end
 
     _log.info("#{log_header} #{entity_type} watch thread exiting")
@@ -121,6 +144,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   def start_watch(entity_type, resource_version = "0")
     watch_method = "watch_#{entity_type}"
     connection_for_entity(entity_type).send(watch_method, :resource_version => resource_version)
+  end
+
+  def finished?
+    finish.value
   end
 
   def connection_for_entity(_entity_type)

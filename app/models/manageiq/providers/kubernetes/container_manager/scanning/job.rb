@@ -422,16 +422,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
               "--chroot",
               "--image=#{options[:image_full_name]}",
               "--scan-type=openscap",
-              "--serve=0.0.0.0:#{options[:pod_port]}"
+              "--serve=0.0.0.0:#{options[:pod_port]}",
+              "--use-docker-socket=false",
+              "--registry-cert-dir=/var/run/secrets/kubernetes.io/serviceaccount/"
             ],
             :ports           => [{:containerPort => options[:pod_port]}],
-            :securityContext => {:privileged =>  true},
-            :volumeMounts    => [
-              {
-                :mountPath => DOCKER_SOCKET,
-                :name      => "docker-socket"
-              }
-            ],
+            :securityContext => {:capabilities => {:add => ["SYS_CHROOT"]}},
+            :volumeMounts    => [],
             :env             => inspector_proxy_env_variables,
             :readinessProbe  => {
               "initialDelaySeconds" => 15,
@@ -443,12 +440,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
             }
           }
         ],
-        :volumes       => [
-          {
-            :name     => "docker-socket",
-            :hostPath => {:path => DOCKER_SOCKET}
-          }
-        ]
+        :volumes => []
       }
     }
 

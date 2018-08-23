@@ -1,7 +1,7 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   include Vmdb::Logging
 
-  attr_accessor :ems, :finish, :initial, :resource_versions, :watch_threads, :queue
+  attr_accessor :ems, :initial, :resource_versions, :watch_streams, :watch_threads, :queue
 
   def after_initialize
     super
@@ -26,11 +26,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   private
 
   def setup_streaming_refresh
-    self.finish            = Concurrent::AtomicBoolean.new(false)
     self.initial           = true
     self.queue             = Queue.new
     self.resource_versions = {}
-    self.watch_threads     = {}
+    self.watch_streams     = Concurrent::Map.new
+    self.watch_threads     = Concurrent::Map.new
   end
 
   def do_work_streaming_refresh
@@ -108,7 +108,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   def stop_watch_threads
     safe_log("#{log_header} Stopping watch threads...")
 
-    finish.value = true
+    # First call WatchStream#finish to forcibly terminate the loop, this
+    # closes the HTTP connection and will cause the #each method to raise an
+    # exception (until https://github.com/abonas/kubeclient/pull/315 is applied).
+    watch_streams.each_value(&:finish)
+
+    # Next loop through each thread and join them cleanly
     watch_threads.each_value { |thread| thread.join(10) }
 
     safe_log("#{log_header} Stopping watch threads...Complete")
@@ -122,9 +127,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     _log.info("#{log_header} #{entity_type} watch thread started")
 
     resource_version = resource_versions[entity_type] || "0"
-    watch_stream     = start_watch(entity_type, resource_version)
 
-    until finished?
+    watch_stream = start_watch(entity_type, resource_version)
+    watch_streams[entity_type] = watch_stream
+
+    begin
       watch_stream.each do |notice|
         # Update the collection resourceVersion to be the most recent
         # object's resourceVersion so that if this watch has to be restarted
@@ -134,6 +141,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
         queue.push(notice)
       end
+    rescue HTTP::ConnectionError
+      # This is raised when #finish is called on a WatchStream
     end
 
     _log.info("#{log_header} #{entity_type} watch thread exiting")
@@ -144,10 +153,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   def start_watch(entity_type, resource_version = "0")
     watch_method = "watch_#{entity_type}"
     connection_for_entity(entity_type).send(watch_method, :resource_version => resource_version)
-  end
-
-  def finished?
-    finish.value
   end
 
   def connection_for_entity(_entity_type)

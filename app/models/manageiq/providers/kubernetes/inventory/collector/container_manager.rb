@@ -1,22 +1,22 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Collector
   def namespaces
-    entities_iterator(connection, :namespaces)
+    @namespaces ||= entities_iterator(connection, :namespaces)
   end
 
   def pods
-    entities_iterator(connection, :pods)
+    @pods ||= entities_iterator(connection, :pods)
   end
 
   def cluster_service_classes
-    entities_iterator(service_catalog_connection, :cluster_service_classes)
+    @cluster_service_classes ||= entities_iterator(service_catalog_connection, :cluster_service_classes)
   end
 
   def cluster_service_plans
-    entities_iterator(service_catalog_connection, :cluster_service_plans)
+    @cluster_service_plans ||= entities_iterator(service_catalog_connection, :cluster_service_plans)
   end
 
   def service_instances
-    entities_iterator(service_catalog_connection, :service_instances)
+    @service_instances ||= entities_iterator(service_catalog_connection, :service_instances)
   end
 
   private

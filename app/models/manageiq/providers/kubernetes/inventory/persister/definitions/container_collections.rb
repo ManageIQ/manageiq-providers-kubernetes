@@ -20,9 +20,6 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        container_volumes
        container_replicators
        container_routes
-       container_service_classes
-       container_service_instances
-       container_service_plans
        container_services
        container_service_port_configs
        container_templates
@@ -32,7 +29,10 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        computer_system_operating_systems
        persistent_volumes
        persistent_volume_claims
-       security_contexts).each do |name|
+       security_contexts
+       service_offerings
+       service_instances
+       service_plans).each do |name|
 
       add_collection(container, name)
     end

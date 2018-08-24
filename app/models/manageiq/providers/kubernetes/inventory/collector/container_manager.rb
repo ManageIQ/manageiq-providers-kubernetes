@@ -7,8 +7,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
     @pods ||= entities_iterator(connection, :pods)
   end
 
-  def cluster_service_classes
-    @cluster_service_classes ||= entities_iterator(service_catalog_connection, :cluster_service_classes)
+  def cluster_service_offerings
+    @cluster_service_offerings ||= entities_iterator(service_catalog_connection, :cluster_service_classes)
   end
 
   def cluster_service_plans

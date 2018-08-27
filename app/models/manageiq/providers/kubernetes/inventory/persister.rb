@@ -1,4 +1,4 @@
-class ManageIQ::Providers::Kubernetes::Inventory::Persister < ManagerRefresh::Inventory::Persister
+class ManageIQ::Providers::Kubernetes::Inventory::Persister < ManageIQ::Providers::Inventory::Persister
   require_nested :ContainerManager
   require_nested :TargetCollection
 
@@ -6,7 +6,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Persister < ManagerRefresh::In
     @collections[collection.name] = collection
   end
 
-  # ManagerRefresh::InventoryCollection.inventory_object_attributes
+  # ManageIQ::Providers::InventoryCollection.inventory_object_attributes
   # are not defined
   def make_builder_settings(extra_settings = {})
     opts = super

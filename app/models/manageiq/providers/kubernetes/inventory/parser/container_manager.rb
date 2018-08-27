@@ -2,6 +2,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def parse
     parse_namespaces(collector.namespaces)
     parse_pods(collector.pods)
+
+    # Service catalog entities
+    parse_service_offerings(collector.cluster_service_offerings)
+    parse_service_parameters_sets(collector.cluster_service_parameters_sets)
   end
 
   private
@@ -31,6 +35,45 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
         :reason            => pod.status.reason,
         :container_project => lazy_find_project(pod),
       )
+    )
+  end
+
+  def parse_service_offerings(service_offeringes)
+    service_offeringes.each do |service_offering|
+      parse_service_offering(service_offering)
+    end
+  end
+
+  def parse_service_offering(service_offering)
+    persister.service_offerings.build(
+      :name        => service_offering.spec.externalName,
+      :ems_ref     => service_offering.spec.externalID,
+      :description => service_offering.spec.description,
+      :extra       => {
+        :metadata => service_offering.metadata,
+        :spec     => service_offering.spec,
+        :status   => service_offering.status
+      }
+    )
+  end
+
+  def parse_service_parameters_sets(service_parameters_sets)
+    service_parameters_sets.each do |service_parameters_set|
+      parse_service_parameters_set(service_parameters_set)
+    end
+  end
+
+  def parse_service_parameters_set(service_parameters_set)
+    persister.service_parameters_sets.build(
+      :name             => service_parameters_set.spec.externalName,
+      :ems_ref          => service_parameters_set.spec.externalID,
+      :description      => service_parameters_set.spec.description,
+      :service_offering => persister.service_offerings.lazy_find(service_parameters_set.spec.clusterServiceClassRef.name),
+      :extra            => {
+        :metadata => service_parameters_set.metadata,
+        :spec     => service_parameters_set.spec,
+        :status   => service_parameters_set.status
+      }
     )
   end
 

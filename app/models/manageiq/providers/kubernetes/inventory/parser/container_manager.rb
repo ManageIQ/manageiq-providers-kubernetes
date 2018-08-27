@@ -6,7 +6,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     # Service catalog entities
     parse_service_offerings(collector.cluster_service_offerings)
     parse_service_instances(collector.service_instances)
-    parse_service_plans(collector.cluster_service_plans)
+    parse_service_parameters_sets(collector.cluster_service_parameters_sets)
   end
 
   private
@@ -69,7 +69,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       :name             => service_instance.metadata.name,
       :ems_ref          => service_instance.spec.externalID,
       :service_offering => persister.service_offerings.lazy_find(service_instance.spec.clusterServiceClassRef.name),
-      :service_plan     => persister.service_plans.lazy_find(service_instance.spec.clusterServicePlanRef.name),
+      :service_parameters_set     => persister.service_parameters_sets.lazy_find(service_instance.spec.clusterServicePlanRef.name),
       :extra            => {
         :metadata => service_instance.metadata,
         :spec     => service_instance.spec,
@@ -78,22 +78,22 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     )
   end
 
-  def parse_service_plans(service_plans)
-    service_plans.each do |service_plan|
-      parse_service_plan(service_plan)
+  def parse_service_parameters_sets(service_parameters_sets)
+    service_parameters_sets.each do |service_parameters_set|
+      parse_service_parameters_set(service_parameters_set)
     end
   end
 
-  def parse_service_plan(service_plan)
-    persister.service_plans.build(
-      :name             => service_plan.spec.externalName,
-      :ems_ref          => service_plan.spec.externalID,
-      :description      => service_plan.spec.description,
-      :service_offering => persister.service_offerings.lazy_find(service_plan.spec.clusterServiceClassRef.name),
+  def parse_service_parameters_set(service_parameters_set)
+    persister.service_parameters_sets.build(
+      :name             => service_parameters_set.spec.externalName,
+      :ems_ref          => service_parameters_set.spec.externalID,
+      :description      => service_parameters_set.spec.description,
+      :service_offering => persister.service_offerings.lazy_find(service_parameters_set.spec.clusterServiceClassRef.name),
       :extra            => {
-        :metadata => service_plan.metadata,
-        :spec     => service_plan.spec,
-        :status   => service_plan.status
+        :metadata => service_parameters_set.metadata,
+        :spec     => service_parameters_set.spec,
+        :status   => service_parameters_set.status
       }
     )
   end

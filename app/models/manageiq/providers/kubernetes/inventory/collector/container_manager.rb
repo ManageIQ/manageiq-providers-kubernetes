@@ -11,8 +11,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
     @cluster_service_offerings ||= entities_iterator(service_catalog_connection, :cluster_service_classes)
   end
 
-  def cluster_service_plans
-    @cluster_service_plans ||= entities_iterator(service_catalog_connection, :cluster_service_plans)
+  def cluster_service_parameters_sets
+    @cluster_service_parameters_sets ||= entities_iterator(service_catalog_connection, :cluster_service_plans)
   end
 
   def service_instances

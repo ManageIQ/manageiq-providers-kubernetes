@@ -32,7 +32,7 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        security_contexts
        service_offerings
        service_instances
-       service_plans).each do |name|
+       service_parameters_sets).each do |name|
 
       add_collection(container, name)
     end

@@ -31,7 +31,6 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        persistent_volume_claims
        security_contexts
        service_offerings
-       service_instances
        service_parameters_sets).each do |name|
 
       add_collection(container, name)

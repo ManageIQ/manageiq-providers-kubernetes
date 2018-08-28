@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 93 ending 2018-08-27
+
+### Added
+- Finish the watch stream connection when exiting [(#278)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/278)
+- Add plugin display name [(#277)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/277)
+- Refresh service catalog entities [(#276)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/276)
+
+### Fixed
+- Restart stale watch threads where they left off [(#275)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/275)
+
 ## Unreleased as of Sprint 90 ending 2018-07-16
 
 ### Added

@@ -18,11 +18,21 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
   end
 
   def cluster_service_offerings
-    @cluster_service_offerings ||= service_catalog_connection.get_cluster_service_classes
+    @cluster_service_offerings ||=
+      begin
+        service_catalog_connection.get_cluster_service_classes
+      rescue KubeException
+        []
+      end
   end
 
   def cluster_service_parameters_sets
-    @cluster_service_parameters_sets ||= service_catalog_connection.get_cluster_service_plans
+    @cluster_service_parameters_sets ||=
+      begin
+        service_catalog_connection.get_cluster_service_plans
+      rescue KubeException
+        []
+      end
   end
 
   private

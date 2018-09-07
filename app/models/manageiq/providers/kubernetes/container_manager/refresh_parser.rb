@@ -75,7 +75,7 @@ module ManageIQ::Providers::Kubernetes
       get_container_images_graph
       get_container_image_registries_graph
 
-      # Returning Persister triggers ManagerRefresh::SaveInventory code path.
+      # Returning Persister triggers InventoryRefresh::SaveInventory code path.
       persister
     end
 

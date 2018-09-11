@@ -63,7 +63,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::InventoryCollectorMixi
 
     ems_ref = parse_notice_pod_ems_ref(object)
 
-    ManagerRefresh::Target.new(
+    InventoryRefresh::Target.new(
       :manager     => ems,
       :association => :container_groups,
       :manager_ref => ems_ref,

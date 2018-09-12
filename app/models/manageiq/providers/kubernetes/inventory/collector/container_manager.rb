@@ -18,21 +18,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
   end
 
   def cluster_service_offerings
-    @cluster_service_offerings ||=
-      begin
-        service_catalog_connection.get_cluster_service_classes
-      rescue KubeException
-        []
-      end
+    @cluster_service_offerings ||= service_catalog_connection&.get_cluster_service_classes || []
   end
 
   def cluster_service_parameters_sets
-    @cluster_service_parameters_sets ||=
-      begin
-        service_catalog_connection.get_cluster_service_plans
-      rescue KubeException
-        []
-      end
+    @cluster_service_parameters_sets ||= service_catalog_connection&.get_cluster_service_plans || []
   end
 
   private
@@ -42,6 +32,15 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
   end
 
   def service_catalog_connection
-    @service_catalog_connection ||= manager.connect(:service => "kubernetes_service_catalog")
+    @service_catalog_connection ||=
+      begin
+        manager.connect(:service => "kubernetes_service_catalog").tap do |client|
+          # Calling discover on the Client will fail early if the service catalog
+          # endpoint isn't configured.
+          client.discover
+        end
+      rescue KubeException
+        nil
+      end
   end
 end

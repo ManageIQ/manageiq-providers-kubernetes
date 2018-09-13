@@ -5,20 +5,20 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::Watches < ManageIQ:
     super(manager, nil)
   end
 
-  def namespaces
-    @namespaces ||= notices['Namespace']&.map { |notice| notice.object } || []
+  def namespace_notices
+    @namespace_notices ||= notices['Namespace'] || []
   end
 
-  def pods
-    @pods ||= notices['Pod']&.map { |notice| notice.object } || []
+  def pod_notices
+    @pod_notices ||= notices['Pod'] || []
   end
 
-  def cluster_service_classes
-    @cluster_service_classes ||= notices['ClusterServiceClass']&.map { |notice| notice.object } || []
+  def cluster_service_class_notices
+    @cluster_service_class_notices ||= notices['ClusterServiceClass'] || []
   end
 
-  def cluster_service_plans
-    @cluster_service_plans ||= notices['ClusterServicePlan']&.map { |notice| notice.object } || []
+  def cluster_service_plan_notices
+    @cluster_service_plan_notices ||= notices['ClusterServicePlan'] || []
   end
 
   def service_instances

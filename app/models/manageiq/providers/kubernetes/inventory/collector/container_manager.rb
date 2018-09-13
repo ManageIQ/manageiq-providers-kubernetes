@@ -28,19 +28,16 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
   private
 
   def connection
-    @connection ||= manager.connect(:service => "kubernetes")
+    @connection ||= connect("kubernetes")
   end
 
   def service_catalog_connection
-    @service_catalog_connection ||=
-      begin
-        manager.connect(:service => "kubernetes_service_catalog").tap do |client|
-          # Calling discover on the Client will fail early if the service catalog
-          # endpoint isn't configured.
-          client.discover
-        end
-      rescue KubeException
-        nil
-      end
+    @service_catalog_connection ||= connect("kubernetes_service_catalog")
+  end
+
+  def connect(service)
+    manager.connect(:service => service)
+  rescue KubeException
+    nil
   end
 end

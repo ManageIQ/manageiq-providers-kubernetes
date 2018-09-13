@@ -42,7 +42,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     def kubernetes_connect(hostname, port, options)
       require 'kubeclient'
 
-      Kubeclient::Client.new(
+      conn = Kubeclient::Client.new(
         raw_api_endpoint(hostname, port, options[:path]),
         options[:version] || kubernetes_version,
         :ssl_options    => Kubeclient::Client::DEFAULT_SSL_OPTIONS.merge(options[:ssl_options] || {}),
@@ -53,6 +53,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
           :read => Settings.ems.ems_kubernetes.read_timeout.to_f_with_method
         }
       )
+
+      # Test the API endpoint at connect time to prevent exception being raised
+      # on first method call
+      conn.discover
+
+      conn
     end
 
     def kubernetes_auth_options(options)

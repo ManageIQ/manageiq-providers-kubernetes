@@ -163,24 +163,38 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     let(:port) { "1234" }
     let(:options) { { :ssl_options => { :bearer_token => "4321" } } }
     it ". raw_connect" do
-      allow(VMDB::Util).to receive(:http_proxy_uri).and_return(URI::HTTP.build(:host => "some"))
+      uri = URI::HTTP.build(:host => "some")
+      allow(VMDB::Util).to receive(:http_proxy_uri).and_return(uri)
+
       require 'kubeclient'
+
+      client = Kubeclient::Client.new(uri)
+      expect(client).to receive(:discover)
+
       expect(Kubeclient::Client).to receive(:new).with(
         instance_of(URI::HTTPS), 'v1',
         hash_including(:http_proxy_uri => VMDB::Util.http_proxy_uri,
                        :timeouts       => match(:open => be > 0, :read => be > 0))
-      )
+      ).and_return(client)
+
       described_class.raw_connect(hostname, port, options)
     end
 
     it "connect uses provider options for http_proxy" do
-      allow(VMDB::Util).to receive(:http_proxy_uri).and_return(URI::HTTP.build(:host => "some"))
+      uri = URI::HTTP.build(:host => "some")
+      allow(VMDB::Util).to receive(:http_proxy_uri).and_return(uri)
+
       require 'kubeclient'
       my_proxy_value = "internal_proxy.org"
+
+      client = Kubeclient::Client.new(uri)
+      expect(client).to receive(:discover)
+
       expect(Kubeclient::Client).to receive(:new).with(
         instance_of(URI::HTTPS), 'v1',
         hash_including(:http_proxy_uri => my_proxy_value)
-      )
+      ).and_return(client)
+
       ems = FactoryGirl.create(
         :ems_kubernetes,
         :endpoints => [

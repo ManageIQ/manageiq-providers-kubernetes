@@ -74,7 +74,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def save_resource_versions(inventory)
     entity_types.each do |entity_type|
-      resource_versions[entity_type] = inventory.collector.send(entity_type).resourceVersion
+      collection = inventory.collector.send(entity_type)
+
+      # TODO: this is if we can't get service catalog entities and just return an
+      # empty array.
+      # When we move to getting the full collector for an entity in the same thread
+      # that we do watches this won't be an issue.
+      resource_versions[entity_type] = collection.resourceVersion if collection.respond_to?(:resourceVersion)
     end
   end
 
@@ -188,6 +194,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   end
 
   def entity_types
+    @entity_types ||= all_entity_types.reject { |entity| connection_for_entity(entity).nil? }
+  end
+
+  def all_entity_types
     kubernetes_entity_types + service_catalog_entity_types
   end
 

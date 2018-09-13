@@ -30,7 +30,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   def setup_streaming_refresh
     self.initial           = true
     self.queue             = Queue.new
-    self.resource_versions = {}
+    self.resource_versions = Concurrent::Map.new
     self.watch_streams     = Concurrent::Map.new
     self.watch_threads     = Concurrent::Map.new
   end

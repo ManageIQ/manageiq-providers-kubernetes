@@ -17,12 +17,12 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
     @pods ||= connection.get_pods
   end
 
-  def cluster_service_offerings
-    @cluster_service_offerings ||= service_catalog_connection&.get_cluster_service_classes || []
+  def cluster_service_classes
+    @cluster_service_classes ||= service_catalog_connection&.get_cluster_service_classes || []
   end
 
-  def cluster_service_parameters_sets
-    @cluster_service_parameters_sets ||= service_catalog_connection&.get_cluster_service_plans || []
+  def cluster_service_plans
+    @cluster_service_plans ||= service_catalog_connection&.get_cluster_service_plans || []
   end
 
   private

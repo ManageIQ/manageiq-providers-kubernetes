@@ -13,11 +13,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::Watches < ManageIQ:
     @pods ||= notices['Pod']&.map { |notice| notice.object } || []
   end
 
-  def cluster_service_offerings
+  def cluster_service_classes
     []
   end
 
-  def cluster_service_parameters_sets
+  def cluster_service_plans
     []
   end
 end

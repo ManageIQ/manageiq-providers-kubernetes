@@ -155,12 +155,22 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     connection_for_entity(entity_type).send(watch_method, :resource_version => resource_version)
   end
 
-  def connection_for_entity(_entity_type)
-    kubernetes_connection
+  def connection_for_entity(entity_type)
+    if kubernetes_entity_types.include?(entity_type)
+      kubernetes_connection
+    elsif service_catalog_entity_types.include?(entity_type)
+      service_catalog_connection
+    end
   end
 
   def kubernetes_connection
     @kubernetes_connection ||= ems.connect(:service => "kubernetes")
+  end
+
+  def service_catalog_connection
+    @service_catalog_connection ||= ems.connect(:service => "kubernetes_service_catalog")
+  rescue KubeException
+    nil
   end
 
   def kubernetes_entity_types
@@ -170,8 +180,15 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     )
   end
 
+  def service_catalog_entity_types
+    %w(
+      cluster_service_classes
+      cluster_service_plans
+    )
+  end
+
   def entity_types
-    kubernetes_entity_types
+    kubernetes_entity_types + service_catalog_entity_types
   end
 
   def log_header

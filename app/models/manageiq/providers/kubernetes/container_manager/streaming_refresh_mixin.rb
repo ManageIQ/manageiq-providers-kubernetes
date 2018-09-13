@@ -1,12 +1,14 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   include Vmdb::Logging
 
-  attr_accessor :ems, :initial, :resource_versions, :watch_streams, :watch_threads, :queue
+  attr_accessor :connect_options, :ems, :initial, :resource_versions, :watch_streams, :watch_threads, :queue
 
   def after_initialize
     super
 
-    self.ems = @emss.first
+    self.ems             = @emss.first
+    self.connect_options = ems.connect_options
+
     setup_streaming_refresh if ems.supports_streaming_refresh?
   end
 
@@ -164,13 +166,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   end
 
   def kubernetes_connection
-    @kubernetes_connection ||= ems.connect(:service => "kubernetes")
+    @kubernetes_connection ||= connect("kubernetes")
   end
 
   def service_catalog_connection
-    @service_catalog_connection ||= ems.connect(:service => "kubernetes_service_catalog")
-  rescue KubeException
-    nil
+    @service_catalog_connection ||= connect("kubernetes_service_catalog")
   end
 
   def kubernetes_entity_types
@@ -189,6 +189,14 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def entity_types
     kubernetes_entity_types + service_catalog_entity_types
+  end
+
+  def connect(service = "kubernetes")
+    opts = connect_options.merge(:service => service)
+
+    ems.class.raw_connect(opts[:hostname], opts[:port], opts).tap(&:discover)
+  rescue KubeException
+    nil
   end
 
   def log_header

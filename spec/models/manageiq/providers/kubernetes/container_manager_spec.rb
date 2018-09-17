@@ -234,7 +234,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
 
     it "Deletes the monitoring manager when container manager is removed the prometheus_alerts endpoint" do
       ems = FactoryGirl.create(
-        :ems_kubernetes,
+        :ems_kubernetes_with_zone,
         :endpoints => [
           FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host2'),
           FactoryGirl.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
@@ -243,7 +243,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(ems.monitoring_manager).not_to be_nil
       expect(ems.monitoring_manager.parent_manager).to eq(ems)
 
-      allow(MiqServer).to receive(:my_zone).and_return("default")
       ems.endpoints = [FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host3')]
       queue_item = MiqQueue.find_by(:method_name => 'destroy')
       expect(queue_item).not_to be_nil

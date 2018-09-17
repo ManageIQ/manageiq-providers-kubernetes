@@ -25,6 +25,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
     @cluster_service_plans ||= service_catalog_connection&.get_cluster_service_plans || []
   end
 
+  def service_instances
+    @service_instances ||= service_catalog_connection.get_service_instances
+  end
+
   private
 
   def connection

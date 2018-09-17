@@ -5,6 +5,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     # Service catalog entities
     parse_service_classes(collector.cluster_service_classes)
+    parse_service_instances(collector.service_instances)
     parse_service_plans(collector.cluster_service_plans)
   end
 
@@ -53,6 +54,26 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
         :metadata => service_class.metadata,
         :spec     => service_class.spec,
         :status   => service_class.status
+      }
+    )
+  end
+
+  def parse_service_instances(service_instances)
+    service_instances.each do |service_instance|
+      parse_service_instance(service_instance)
+    end
+  end
+
+  def parse_service_instance(service_instance)
+    persister.service_instances.build(
+      :name                   => service_instance.metadata.name,
+      :ems_ref                => service_instance.spec.externalID,
+      :service_offering       => persister.service_offerings.lazy_find(service_instance.spec.clusterServiceClassRef.name),
+      :service_parameters_set => persister.service_parameters_sets.lazy_find(service_instance.spec.clusterServicePlanRef.name),
+      :extra                  => {
+        :metadata => service_instance.metadata,
+        :spec     => service_instance.spec,
+        :status   => service_instance.status
       }
     )
   end

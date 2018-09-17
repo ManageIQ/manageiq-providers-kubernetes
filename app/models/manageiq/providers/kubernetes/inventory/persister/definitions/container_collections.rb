@@ -30,6 +30,7 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        persistent_volumes
        persistent_volume_claims
        security_contexts
+       service_instances
        service_offerings
        service_parameters_sets).each do |name|
 

@@ -26,7 +26,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
   end
 
   def service_instances
-    @service_instances ||= service_catalog_connection.get_service_instances
+    @service_instances ||= service_catalog_connection&.get_service_instances || []
   end
 
   private

@@ -1,12 +1,14 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   include Vmdb::Logging
 
-  attr_accessor :ems, :initial, :resource_versions, :watch_streams, :watch_threads, :queue
+  attr_accessor :connect_options, :ems, :initial, :resource_versions, :watch_streams, :watch_threads, :queue
 
   def after_initialize
     super
 
-    self.ems = @emss.first
+    self.ems             = @emss.first
+    self.connect_options = ems.connect_options
+
     setup_streaming_refresh if ems.supports_streaming_refresh?
   end
 
@@ -28,7 +30,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
   def setup_streaming_refresh
     self.initial           = true
     self.queue             = Queue.new
-    self.resource_versions = {}
+    self.resource_versions = Concurrent::Map.new
     self.watch_streams     = Concurrent::Map.new
     self.watch_threads     = Concurrent::Map.new
   end
@@ -72,7 +74,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
 
   def save_resource_versions(inventory)
     entity_types.each do |entity_type|
-      resource_versions[entity_type] = inventory.collector.send(entity_type).resourceVersion
+      collection = inventory.collector.send(entity_type)
+
+      # TODO: this is if we can't get service catalog entities and just return an
+      # empty array.
+      # When we move to getting the full collector for an entity in the same thread
+      # that we do watches this won't be an issue.
+      resource_versions[entity_type] = collection.resourceVersion if collection.respond_to?(:resourceVersion)
     end
   end
 
@@ -155,12 +163,20 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     connection_for_entity(entity_type).send(watch_method, :resource_version => resource_version)
   end
 
-  def connection_for_entity(_entity_type)
-    kubernetes_connection
+  def connection_for_entity(entity_type)
+    if kubernetes_entity_types.include?(entity_type)
+      kubernetes_connection
+    elsif service_catalog_entity_types.include?(entity_type)
+      service_catalog_connection
+    end
   end
 
   def kubernetes_connection
-    @kubernetes_connection ||= ems.connect(:service => "kubernetes")
+    @kubernetes_connection ||= connect("kubernetes")
+  end
+
+  def service_catalog_connection
+    @service_catalog_connection ||= connect("kubernetes_service_catalog")
   end
 
   def kubernetes_entity_types
@@ -170,8 +186,27 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     )
   end
 
+  def service_catalog_entity_types
+    %w(
+      cluster_service_classes
+      cluster_service_plans
+    )
+  end
+
   def entity_types
-    kubernetes_entity_types
+    @entity_types ||= all_entity_types.reject { |entity| connection_for_entity(entity).nil? }
+  end
+
+  def all_entity_types
+    kubernetes_entity_types + service_catalog_entity_types
+  end
+
+  def connect(service = "kubernetes")
+    opts = connect_options.merge(:service => service)
+
+    ems.class.raw_connect(opts[:hostname], opts[:port], opts).tap(&:discover)
+  rescue KubeException
+    nil
   end
 
   def log_header

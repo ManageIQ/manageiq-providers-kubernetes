@@ -140,7 +140,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   end
 
   def connect(options = {})
-    effective_options = options.merge(
+    effective_options = connect_options(options)
+
+    self.class.raw_connect(effective_options[:hostname], effective_options[:port], effective_options)
+  end
+
+  def connect_options(options = {})
+    options.merge(
       :hostname    => options[:hostname] || address,
       :port        => options[:port] || port,
       :user        => options[:user] || authentication_userid(options[:auth_type]),
@@ -152,7 +158,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
         :cert_store => ssl_cert_store
       }
     )
-    self.class.raw_connect(effective_options[:hostname], effective_options[:port], effective_options)
   end
 
   def authentications_to_validate

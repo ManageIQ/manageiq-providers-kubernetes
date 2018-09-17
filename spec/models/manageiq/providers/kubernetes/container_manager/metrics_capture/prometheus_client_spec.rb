@@ -1,10 +1,9 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClient do
   before(:each) do
-    allow(MiqServer).to receive(:my_zone).and_return("default")
     hostname = 'prometheus.example.com'
     token = 'good_token'
     @ems = FactoryGirl.create(
-      :ems_kubernetes,
+      :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
                                                           :hostname   => hostname,

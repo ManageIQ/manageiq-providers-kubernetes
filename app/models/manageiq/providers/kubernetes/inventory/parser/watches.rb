@@ -52,6 +52,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::Watches < ManageIQ::Pr
   end
 
   def assign_deleted_on(inv_obj, object)
-    inv_obj.data[:deleted_on] = object.metadata.deletionTimestamp || Time.now.utc
+    inv_obj.data[:deleted_on] = object&.metadata&.deletionTimestamp || Time.now.utc
   end
 end

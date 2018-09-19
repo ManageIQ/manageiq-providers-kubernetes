@@ -190,6 +190,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     %w(
       cluster_service_classes
       cluster_service_plans
+      service_instances
     )
   end
 

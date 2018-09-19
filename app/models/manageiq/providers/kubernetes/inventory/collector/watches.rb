@@ -20,4 +20,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::Watches < ManageIQ:
   def cluster_service_plans
     @cluster_service_plans ||= notices['ClusterServicePlan']&.map { |notice| notice.object } || []
   end
+
+  def service_instances
+    @service_instances ||= notices['ServiceInstance']&.map { |notice| notice.object } || []
+  end
 end

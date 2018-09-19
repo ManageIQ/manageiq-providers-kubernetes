@@ -66,7 +66,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::StreamingRefreshMixin
     _log.info("Processing #{notices.count} Updates...")
     refresh(
       watches_collector_klass.new(ems, notices),
-      parser_klass.new,
+      watches_parser_klass.new,
       targeted_persister_klass.new(ems)
     )
     _log.info("Processing #{notices.count} Updates...Complete")

@@ -6,6 +6,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::Watches < ManageIQ::Pr
     # Service catalog entities
     parse_service_class_notices(collector.cluster_service_class_notices)
     parse_service_plan_notices(collector.cluster_service_plan_notices)
+    parse_service_instance_notices(collector.service_instance_notices)
   end
 
   private
@@ -39,6 +40,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::Watches < ManageIQ::Pr
       service_plan = notice.object
       service_plan_inv_obj = parse_service_plan(service_plan)
       assign_deleted_on(service_plan_inv_obj, service_plan) if notice.type == "DELETED"
+    end
+  end
+
+  def parse_service_instance_notices(service_instance_notices)
+    service_instance_notices.each do |notice|
+      service_instance = notice.object
+      service_instance_inv_obj = parse_service_instance(service_instance)
+      assign_deleted_on(service_instance_inv_obj, service_instance) if notice.type == "DELETED"
     end
   end
 

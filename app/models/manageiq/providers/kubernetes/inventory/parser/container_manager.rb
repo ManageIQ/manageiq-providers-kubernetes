@@ -28,12 +28,12 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def parse_pod(pod)
     persister.container_groups.build(
       parse_base_item(pod).merge(
-        :restart_policy    => pod.spec.restartPolicy,
-        :dns_policy        => pod.spec.dnsPolicy,
-        :ipaddress         => pod.status.podIP,
-        :phase             => pod.status.phase,
-        :message           => pod.status.message,
-        :reason            => pod.status.reason,
+        :restart_policy    => pod&.spec&.restartPolicy,
+        :dns_policy        => pod&.spec&.dnsPolicy,
+        :ipaddress         => pod&.status&.podIP,
+        :phase             => pod&.status&.phase,
+        :message           => pod&.status&.message,
+        :reason            => pod&.status&.reason,
         :container_project => lazy_find_project(pod),
       )
     )
@@ -47,13 +47,13 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_service_class(service_class)
     persister.service_offerings.build(
-      :name        => service_class.spec.externalName,
       :ems_ref     => service_class.spec.externalID,
-      :description => service_class.spec.description,
+      :name        => service_class&.spec&.externalName,
+      :description => service_class&.spec&.description,
       :extra       => {
-        :metadata => service_class.metadata,
-        :spec     => service_class.spec,
-        :status   => service_class.status
+        :metadata => service_class&.metadata,
+        :spec     => service_class&.spec,
+        :status   => service_class&.status
       }
     )
   end
@@ -66,14 +66,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_service_instance(service_instance)
     persister.service_instances.build(
-      :name                   => service_instance.metadata.name,
       :ems_ref                => service_instance.spec.externalID,
-      :service_offering       => persister.service_offerings.lazy_find(service_instance.spec.clusterServiceClassRef.name),
-      :service_parameters_set => persister.service_parameters_sets.lazy_find(service_instance.spec.clusterServicePlanRef.name),
+      :name                   => service_instance&.metadata&.name,
+      :service_offering       => persister&.service_offerings&.lazy_find(service_instance&.spec&.clusterServiceClassRef&.name),
+      :service_parameters_set => persister&.service_parameters_sets&.lazy_find(service_instance&.spec&.clusterServicePlanRef&.name),
       :extra                  => {
-        :metadata => service_instance.metadata,
-        :spec     => service_instance.spec,
-        :status   => service_instance.status
+        :metadata => service_instance&.metadata,
+        :spec     => service_instance&.spec,
+        :status   => service_instance&.status
       }
     )
   end
@@ -86,14 +86,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_service_plan(service_plan)
     persister.service_parameters_sets.build(
-      :name             => service_plan.spec.externalName,
       :ems_ref          => service_plan.spec.externalID,
-      :description      => service_plan.spec.description,
-      :service_offering => persister.service_offerings.lazy_find(service_plan.spec.clusterServiceClassRef.name),
+      :name             => service_plan&.spec&.externalName,
+      :description      => service_plan&.spec&.description,
+      :service_offering => persister&.service_offerings&.lazy_find(service_plan&.spec&.clusterServiceClassRef&.name),
       :extra            => {
-        :metadata => service_plan.metadata,
-        :spec     => service_plan.spec,
-        :status   => service_plan.status
+        :metadata => service_plan&.metadata,
+        :spec     => service_plan&.spec,
+        :status   => service_plan&.status
       }
     )
   end
@@ -101,10 +101,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def parse_base_item(item)
     {
       :ems_ref          => item.metadata.uid,
-      :name             => item.metadata.name,
-      :namespace        => item.metadata.namespace,
-      :ems_created_on   => item.metadata.creationTimestamp,
-      :resource_version => item.metadata.resourceVersion
+      :name             => item&.metadata&.name,
+      :namespace        => item&.metadata&.namespace,
+      :ems_created_on   => item&.metadata&.creationTimestamp,
+      :resource_version => item&.metadata&.resourceVersion
     }
   end
 

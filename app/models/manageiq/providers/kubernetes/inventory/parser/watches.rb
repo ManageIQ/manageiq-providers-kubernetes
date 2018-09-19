@@ -13,44 +13,36 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::Watches < ManageIQ::Pr
   def parse_namespace_notices(namespace_notices)
     namespace_notices.each do |notice|
       namespace = notice.object
-
-      persister.container_projects.targeted_scope << namespace.metadata.uid
-      next if notice.type == "DELETED"
-
-      parse_namespace(namespace)
+      ns_inv_obj = parse_namespace(namespace)
+      assign_deleted_on(ns_inv_obj, namespace) if notice.type == "DELETED"
     end
   end
 
   def parse_pod_notices(pod_notices)
     pod_notices.each do |notice|
       pod = notice.object
-
-      persister.container_groups.targeted_scope << pod.metadata.uid
-      next if notice.type == "DELETED"
-
-      parse_pod(pod)
+      pod_inv_obj = parse_pod(pod)
+      assign_deleted_on(pod_inv_obj, pod) if notice.type == "DELETED"
     end
   end
 
   def parse_service_class_notices(service_class_notices)
     service_class_notices.each do |notice|
       service_class = notice.object
-
-      persister.service_offerings.targeted_scope << service_class.spec.externalID
-      next if notice.type == "DELETED"
-
-      parse_service_class(service_class)
+      service_class_inv_obj = parse_service_class(service_class)
+      assign_deleted_on(service_class_inv_obj, service_class) if notice.type == "DELETED"
     end
   end
 
   def parse_service_plan_notices(service_plan_notices)
     service_plan_notices.each do |notice|
       service_plan = notice.object
-
-      persister.service_parameters_sets.targeted_scope << service_plan.spec.externalID
-      next if notice.type == "DELETED"
-
-      parse_service_plan(service_plan)
+      service_plan_inv_obj = parse_service_plan(service_plan)
+      assign_deleted_on(service_plan_inv_obj, service_plan) if notice.type == "DELETED"
     end
+  end
+
+  def assign_deleted_on(inv_obj, object)
+    inv_obj.data[:deleted_on] = object.metadata.deletionTimestamp || Time.now.utc
   end
 end

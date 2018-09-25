@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 95 ending 2018-09-24
+
+### Added
+- Refresh Service Catalog service instances [(#290)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/290)
+- Discover API endpoint in kubernetes_connection [(#288)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/288)
+- Streaming refresh for service catalog entities [(#287)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/287)
+- Use discover to catch service catalog [(#284)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/284)
+
+### Fixed
+- Fix watches when using service catalog endpoint [(#283)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/283)
+
 ## Unreleased as of Sprint 94 ending 2018-09-10
 
 ### Fixed

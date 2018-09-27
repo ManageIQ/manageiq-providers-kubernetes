@@ -5,41 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Unreleased as of Sprint 94 ending 2018-09-10
-
-### Fixed
-- Handle missing service catalog endpoint [(#281)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/281)
-
-## Unreleased as of Sprint 93 ending 2018-08-27
+## Hammer Beta-1
 
 ### Added
+- Refresh Service Catalog service instances [(#290)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/290)
+- Discover API endpoint in kubernetes_connection [(#288)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/288)
+- Streaming refresh for service catalog entities [(#287)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/287)
+- Use discover to catch service catalog [(#284)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/284)
 - Finish the watch stream connection when exiting [(#278)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/278)
 - Add plugin display name [(#277)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/277)
 - Refresh service catalog entities [(#276)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/276)
+- Persister: InventoryCollection building through add_collection() [(#265)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/265)
+- Properly support "security_protocol" for alerts endpoint [(#230)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/230)
+- Add a 'Container Project Discovered' event [(#226)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/226)
+- We need to use existing relation to project so we build valid query [(#202)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/202)
+- Migrate model display names from locale/en.yml to plugin [(#218)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/218)
+- Support KubeVirt provider [(#197)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/197)
+- read image acquiring status [(#174)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/174)
+- Enable getting multiple alert for an incident [(#171)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/171)
+- Targeted refresh for pods using watches [(#135)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/135)
+- Name custom attributes ICs nicely [(#128)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/128)
+- Scanning job will read oscap erros from image-inspector [(#100)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/100)
 
 ### Fixed
+- Handle missing service catalog endpoint [(#281)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/281)
+- Fix watches when using service catalog endpoint [(#283)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/283)
 - Restart stale watch threads where they left off [(#275)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/275)
-
-## Unreleased as of Sprint 90 ending 2018-07-16
-
-### Added
-- Persister: InventoryCollection building through add_collection() [(#265)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/265)
+- Kubevirt should reports its auth status [(#260)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/260)
+- Kubevirt should report its own status [(#259)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/259)
+- Change saver_strategy value to String [(#246)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/246)
+- abort container ssa if can't fetch metadata [(#233)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/233)
+- only use the ImageAcquireError field [(#222)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/222)
+- Skip hostname validation for monitoring manager [(#220)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/220)
+- Add a queue metrics capture method to container manager [(#206)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/206)
 
 ## Gaprindashvili-4 - Released 2018-07-16
 
 ### Fixed
 - Default to force Hawkular legacy metrics collector [(#257)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/257)
 - Set EmsEvent ems_ref to event's uid, to avoid same-second collision [(#264)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/264)
-
-## Unreleased as of Sprint 89 ending 2018-07-02
-
-### Fixed
-- Kubevirt should reports its auth status [(#260)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/260)
-
-## Unreleased as of Sprint 88 ending 2018-06-18
-
-### Fixed
-- Kubevirt should report its own status [(#259)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/259)
 
 ## Gaprindashvili-3 - Released 2018-05-15
 
@@ -51,27 +55,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Propagate userid through to create a scanning job with current userid [(#244)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/244)
 - change evaluation target in openscap reports to image name [(#248)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/248)
 
-## Unreleased as of Sprint 83 ending 2018-04-09
-
-### Fixed
-- Change saver_strategy value to String [(#246)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/246)
-
 ## Gaprindashvili-2 released 2018-03-06
 
 ### Fixed
 - Change alert definition meta [(#217)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/217)
-
-## Unreleased as of Sprint 80 ending 2018-02-26
-
-### Fixed
-- abort container ssa if can't fetch metadata [(#233)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/233)
-
-## Unreleased as of Sprint 79 ending 2018-02-12
-
-### Added
-- Properly support "security_protocol" for alerts endpoint [(#230)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/230)
-- Add a 'Container Project Discovered' event [(#226)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/226)
-- We need to use existing relation to project so we build valid query [(#202)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/202)
 
 ## Gaprindashvili-1 - Released 2018-01-31
 
@@ -121,37 +108,5 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Improve Prometheus metrics collection [(#132)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/132)
 - Use prometheus client instead of faraday [(#195)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/195)
 - ensure monitoring manager is created or deleted on provider update [(#188)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/188)
-
-## Unreleased as of Sprint 78 ending 2018-01-29
-
-### Added
-- Migrate model display names from locale/en.yml to plugin [(#218)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/218)
-- Support KubeVirt provider [(#197)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/197)
-
-### Fixed
-- only use the ImageAcquireError field [(#222)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/222)
-- Skip hostname validation for monitoring manager [(#220)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/220)
-
-## Unreleased as of Sprint 77 ending 2018-01-15
-
-### Fixed
-- Add a queue metrics capture method to container manager [(#206)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/206)
-
-## Unreleased as of Sprint 75 ending 2017-12-11
-
-### Added
-- read image acquiring status [(#174)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/174)
-
-## Unreleased as of Sprint 74 ending 2017-11-27
-
-### Added
-- Enable getting multiple alert for an incident [(#171)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/171)
-
-## Unreleased as of Sprint 72 ending 2017-10-30
-
-### Added
-- Targeted refresh for pods using watches [(#135)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/135)
-- Name custom attributes ICs nicely [(#128)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/128)
-- Scanning job will read oscap erros from image-inspector [(#100)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/100)
 
 ## Initial changelog added

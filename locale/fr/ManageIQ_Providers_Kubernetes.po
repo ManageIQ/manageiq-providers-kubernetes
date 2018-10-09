@@ -16,3 +16,85 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n>1;\n"
 "\n"
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Advanced Settings for provider configuration"
+msgstr ""
+
+msgid "CVE location"
+msgstr ""
+
+msgid "Container Provider (Kubernetes)"
+msgid_plural "Container Providers (Kubernetes)"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"Enables defining a URL path prefix for XCCDF file instead of accessing the default location.\n"
+"  example: http://my_file_server.org:3333/xccdf_files/\n"
+"  Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there."
+msgstr ""
+
+msgid "HTTP Proxy"
+msgstr ""
+
+msgid "HTTP Proxy to connect ManageIQ to the provider. example: http://user:password@my_https_proxy"
+msgstr ""
+
+msgid "HTTP Proxy to connect image inspector pods to the internet. example: http://user:password@my_https_proxy"
+msgstr ""
+
+msgid "HTTPS Proxy"
+msgstr ""
+
+msgid "HTTPS Proxy to connect image inspector pods to the internet. example: https://user:password@my_https_proxy"
+msgstr ""
+
+msgid "Image Inspector Options"
+msgstr ""
+
+msgid "Image-Inspector Registry"
+msgstr ""
+
+msgid "Image-Inspector Repository"
+msgstr ""
+
+msgid "Image-Inspector Repository. example: openshift/image-inspector"
+msgstr ""
+
+msgid "Image-Inspector Tag"
+msgstr ""
+
+msgid "Image-Inspector image tag. example: 2.1"
+msgstr ""
+
+msgid "Kubernetes Provider"
+msgstr ""
+
+msgid "NO Proxy"
+msgstr ""
+
+msgid "NO Proxy lists urls that should'nt be sent to any proxy. example: my_file_server.org"
+msgstr ""
+
+msgid "Pod (Kubernetes)"
+msgid_plural "Pods (Kubernetes)"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Proxy Settings"
+msgstr ""
+
+msgid "Proxy Settings for connection to the provider"
+msgstr ""
+
+msgid "Registry to provide the image inspector repository. example: docker.io"
+msgstr ""
+
+msgid "Settings for Image Inspector tool"
+msgstr ""
+
+msgid "target_class must be a class not an instance"
+msgstr ""

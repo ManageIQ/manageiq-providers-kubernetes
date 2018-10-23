@@ -153,7 +153,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(job.target_class).to eq(image.class.name)
       expect(job.target_id).to eq(image.id)
       expect(job.type).to eq(ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job.name)
-      expect(job.zone).to eq("default")
+      expect(job.zone).to eq(@ems.zone.name)
       expect(job.userid).to eq("bob")
     end
   end

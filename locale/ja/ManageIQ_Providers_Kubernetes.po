@@ -1,100 +1,139 @@
-# Japanese translations for ManageIQ_Providers_Kubernetes package.
-# Copyright (C) 2017 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the ManageIQ_Providers_Kubernetes package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2017.
-#
+# asasaki <asasaki@redhat.com>, 2017. #zanata
+# kmoriguc <kmoriguc@redhat.com>, 2018. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ManageIQ_Providers_Kubernetes 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2017-04-21 09:55+0200\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2018-10-03 15:05+0200\n"
+"PO-Revision-Date: 2018-10-25 10:12+0000\n"
+"Last-Translator: kmoriguc <kmoriguc@redhat.com>\n"
 "Language-Team: Japanese\n"
-"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"X-Generator: Zanata 4.6.2\n"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:69
 msgid "Advanced Settings"
-msgstr ""
+msgstr "詳細設定"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:70
 msgid "Advanced Settings for provider configuration"
-msgstr ""
+msgstr "プロバイダー構成の詳細設定"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:49
 msgid "CVE location"
-msgstr ""
+msgstr "CVE の場所"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager.rb:61
 msgid "Container Provider (Kubernetes)"
 msgid_plural "Container Providers (Kubernetes)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "コンテナープロバイダー (Kubernetes)"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:50
 msgid ""
 "Enables defining a URL path prefix for XCCDF file instead of accessing the default location.\n"
 "  example: http://my_file_server.org:3333/xccdf_files/\n"
 "  Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there."
 msgstr ""
+"デフォルトの場所にアクセスする代わりに XCCDF ファイルの URL パスプレフィックスの定義を有効にします。\n"
+"  例: http://my_file_server.org:3333/xccdf_files/\n"
+"  ここで com.redhat.rhsa-RHEL7.ds.xml.bz2 ファイルを見つけられることが予想されます。"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:8
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:22
 msgid "HTTP Proxy"
-msgstr ""
+msgstr "HTTP プロキシー"
 
-msgid "HTTP Proxy to connect ManageIQ to the provider. example: http://user:password@my_https_proxy"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:9
+msgid ""
+"HTTP Proxy to connect ManageIQ to the provider. example: "
+"http://user:password@my_https_proxy"
 msgstr ""
+"ManageIQ をプロバイダーに接続するために使用する HTTP プロキシーです。例: "
+"http://user:password@my_https_proxy"
 
-msgid "HTTP Proxy to connect image inspector pods to the internet. example: http://user:password@my_https_proxy"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:23
+msgid ""
+"HTTP Proxy to connect image inspector pods to the internet. example: "
+"http://user:password@my_https_proxy"
 msgstr ""
+"イメージインスペクターポッドをインターネットに接続するために使用する HTTP プロキシーです。例: "
+"http://user:password@my_https_proxy"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:26
 msgid "HTTPS Proxy"
-msgstr ""
+msgstr "HTTPS プロキシー"
 
-msgid "HTTPS Proxy to connect image inspector pods to the internet. example: https://user:password@my_https_proxy"
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:27
+msgid ""
+"HTTPS Proxy to connect image inspector pods to the internet. example: "
+"https://user:password@my_https_proxy"
 msgstr ""
+"イメージインスペクターポッドをインターネットに接続するために使用する HTTPS プロキシーです。例: "
+"https://user:password@my_https_proxy"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:18
 msgid "Image Inspector Options"
-msgstr ""
+msgstr "イメージインスペクターのオプション"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:39
 msgid "Image-Inspector Registry"
-msgstr ""
+msgstr "イメージインスペクターのレジストリー"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:34
 msgid "Image-Inspector Repository"
-msgstr ""
+msgstr "イメージインスペクターのリポジトリー"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:35
 msgid "Image-Inspector Repository. example: openshift/image-inspector"
-msgstr ""
+msgstr "イメージインスペクターのリポジトリーです。例: openshift/image-inspector"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:44
 msgid "Image-Inspector Tag"
-msgstr ""
+msgstr "イメージインスペクタータグ"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:45
 msgid "Image-Inspector image tag. example: 2.1"
-msgstr ""
+msgstr "イメージインスペクターのイメージタグ。例: 2.1"
 
+#: ../lib/manageiq/providers/kubernetes/engine.rb:8
 msgid "Kubernetes Provider"
-msgstr ""
+msgstr "Kubernetes プロバイダー"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:30
 msgid "NO Proxy"
-msgstr ""
+msgstr "プロキシーなし"
 
-msgid "NO Proxy lists urls that should'nt be sent to any proxy. example: my_file_server.org"
-msgstr ""
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:31
+msgid ""
+"NO Proxy lists urls that should'nt be sent to any proxy. example: "
+"my_file_server.org"
+msgstr "「プロキシーなし」はプロキシーに送信できない URL を一覧表示します。例: my_file_server.org"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/container_group.rb:5
 msgid "Pod (Kubernetes)"
 msgid_plural "Pods (Kubernetes)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "ポッド (Kubernetes)"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:64
 msgid "Proxy Settings"
-msgstr ""
+msgstr "プロキシー設定"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:65
 msgid "Proxy Settings for connection to the provider"
-msgstr ""
+msgstr "プロバイダーへの接続に使用するプロキシー設定"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:40
 msgid "Registry to provide the image inspector repository. example: docker.io"
-msgstr ""
+msgstr "イメージインスペクターリポジトリーを提供するために使用するレジストリー。例: docker.io"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager/options.rb:19
 msgid "Settings for Image Inspector tool"
-msgstr ""
+msgstr "イメージインスペクターツールの設定"
 
+#: ../app/models/manageiq/providers/kubernetes/container_manager_mixin.rb:230
 msgid "target_class must be a class not an instance"
-msgstr ""
+msgstr "target_class はインスタンスではなく、クラスである必要があります"

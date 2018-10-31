@@ -255,7 +255,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   ensure
     case self.state
     when 'aborting' then process_abort(*args)
-    when 'canceling' then process_cancel(*args)
+    when 'canceling' then queue_signal(:finish, cancel_message(*args), "ok")
     else
       queue_signal(:finish,
                    target_entity.last_scan_result.scan_result_message,
@@ -307,7 +307,16 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     ::Settings.container_scanning.scanning_job_timeout.to_f_with_method * timeout_adjustment
   end
 
+  def process_cancel(*args)
+    cancel(*args)
+  end
+
   private
+
+  def cancel_message(*args)
+    options = args.first || {}
+    options[:userid] ? "Job canceled by user [#{options[:useid]}] on #{Time.now.utc}" : "Job canceled on #{Time.now.utc}"
+  end
 
   def ext_management_system
     @ext_management_system ||= ExtManagementSystem.find(options[:ems_id])

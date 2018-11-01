@@ -1,9 +1,8 @@
 # instantiated at the end, for both classical and graph refresh
 shared_examples "kubernetes refresher VCR tests" do
   before(:each) do
-    allow(MiqServer).to receive(:my_zone).and_return("default")
     auth = AuthToken.new(:name => "test", :auth_key => "valid-token")
-    @ems = FactoryGirl.create(:ems_kubernetes, :hostname => "10.35.0.169",
+    @ems = FactoryGirl.create(:ems_kubernetes_with_zone, :hostname => "10.35.0.169",
                               :ipaddress => "10.35.0.169", :port => 6443,
                               :authentications => [auth])
     # NOTE: the following :uid_ems should match (downcased) the kubernetes

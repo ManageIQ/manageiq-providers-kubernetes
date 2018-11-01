@@ -1,11 +1,10 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularLegacyCaptureContext do
   before(:each) do
-    allow(MiqServer).to receive(:my_zone).and_return("default")
     hostname = 'capture.context.com'
     token = 'theToken'
 
     @ems = FactoryGirl.create(
-      :ems_kubernetes,
+      :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
                                                           :hostname   => hostname,

@@ -29,9 +29,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
       :abort_job    => {'*'                => 'aborting'},
       :cancel_job   => {'*'                => 'canceling'},
       :cancel       => {'*'                => 'canceling'},
-      :finish       => {'pod_delete' => 'finished',
+      :finish       => {'*'                => 'finishing'},
+      :done         => {'pod_delete' => 'finished',
                         'aborting'   => 'finished',
-                        'canceling'  => 'finished'},
+                        'canceling'  => 'finished',
+                        'finishing'  => 'finished'}
     }
   end
 
@@ -250,17 +252,16 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
 
     delete_pod
 
-    set_image_scan_status unless %w(aborting canceling).include?(self.state)
+    set_image_scan_status unless %w(aborting canceling finishing).include?(self.state)
 
   ensure
     case self.state
-    when 'aborting' then process_abort(*args)
-    when 'canceling' then queue_signal(:finish, cancel_message(*args), "ok")
+    when 'aborting', 'canceling', 'finishing' then message, status = message_status(*args)
     else
-      queue_signal(:finish,
-                   target_entity.last_scan_result.scan_result_message,
-                   target_entity.last_scan_result.scan_status)
+      message = target_entity.last_scan_result.scan_result_message
+      status = target_entity.last_scan_result.scan_status
     end
+    queue_signal(:done, message, status)
   end
 
   def set_image_scan_status
@@ -278,7 +279,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     )
   end
 
-  def finish(*args)
+  def done(*args)
     # exactly like job.dispatch_finish except for storage bits
     _log.info "Dispatch Status is 'finished'"
     update(:dispatch_status => "finished")
@@ -296,6 +297,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     end
   end
   alias_method :cancel_job, :cleanup
+  alias_method :finish, :cleanup
 
   def queue_callback(state, msg, _)
     if state == "timeout" && self.state != "aborting"
@@ -307,15 +309,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
     ::Settings.container_scanning.scanning_job_timeout.to_f_with_method * timeout_adjustment
   end
 
-  def process_cancel(*args)
-    cancel(*args)
-  end
-
   private
 
-  def cancel_message(*args)
-    options = args.first || {}
-    options[:userid] ? "Job canceled by user [#{options[:useid]}] on #{Time.now.utc}" : "Job canceled on #{Time.now.utc}"
+  def message_status(*args)
+    message, status = args
+    message = message.to_s.empty? ? "Job interrupted" : message
+    status = status.to_s.empty? ? "ok" : status
+    return message, status
   end
 
   def ext_management_system

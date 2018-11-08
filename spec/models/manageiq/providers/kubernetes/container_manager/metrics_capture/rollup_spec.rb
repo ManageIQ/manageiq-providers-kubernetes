@@ -206,13 +206,12 @@ shared_examples "kubernetes rollup tests" do
     expect(project_rollup.cpu_usage_rate_average.round(2)).to eq(expected_cpu_util.round(2))
 
     # And memory is also taken as if the pods were running full hour
-    # TODO(lsmola) why don't we rollup :derived_memory_available and :mem_usage_absolute_average?
     expect(project_rollup).to(
       have_attributes(
         :derived_memory_used        => 2048.0,
-        :derived_vm_numvcpus        => 12,
-        :derived_memory_available   => nil,
-        :mem_usage_absolute_average => nil
+        :derived_vm_numvcpus        => 12.0,
+        :derived_memory_available   => 3072.0,
+        :mem_usage_absolute_average => 66.6666666666667
       )
     )
 
@@ -249,14 +248,13 @@ shared_examples "kubernetes rollup tests" do
     # Check the Project rollup has the wanted elements
     assert_entities(project_rollup)
 
-    # TODO(lsmola) why don't we rollup :derived_memory_available and :mem_usage_absolute_average?
     expect(project_rollup).to(
       have_attributes(
-        :cpu_usage_rate_average     => 100,
+        :cpu_usage_rate_average     => 100.0,
         :derived_memory_used        => 3072.0,
-        :derived_vm_numvcpus        => 12,
-        :derived_memory_available   => nil,
-        :mem_usage_absolute_average => nil
+        :derived_vm_numvcpus        => 12.0,
+        :derived_memory_available   => 3072.0,
+        :mem_usage_absolute_average => 100.0
       )
     )
 

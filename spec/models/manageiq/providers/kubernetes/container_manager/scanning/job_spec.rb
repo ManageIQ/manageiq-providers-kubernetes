@@ -408,6 +408,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       end
 
       it 'should report the error' do
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'

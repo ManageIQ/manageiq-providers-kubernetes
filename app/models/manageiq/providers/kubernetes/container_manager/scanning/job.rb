@@ -243,15 +243,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   def cleanup(*args)
     unqueue_all_signals
     image = target_entity
-    if image
-      # TODO: check job success / failure
-      MiqEvent.raise_evm_job_event(image, :type => "scan", :suffix => "complete")
-    end
+    raise_image_scan_event(image) if image
 
     delete_pod
 
     set_image_scan_status unless %w(aborting canceling).include?(self.state)
-
   ensure
     case self.state
     when 'aborting' then process_abort(*args)
@@ -261,6 +257,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
                    target_entity.last_scan_result.scan_result_message,
                    target_entity.last_scan_result.scan_status)
     end
+  end
+
+  def raise_image_scan_event(image)
+    suffix = state == 'finishing' ? 'complete' : 'abort'
+    MiqEvent.raise_evm_job_event(image, :type => "scan", :suffix => suffix)
   end
 
   def set_image_scan_status

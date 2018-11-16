@@ -261,7 +261,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   end
 
   def raise_image_scan_event(image)
-    suffix = state == 'finishing' ? 'complete' : 'abort'
+    suffix = %w(aborting canceling).include?(state) ? 'abort' : 'complete'
     MiqEvent.raise_evm_job_event(image, :type => "scan", :suffix => suffix)
   end
 

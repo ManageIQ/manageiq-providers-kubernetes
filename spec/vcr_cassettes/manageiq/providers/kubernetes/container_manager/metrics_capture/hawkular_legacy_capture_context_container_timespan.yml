@@ -26,30 +26,32 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
+      Cache-Control:
+      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - WildFly/10
+      - JBoss-EAP/7
+      Date:
+      - Tue, 20 Nov 2018 09:11:48 GMT
+      Vary:
+      - Origin,Accept-Encoding
       Content-Type:
       - application/json
       Content-Length:
-      - '154'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
+      - '158'
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
         HttpOnly; Secure
-      Cache-Control:
-      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
+        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
     http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
+  recorded_at: Tue, 20 Nov 2018 09:11:48 GMT
 - request:
     method: get
-    uri: https://capture.context.com/hawkular/metrics/counters/registry%2F5bae6bfe-609c-11e7-9ac7-001a4a2314d5%2Fcpu%2Fusage/stats/?bucketDuration=20s&end=1499280042000&start=1499279722000
+    uri: https://capture.context.com/hawkular/metrics/counters/registry%2Fbf535857-b859-11e8-b94f-001a4a162622%2Fcpu%2Fusage/stats/?bucketDuration=20s&end=1542652842000&start=1542652522000
     body:
       encoding: US-ASCII
       string: ''
@@ -73,27 +75,29 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
+      Cache-Control:
+      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - WildFly/10
+      - JBoss-EAP/7
+      Date:
+      - Tue, 20 Nov 2018 09:11:49 GMT
+      Vary:
+      - Origin,Accept-Encoding
       Content-Type:
       - application/json
       Content-Length:
-      - '426'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
+      - '418'
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
         HttpOnly; Secure
-      Cache-Control:
-      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAI2VQU7DMBBF75J1hGzHGc90zykQi0gNqFJTVU2KQIi7Y1Ri50+N8LJv4uj9+Nt9+mzmZbgszc56ERckOGeMaZvxtM/M39h0OEX2EKjvrLW9892jtW0zvL2W8DTuD0NxwTS8l/B8nYp4mM7HcY6jaDWdl49m9zIc5/GrvXP3BXfS7mRCsMF65Q4Y3HGS3AFnd8T17lRw5192W7lcrqWFfL+QjQpNlk3vmRyGRrwNrSZraMQptMLVoVdPcHfa3ceP6khEuQMGd5wkd8DZHXG9e+GgsK/YMC60lHVLiVm63vasQgOG0DhJoQHn0IjrQxdayqzcQ2/j64l6dEe8dVeT1R1xcle43r1wUMRUbJgUWiq6pUHitpI3VoUGDKFxkkIDzqERV4eWQktFX+exyiHeuUFd54i37mqyuiNO7grXuxcOilDNhhVaKrqlHKzzjli1FDGExkkKDTiHRlwf+q6lHH8r958HqaOgbgfEW3c1Wd0RJ3eFK92zJ7i7fzds89B2oW6pBGsoNkn9cSOG0DhJoQHn0Ij/Cv38DbMLHbEyCQAA
+        H4sIAAAAAAAAAI2U3UoDMRCF32Wvi+R3Mu29TyFeLHSVQreU7iqK+O4GqpucyQi5/YaE85EzefoalnW8rcPBxuAouuicMWY3TJdjYeHO5tNlOKQH49h5IhdMsI/W7Ybx/VXl83Q8jfqRefxQ+fI263ycr+dpyZFytPm6fg6Hl/G8TN+7RiAoAtQIEPvEKTopABwFcFQEgFcCyPsFSBHgX3Y/ud7etIPcHiQjzb11xlliaY4czMVoM0dezAXvNv8LCwKuEQjesmFZPcAYHyYlfY2r8ID7syt7Q6Hj1UjpKzV99Zw3gVKU0jVGaZgU6RpX0oD7pZWqEsvs+WYbfd4HER45pBejLT7ykl/wfgFlZZLpeLWkVDU1VQ05VabNN4kczXFUzIFX5si7zZPS19T889GEfV7LvRcCyEFAjDYB5EVA8H4BZW8S9TydUtrUlDazFMgHKV5j9IZJ0a5xZQ24X1rpKzdffKSYYjRGLhxyTI+jEh94lR95twAre8Ou49VY6Ss3fSVrUl4JYmGOHMzFaDNHXswF/8/8+QfFXp3UWgkAAA==
     http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
+  recorded_at: Tue, 20 Nov 2018 09:11:49 GMT
 - request:
     method: get
     uri: https://capture.context.com/hawkular/metrics/status
@@ -120,30 +124,32 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
+      Cache-Control:
+      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - WildFly/10
+      - JBoss-EAP/7
+      Date:
+      - Tue, 20 Nov 2018 09:11:49 GMT
+      Vary:
+      - Origin,Accept-Encoding
       Content-Type:
       - application/json
       Content-Length:
-      - '154'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
+      - '158'
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
         HttpOnly; Secure
-      Cache-Control:
-      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
+        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
     http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
+  recorded_at: Tue, 20 Nov 2018 09:11:49 GMT
 - request:
     method: get
-    uri: https://capture.context.com/hawkular/metrics/gauges/registry%2F5bae6bfe-609c-11e7-9ac7-001a4a2314d5%2Fmemory%2Fusage/stats/?bucketDuration=20s&end=1499280042000&start=1499279742000
+    uri: https://capture.context.com/hawkular/metrics/gauges/registry%2Fbf535857-b859-11e8-b94f-001a4a162622%2Fmemory%2Fworking_set/stats/?bucketDuration=20s&end=1542652842000&start=1542652542000
     body:
       encoding: US-ASCII
       string: ''
@@ -167,25 +173,27 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
+      Cache-Control:
+      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - WildFly/10
+      - JBoss-EAP/7
+      Date:
+      - Tue, 20 Nov 2018 09:11:49 GMT
+      Vary:
+      - Origin,Accept-Encoding
       Content-Type:
       - application/json
       Content-Length:
-      - '220'
-      Date:
-      - Thu, 06 Jul 2017 10:58:17 GMT
+      - '257'
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=dca83a65476ba479e1cba709dfada9ed; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
         HttpOnly; Secure
-      Cache-Control:
-      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAM2SQQrCMBBF75J1kZiGZqZ7TyEuAo1SaEppoiji3S1UaZsO2J2zzGc+8zK841OEaPsoyr1GVAaNVlLKTLi2mrJizHzdijLf5bmBXOqDyYS9XZLEu6q26Zi39yQJV58m1neNC8PSYbnv4kOUZ9sE98pWiAWBCJ9sbMb+ShVhXQTJ6m9fnAWi4oWoCES94fxAqAW81AJCLQBeiITEKDecHwm1kJdaSKiFmhciITEWW85PqIW81MKVWjC8GSFOOAtE9fP8s6F58a9qnd5t1VyWfAcAAA==
+        H4sIAAAAAAAAAM2U0QqCMBSG32XXEmvNc47e9xTRxSALoYWoRRG9e4K55TwXu6rdePHh8P/Gh7un6HrT9qJc51pBroanlDIT1eXgGYzM1peBrTaEqDRtMRPmdgqIrQ61CV+z5h6Q7mpDYmxzrrqBDh+3Tf8Q5dGcu+qVLSYCM5E+bDzZt1fuIC0PgkzKbZozm6jSmqiYiTri+oFJC8K0FMkCZm6OfLt5OLk54tw8iXdj0gJKayITMcqI60cmLQzTgkLmczdHvt08nNwccW6eRLshkxbqtCYyESPEXD+TFoZp/dmNSYvS+j8SEzGpiOsnJi0K0/qp2/4NfWZ6wXwHAAA=
     http_version: 
-  recorded_at: Thu, 06 Jul 2017 10:58:17 GMT
+  recorded_at: Tue, 20 Nov 2018 09:11:49 GMT
 recorded_with: VCR 3.0.3

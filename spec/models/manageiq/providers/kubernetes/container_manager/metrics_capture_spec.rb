@@ -178,7 +178,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
         ],
         :gauges             => [
           {
-            :args => 'memory/usage',
+            :args => 'memory/working_set',
             :data => [
               {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 1_073_741_824}
             ]
@@ -224,7 +224,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
         ],
         :gauges             => [
           {
-            :args => 'memory/usage',
+            :args => 'memory/working_set',
             :data => [
               {'start' => 1_446_500_000_000, 'end' => 1_446_500_060_000, 'min' => 1_073_741_824}
             ]

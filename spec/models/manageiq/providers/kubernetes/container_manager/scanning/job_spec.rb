@@ -216,17 +216,20 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
     context "completes successfully" do
       before(:each) do
         allow_any_instance_of(described_class).to receive_messages(:collect_compliance_data) unless OpenscapResult.openscap_available?
-
         expect(@job.state).to eq 'waiting_to_start'
-        @job.signal(:start)
       end
 
       it 'should report success' do
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "complete")
+
+        @job.signal(:start)
+
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'ok'
       end
 
       it 'should persist openscap data' do
+        @job.signal(:start)
         skip unless OpenscapResult.openscap_available?
 
         expect(@image.openscap_result).to be
@@ -424,6 +427,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       end
 
       it 'should report the error' do
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'
@@ -439,6 +443,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       end
 
       it 'should fail' do
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'
@@ -457,12 +462,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         allow_any_instance_of(described_class).to receive_messages(:collect_compliance_data) unless OpenscapResult.openscap_available?
         allow_any_instance_of(described_class).to receive_messages(
           :image_inspector_client => MockImageInspectorClient.new(MODIFIED_IMAGE_ID, IMAGE_ID))
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "complete")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'ok'
       end
 
       it 'should report the error' do
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'
@@ -484,6 +491,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         allow_any_instance_of(described_class).to receive_messages(
           :image_inspector_client => MockFailedImageInspectorClient.new("Success", "", "", IMAGE_ID)
         )
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "complete")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'ok'
@@ -495,6 +503,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         allow_any_instance_of(described_class).to receive_messages(
           :image_inspector_client => MockFailedImageInspectorClient.new("Error", OSCAP_ERROR_MSG, "", IMAGE_ID)
         )
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "complete")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'warn'
@@ -509,6 +518,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         allow_any_instance_of(described_class).to receive_messages(
           :image_inspector_client => MockCantAccessImageInspectorClient.new
         )
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'
@@ -522,6 +532,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         allow_any_instance_of(described_class).to receive_messages(
           :image_inspector_client => MockFailedImageInspectorClient.new("Sucess", "", IMG_ACQ_ERR, IMAGE_ID)
         )
+        expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'

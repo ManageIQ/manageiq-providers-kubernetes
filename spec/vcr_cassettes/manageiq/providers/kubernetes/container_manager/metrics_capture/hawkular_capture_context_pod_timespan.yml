@@ -12,9 +12,9 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
       Hawkular-Tenant:
-      - rdis
+      - default
       Authorization:
       - Bearer theToken
       Content-Type:
@@ -26,48 +26,50 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
+      Cache-Control:
+      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - WildFly/10
+      - JBoss-EAP/7
+      Date:
+      - Tue, 20 Nov 2018 09:11:05 GMT
+      Vary:
+      - Origin,Accept-Encoding
       Content-Type:
       - application/json
       Content-Length:
-      - '154'
-      Date:
-      - Tue, 28 Nov 2017 17:28:12 GMT
+      - '158'
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
         HttpOnly; Secure
-      Cache-Control:
-      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
+        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
     http_version: 
-  recorded_at: Tue, 28 Nov 2017 17:28:12 GMT
+  recorded_at: Tue, 20 Nov 2018 09:11:05 GMT
 - request:
     method: post
     uri: https://capture.context.com/hawkular/metrics/m/stats/query
     body:
       encoding: UTF-8
-      string: '{"start":1511886402000,"end":1511887062000,"bucketDuration":"60s","tags":"descriptor_name:network/tx_rate|network/rx_rate|cpu/usage_rate|memory/usage,type:pod,host_id:capture.context.com,pod_id:4bb31a97-bca3-11e7-94bc-001a4a2314d6"}'
+      string: '{"start":1542644802000,"end":1542645462000,"bucketDuration":"60s","tags":"descriptor_name:network/tx_rate|network/rx_rate|cpu/usage_rate|memory/working_set,type:pod,host_id:yaacov-3-infra002.10.35.48.54.nip.io,pod_id:bf535857-b859-11e8-b94f-001a4a162622"}'
     headers:
       Accept:
       - application/json
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
       Hawkular-Tenant:
-      - rdis
+      - default
       Authorization:
       - Bearer theToken
       Content-Type:
       - application/json
       Content-Length:
-      - '252'
+      - '255'
   response:
     status:
       code: 200
@@ -75,23 +77,27 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
+      Cache-Control:
+      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - WildFly/10
+      - JBoss-EAP/7
+      Date:
+      - Tue, 20 Nov 2018 09:11:06 GMT
+      Vary:
+      - Origin,Accept-Encoding
       Content-Type:
       - application/json
       Content-Length:
-      - '1101'
-      Date:
-      - Tue, 28 Nov 2017 17:28:12 GMT
+      - '1425'
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        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
+        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
     http_version: 
-  recorded_at: Tue, 28 Nov 2017 17:28:12 GMT
+  recorded_at: Tue, 20 Nov 2018 09:11:06 GMT
 recorded_with: VCR 3.0.3

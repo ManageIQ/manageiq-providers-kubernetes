@@ -7,7 +7,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       cpu_resid = "machine/#{@target.name}/cpu/usage"
       process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
 
-      mem_resid = "machine/#{@target.name}/memory/usage"
+      mem_resid = "machine/#{@target.name}/memory/working_set"
       process_mem_gauges_data(fetch_gauges_data(mem_resid))
 
       net_resid = "machine/#{@target.name}/network"
@@ -23,7 +23,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       cpu_resid = "#{@target.name}/#{group_id}/cpu/usage"
       process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
 
-      mem_resid = "#{@target.name}/#{group_id}/memory/usage"
+      mem_resid = "#{@target.name}/#{group_id}/memory/working_set"
       process_mem_gauges_data(fetch_gauges_data(mem_resid))
     end
 
@@ -36,7 +36,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       process_cpu_counters_rate(compute_summation(cpu_counters))
 
       mem_gauges = @target.containers.collect do |c|
-        fetch_gauges_data("#{c.name}/#{group_id}/memory/usage")
+        fetch_gauges_data("#{c.name}/#{group_id}/memory/working_set")
       end
       process_mem_gauges_data(compute_summation(mem_gauges))
 

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
+## Unreleased as of Sprint 99 ending 2018-11-19
+
+### Fixed
+- Different way to check for scan job's complete state. [(#304)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/304)
+- Raise event containerimage_scan_complete only when scan succeeds. [(#303)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/303)
+- Override Job#process_cancel to send :cancel signal  [(#299)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/299)
+
 ## Unreleased as of Sprint 95 ending 2018-09-24
 
 ### Added

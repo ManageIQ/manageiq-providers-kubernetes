@@ -54,7 +54,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
   end
 
   def filtered?(event)
-    extract_event_data(event).nil?
+    event_data = extract_event_data(event)
+
+    supported_reasons = ENABLED_EVENTS[event_data[:kind]] || []
+    !supported_reasons.include?(event_data[:reason]) || filtered_events.include?(event_data[:event_type])
   end
 
   # Returns hash, or nil if event should be discarded.
@@ -74,8 +77,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       event_data[:fieldpath] = event.object.involvedObject.fieldPath
     end
 
-    supported_reasons = ENABLED_EVENTS[event_data[:kind]] || []
-    return unless supported_reasons.include?(event_data[:reason])
 
     event_type_prefix = event_data[:kind].upcase
 
@@ -102,7 +103,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
     end
 
     event_data[:event_type] = "#{event_type_prefix}_#{event_data[:reason].upcase}"
-    return if filtered_events.include?(event_data[:event_type])
 
     event_data
   end

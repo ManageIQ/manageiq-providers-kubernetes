@@ -267,6 +267,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         end
       end
     end
+  end
+
+  describe "#filtered?" do
+    let(:test_instance) { test_class.new }
+
     context 'given an event with an unsupported kind' do
       let(:kubernetes_event) do
         {
@@ -280,9 +285,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         }
       end
 
-      it 'will return nil' do
+      it 'will return true' do
         event = RecursiveOpenStruct.new(:object => kubernetes_event)
-        expect(test_class.new.extract_event_data(event)).to be nil
+        expect(test_instance.filtered?(event)).to be_truthy
       end
     end
 
@@ -299,14 +304,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         }
       end
 
-      it 'will return nil' do
+      it 'will return true' do
         event = RecursiveOpenStruct.new(:object => kubernetes_event)
-        expect(test_class.new.extract_event_data(event)).to be nil
+        expect(test_instance.filtered?(event)).to be_truthy
       end
     end
-  end
 
-  describe "#filtered?" do
     let(:kubernetes_event) do
       {
         'metadata'       => {
@@ -339,8 +342,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
     end
 
     let(:event) { RecursiveOpenStruct.new(:object => kubernetes_event) }
-
-    let(:test_instance) { test_class.new }
 
     it 'with a blacklisted event' do
       expect(test_instance).to receive(:filtered_events).and_return(["REPLICATOR_SUCCESSFULCREATE"])

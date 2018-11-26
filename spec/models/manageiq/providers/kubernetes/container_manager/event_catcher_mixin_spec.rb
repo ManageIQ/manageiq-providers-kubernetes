@@ -2,8 +2,10 @@ require 'recursive-open-struct'
 describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
   let(:test_class) do
     Class.new do
+      attr_reader :filtered_events
       def initialize(ems = nil)
         @ems = ems if ems
+        @filtered_events = []
       end
     end.include(described_class)
   end
@@ -272,6 +274,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           'involvedObject' => {
             'kind' => 'SomeRandomObject',
           },
+          'metadata'       => {
+            'uid' => 'SomeRandomUid',
+          },
         }
       end
 
@@ -287,6 +292,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           'reason'         => 'DoesItReallyMatter',
           'involvedObject' => {
             'kind' => 'ReplicationController',
+          },
+          'metadata'       => {
+            'uid' => 'SomeRandomUid',
           },
         }
       end
@@ -332,11 +340,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
 
     let(:event) { RecursiveOpenStruct.new(:object => kubernetes_event) }
 
-    let(:test_instance) do
-      test_class.new.tap do |i|
-        allow(i).to receive(:filtered_events).and_return([])
-      end
-    end
+    let(:test_instance) { test_class.new }
 
     it 'with a blacklisted event' do
       expect(test_instance).to receive(:filtered_events).and_return(["REPLICATOR_SUCCESSFULCREATE"])

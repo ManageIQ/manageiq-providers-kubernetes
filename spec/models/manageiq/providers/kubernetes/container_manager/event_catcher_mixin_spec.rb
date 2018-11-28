@@ -1,8 +1,11 @@
+require 'recursive-open-struct'
 describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
   let(:test_class) do
     Class.new do
+      attr_reader :filtered_events
       def initialize(ems = nil)
         @ems = ems if ems
+        @filtered_events = []
       end
     end.include(described_class)
   end
@@ -263,6 +266,104 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           expect(test_class.new(ems).extract_event_data(missing_uid_event)).to eq(expected_data)
         end
       end
+    end
+  end
+
+  describe "#filtered?" do
+    let(:test_instance) { test_class.new }
+
+    context 'given an event with an unsupported kind' do
+      let(:kubernetes_event) do
+        {
+          'reason'         => 'DoesItReallyMatter',
+          'involvedObject' => {
+            'kind' => 'SomeRandomObject',
+          },
+          'metadata'       => {
+            'uid' => 'SomeRandomUid',
+          },
+        }
+      end
+
+      it 'will return true' do
+        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        expect(test_instance.filtered?(event)).to be_truthy
+      end
+    end
+
+    context 'given an event with an unsupported reason' do
+      let(:kubernetes_event) do
+        {
+          'reason'         => 'DoesItReallyMatter',
+          'involvedObject' => {
+            'kind' => 'ReplicationController',
+          },
+          'metadata'       => {
+            'uid' => 'SomeRandomUid',
+          },
+        }
+      end
+
+      it 'will return true' do
+        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        expect(test_instance.filtered?(event)).to be_truthy
+      end
+    end
+
+    let(:kubernetes_event) do
+      {
+        'metadata'       => {
+          'name'              => 'mysql-1.146486622e01d244',
+          'namespace'         => 'proj',
+          'selfLink'          => '/api/v1/namespaces/proj/events/mysql-1.146486622e01d244',
+          'uid'               => '4c513e6d-525d-11e6-8564-525400c7c086',
+          'resourceVersion'   => '1360577',
+          'creationTimestamp' => '2016-07-25T11:45:34Z',
+          'deletionTimestamp' => '2016-07-25T13:45:34Z'
+        },
+        'involvedObject' => {
+          'kind'            => 'ReplicationController',
+          'namespace'       => 'proj',
+          'name'            => 'mysql-1',
+          'uid'             => '7599d451-4c1c-11e6-89dd-525400c7c086',
+          'apiVersion'      => 'v1',
+          'resourceVersion' => '1360571'
+        },
+        'reason'         => 'SuccessfulCreate',
+        'message'        => 'Created pod: mysql-1-i4b54',
+        'source'         => {
+          'component' => 'replication-controller'
+        },
+        'firstTimestamp' => '2016-07-25T11:45:34Z',
+        'lastTimestamp'  => '2016-07-25T11:45:34Z',
+        'count'          => 1,
+        'type'           => 'Normal'
+      }
+    end
+
+    let(:event) { RecursiveOpenStruct.new(:object => kubernetes_event) }
+
+    it 'with a blacklisted event' do
+      expect(test_instance).to receive(:filtered_events).and_return(["REPLICATOR_SUCCESSFULCREATE"])
+      expect(test_instance.filtered?(event)).to be_truthy
+    end
+
+    it 'with a non-blacklisted event' do
+      expect(test_instance.filtered?(event)).to be_falsey
+    end
+
+    it 'with an event with an unsupported kind' do
+      kubernetes_event.store_path('involvedObject', 'kind', 'SomeRandomObject')
+
+      event = RecursiveOpenStruct.new(:object => kubernetes_event)
+      expect(test_instance.filtered?(event)).to be_truthy
+    end
+
+    it 'with an event with an unsupported reason' do
+      kubernetes_event.store_path('reason', 'DoesItReallyMatter')
+
+      event = RecursiveOpenStruct.new(:object => kubernetes_event)
+      expect(test_instance.filtered?(event)).to be_truthy
     end
   end
 end

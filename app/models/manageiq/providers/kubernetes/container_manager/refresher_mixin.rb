@@ -68,9 +68,12 @@ module ManageIQ
 
             begin
               loop do
-                entities = client.send("get_#{entity[:name]}", :limit => 1_000, :continue => continue)
+                entities = client.send("get_#{entity[:name]}", :limit => refresher_options.chunk_size, :continue => continue)
+
                 h[entity[:name].singularize].concat(entities)
                 break if entities.last?
+
+                continue = entities.continue
               end
             rescue KubeException => e
               raise e if entity[:default].nil?

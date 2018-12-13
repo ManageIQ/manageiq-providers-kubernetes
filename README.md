@@ -1,7 +1,7 @@
 # manageiq-providers-kubernetes
 
 [![Gem Version](https://badge.fury.io/rb/manageiq-providers-kubernetes.svg)](http://badge.fury.io/rb/manageiq-providers-kubernetes)
-[![Build Status](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes.svg)](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes)
+[![Build Status](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes.svg?branch=master)](https://travis-ci.org/ManageIQ/manageiq-providers-kubernetes)
 [![Code Climate](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes.svg)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes)
 [![Test Coverage](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/badges/coverage.svg)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/coverage)
 [![Dependency Status](https://gemnasium.com/ManageIQ/manageiq-providers-kubernetes.svg)](https://gemnasium.com/ManageIQ/manageiq-providers-kubernetes)

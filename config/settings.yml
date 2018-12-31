@@ -81,5 +81,6 @@
             :prometheus_open_timeout: 5
             :prometheus_request_timeout: 30
             :hawkular_force_legacy: true
+            :legacy_use_working_set: false
         :ems_refresh_worker:
           :ems_refresh_worker_kubernetes: {}

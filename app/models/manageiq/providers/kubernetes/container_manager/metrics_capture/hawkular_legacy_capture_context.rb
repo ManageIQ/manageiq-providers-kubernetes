@@ -3,11 +3,25 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     include ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClientMixin
     include CaptureContextMixin
 
+    def hawkular_legacy_use_working_set?
+      worker_class = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCollectorWorker
+
+      worker_class.worker_settings[:legacy_use_working_set] || false
+    end
+
+    def memory_category
+      if hawkular_legacy_use_working_set?
+        "/memory/working_set"
+      else
+        "/memory/usage"
+      end
+    end
+
     def collect_node_metrics
       cpu_resid = "machine/#{@target.name}/cpu/usage"
       process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
 
-      mem_resid = "machine/#{@target.name}/memory/usage"
+      mem_resid = "machine/#{@target.name}#{memory_category}"
       process_mem_gauges_data(fetch_gauges_data(mem_resid))
 
       net_resid = "machine/#{@target.name}/network"
@@ -23,7 +37,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       cpu_resid = "#{@target.name}/#{group_id}/cpu/usage"
       process_cpu_counters_rate(fetch_counters_rate(cpu_resid))
 
-      mem_resid = "#{@target.name}/#{group_id}/memory/usage"
+      mem_resid = "#{@target.name}/#{group_id}#{memory_category}"
       process_mem_gauges_data(fetch_gauges_data(mem_resid))
     end
 
@@ -36,7 +50,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       process_cpu_counters_rate(compute_summation(cpu_counters))
 
       mem_gauges = @target.containers.collect do |c|
-        fetch_gauges_data("#{c.name}/#{group_id}/memory/usage")
+        fetch_gauges_data("#{c.name}/#{group_id}#{memory_category}")
       end
       process_mem_gauges_data(compute_summation(mem_gauges))
 

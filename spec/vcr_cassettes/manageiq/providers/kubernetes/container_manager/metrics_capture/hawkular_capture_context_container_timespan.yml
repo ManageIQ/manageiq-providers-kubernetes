@@ -12,9 +12,9 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
-      - default
+      - rdis
       Authorization:
       - Bearer theToken
       Content-Type:
@@ -26,50 +26,48 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
-      Cache-Control:
-      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - JBoss-EAP/7
-      Date:
-      - Tue, 20 Nov 2018 09:11:06 GMT
-      Vary:
-      - Origin,Accept-Encoding
+      - WildFly/10
       Content-Type:
       - application/json
       Content-Length:
-      - '158'
+      - '154'
+      Date:
+      - Tue, 28 Nov 2017 17:28:12 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
+      Cache-Control:
+      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
+        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
     http_version: 
-  recorded_at: Tue, 20 Nov 2018 09:11:06 GMT
+  recorded_at: Tue, 28 Nov 2017 17:28:12 GMT
 - request:
     method: post
     uri: https://capture.context.com/hawkular/metrics/m/stats/query
     body:
       encoding: UTF-8
-      string: '{"start":1542644802000,"end":1542645462000,"bucketDuration":"60s","tags":"descriptor_name:cpu/usage_rate|memory/working_set,type:pod_container,host_id:yaacov-3-infra002.10.35.48.54.nip.io,pod_id:bf535857-b859-11e8-b94f-001a4a162622,container_name:registry"}'
+      string: '{"start":1511886402000,"end":1511887062000,"bucketDuration":"60s","tags":"descriptor_name:cpu/usage_rate|memory/usage,type:pod_container,host_id:capture.context.com,pod_id:4bb31a97-bca3-11e7-94bc-001a4a2314d6,container_name:redis"}'
     headers:
       Accept:
       - application/json
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
-      - default
+      - rdis
       Authorization:
       - Bearer theToken
       Content-Type:
       - application/json
       Content-Length:
-      - '257'
+      - '251'
   response:
     status:
       code: 200
@@ -77,27 +75,23 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
-      Cache-Control:
-      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - JBoss-EAP/7
-      Date:
-      - Tue, 20 Nov 2018 09:11:06 GMT
-      Vary:
-      - Origin,Accept-Encoding
+      - WildFly/10
       Content-Type:
       - application/json
       Content-Length:
-      - '396'
+      - '344'
+      Date:
+      - Tue, 28 Nov 2017 17:28:12 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAM2V3WqDMBzF3yXX2v4T86X3e4pRSrqmImvaYnRbKX33ybZGq0J1LCx3cgic3zGcnAvKVZ1rlF1QqfPCVuV5udmxhEkm4o1kaYyxlvEmpbsYACuqMCeckKXR5ticfT+Wr8UhX1tdoez5gmylyuYLM0o4pRIIAERIH7atxr81UxwabZFIIQiVTyJC6i3vKUZvC9U/ZtRHT7G1QRlZCMEoTfmXosxpr22jNubmVJ1RtlN7q6/RAJEPEVPSQ0wTnpA7RKd0EVvxhugUhyhF4zAP8YZzhyjDQpQDRAb0HjGlREjaRWyVDmJH/EFslRuilIxxOQvR4XQRMQSFiId1YZiHhTisCyMkKEQyrAsjMizEkbokYdUlGakLDasudKQu9F/rsopmrujLqV7WVuV6XapK/25BwWWDbiZwWcBlgD9dRnDWsGCtNYxY43nWExbPV+oJS+bJespC+bJ+uDze7nrKovhKPWEpvFk/WgB/P3zCy+4r9cMX+89Sr67XT1iKZEHbDAAA
+        H4sIAAAAAAAAAM2VbWuDMBSF/0s++5LEmBe/71eMMq6alULTidGxIv73uZXaikLoaFi+eYN6nqOcewa0h36vUTGgVtcHm7KyzAgoEZcVZDEhWsSKlVWMMQEGNCOs5qnR5qM9p72Fn0dfB2Q7aDtUkJwQKTnDFGMcIX2qb2f8cmYOJ1SoTFFCZTLN8LlfzGaigOUtBr4Ws+3N9NpECslozl/EdAKmOWqLCjqJmqY7o+IdjlaP0QqNr9FyGgTaFWOBJsNAk2s0zoJAu2LcowkcBJrYiIEIIwZiIwYyjBjIjRjIMGIgN2KgwoiBWsdA4CBiMGMs0P4lBrvokZKrmv7ScG8tdH+qOTpbovdm6GyDzgbY79XzaozM0iTJb9JkQzp7TNpZU/5cO2vIn2tnzfhz7awRf66dNeFP2lkD/j64c837k3aucW/S7jX9tH+9G8dvpdy7RHcMAAA=
     http_version: 
-  recorded_at: Tue, 20 Nov 2018 09:11:06 GMT
+  recorded_at: Tue, 28 Nov 2017 17:28:12 GMT
 recorded_with: VCR 3.0.3

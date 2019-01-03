@@ -12,7 +12,7 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
       - _system
       Authorization:
@@ -26,29 +26,27 @@ http_interactions:
     headers:
       Content-Encoding:
       - gzip
-      Cache-Control:
-      - no-cache
       X-Powered-By:
       - Undertow/1
       Server:
-      - JBoss-EAP/7
-      Date:
-      - Tue, 20 Nov 2018 09:11:11 GMT
-      Vary:
-      - Origin,Accept-Encoding
+      - WildFly/10
       Content-Type:
       - application/json
       Content-Length:
-      - '158'
+      - '154'
+      Date:
+      - Tue, 28 Nov 2017 17:28:10 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
+      Cache-Control:
+      - private
     body:
       encoding: ASCII-8BIT
       string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
+        H4sIAAAAAAAAAA3MvQ7CIBiF4XthFsJfK3Fr1aqDizTulH5NSIA2QF2M9y7TWZ7zftETSnI2a0gfZwGdkB6713i9oAN6hM1DgFhMcWvEb0i5biWU8JYwMrhofHX97nzBQ1oDvrmC9b1jFclmYlJZJSTMLadMLawRlgumjpOUojUgOVUL1MDZ5GzinEy97Rv6/QHfcrqrlgAAAA==
     http_version: 
-  recorded_at: Tue, 20 Nov 2018 09:11:11 GMT
+  recorded_at: Tue, 28 Nov 2017 17:28:10 GMT
 - request:
     method: get
     uri: https://capture.context.com/hawkular/metrics/m?tags=type:none
@@ -61,7 +59,7 @@ http_interactions:
       Accept-Encoding:
       - gzip, deflate
       User-Agent:
-      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.1p111
+      - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Hawkular-Tenant:
       - _system
       Authorization:
@@ -73,22 +71,18 @@ http_interactions:
       code: 204
       message: No Content
     headers:
-      Cache-Control:
-      - no-cache
-      Vary:
-      - Origin,Accept-Encoding
       X-Powered-By:
       - Undertow/1
       Server:
-      - JBoss-EAP/7
+      - WildFly/10
       Date:
-      - Tue, 20 Nov 2018 09:11:11 GMT
+      - Tue, 28 Nov 2017 17:28:11 GMT
       Set-Cookie:
-      - a054b5d9e987bf679f10c9d29be39478=89055ff757c4f9ad281ca1bbe860a436; path=/;
+      - a054b5d9e987bf679f10c9d29be39478=73762a0d783a513e7d44e44623f876c5; path=/;
         HttpOnly; Secure
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Tue, 20 Nov 2018 09:11:11 GMT
+  recorded_at: Tue, 28 Nov 2017 17:28:11 GMT
 recorded_with: VCR 3.0.3

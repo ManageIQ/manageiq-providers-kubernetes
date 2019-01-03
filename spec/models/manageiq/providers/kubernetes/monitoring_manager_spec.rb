@@ -1,17 +1,19 @@
 describe ManageIQ::Providers::Kubernetes::MonitoringManager do
   let(:default_endpoint) { FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host') }
-  let(:default_authentication) { FactoryGirl.create(:authentication, :authtype => 'bearer') }
+  let(:default_authentication) { FactoryGirl.create(:authentication, :authtype => 'bearer', :status => nil) }
   let(:prometheus_authentication) do
     FactoryGirl.create(
       :authentication,
       :authtype => 'prometheus_alerts',
       :auth_key => '_',
+      :status => nil,
     )
   end
 
   let(:container_manager) do
     FactoryGirl.create(
       :ems_kubernetes,
+      :with_unvalidated_authentication,
       :endpoints       => [
         default_endpoint,
         prometheus_alerts_endpoint,

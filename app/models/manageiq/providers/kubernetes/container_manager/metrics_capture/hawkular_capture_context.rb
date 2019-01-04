@@ -9,27 +9,27 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     METRICS_ENDPOINT = 'm/stats/query'.freeze
     METRICS_NODE_TAGS = 'descriptor_name:' \
       'network/tx_rate|network/rx_rate|' \
-      'cpu/usage_rate|memory/working_set'.freeze
+      'cpu/usage_rate|memory/usage'.freeze
     METRICS_NODE_KEYS = [
       'cpu/usage_rate',
-      'memory/working_set',
+      'memory/usage',
       'network/rx_rate',
       'network/tx_rate',
     ].freeze
     METRICS_POD_TAGS = 'descriptor_name:' \
       'network/tx_rate|network/rx_rate|' \
-      'cpu/usage_rate|memory/working_set'.freeze
+      'cpu/usage_rate|memory/usage'.freeze
     METRICS_POD_KEYS = [
       'cpu/usage_rate',
-      'memory/working_set',
+      'memory/usage',
       'network/rx_rate',
       'network/tx_rate',
     ].freeze
     METRICS_CONTAINER_TAGS = 'descriptor_name:' \
-      'cpu/usage_rate|memory/working_set'.freeze
+      'cpu/usage_rate|memory/usage'.freeze
     METRICS_CONTAINER_KEYS = [
       'cpu/usage_rate',
-      'memory/working_set',
+      'memory/usage',
     ].freeze
     METRICS_CAPACITY_TAGS = 'descriptor_name:cpu/node_capacity|memory/node_capacity'.freeze
     METRICS_CAPACITY_KEYS = [
@@ -146,9 +146,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     def calculate_one_timestamp_fields(ts_value, cpu_node_capacity, mem_node_capacity)
       # usage_rate is in milicores/sec, node_capacity is in milicores, we want the value in %/sec
       # multiply by 100 to get percents
-      if ts_value['cpu/usage_rate'] && ts_value['memory/working_set']
+      if ts_value['cpu/usage_rate'] && ts_value['memory/usage']
         ts_value['cpu_usage_rate_average'] = ts_value['cpu/usage_rate'] / cpu_node_capacity
-        ts_value['mem_usage_absolute_average'] = ts_value['memory/working_set'] / mem_node_capacity
+        ts_value['mem_usage_absolute_average'] = ts_value['memory/usage'] / mem_node_capacity
       end
 
       # network/rx_rate is in bytes/sec we want the value in kbyte / sec,

@@ -1,4 +1,6 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularCaptureContext do
+  @node = nil
+
   before(:each) do
     hostname = 'capture.context.com'
     token = 'theToken'
@@ -22,21 +24,23 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
                                                           :userid   => "_"}}]
     )
 
-    VCR.use_cassette("#{described_class.name.underscore}_refresh",
-                     :match_requests_on => [:path,]) do # , :record => :new_episodes) do
-      EmsRefresh.refresh(@ems)
-      @ems.reload
+    if @node.nil?
+      VCR.use_cassette("#{described_class.name.underscore}_refresh",
+                       :match_requests_on => [:path,]) do # , :record => :new_episodes) do
+        EmsRefresh.refresh(@ems)
+        @ems.reload
 
-      @node = @ems.container_nodes.find_by(:name => "yaacov-3-master001.10.35.48.34.nip.io")
-      pod = @ems.container_groups.find_by(:name => "docker-registry-1-jnrtt")
-      container = pod.containers.find_by(:name => "registry")
+        @node = @ems.container_nodes.find_by(:name => hostname)
+        pod = @ems.container_groups.find_by(:name => "redis-1-m9fs5")
+        container = pod.containers.find_by(:name => "redis")
 
-      @targets = [['node', @node], ['pod', pod], ['container', container]]
+        @targets = [['node', @node], ['pod', pod], ['container', container]]
+      end
     end
   end
 
   it "will read hawkular status" do
-    start_time = Time.parse("2018-11-19 18:35:42 UTC").utc
+    start_time = Time.parse("2017-11-27 18:35:42 UTC").utc
     end_time   = nil
     interval   = nil
 
@@ -46,8 +50,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
       )
 
       metrics = {"MetricsService"         => "STARTED",
-                 "Implementation-Version" => "0.28.4.Final-redhat-1",
-                 "Built-From-Git-SHA1"    => "9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472",
+                 "Implementation-Version" => "0.26.1.Final",
+                 "Built-From-Git-SHA1"    => "45b148c834ed62018f153c23187b4436ae4208fe",
                  "Cassandra"              => "up"}
 
       data = context.hawkular_client.http_get('/status')
@@ -57,7 +61,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
   end
 
   it "will discover m endpoint" do
-    start_time = Time.parse("2018-11-19 18:35:42 UTC").utc
+    start_time = Time.parse("2017-11-27 18:35:42 UTC").utc
     end_time   = nil
     interval   = nil
 
@@ -71,7 +75,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
   end
 
   it "will read hawkular metrics" do
-    start_time = Time.parse("2018-11-19 18:40:42 UTC").utc
+    start_time = Time.parse("2017-11-27 18:40:42 UTC").utc
     end_time   = nil
     interval   = 60
 
@@ -88,8 +92,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
   end
 
   it "will read only specific timespan hawkular metrics" do
-    start_time = Time.parse("2018-11-19 16:27:42 UTC").utc
-    end_time   = Time.parse("2018-11-19 16:37:42 UTC").utc
+    start_time = Time.parse("2017-11-28 16:27:42 UTC").utc
+    end_time   = Time.parse("2017-11-28 16:37:42 UTC").utc
     interval   = 60
 
     @targets.each do |target_name, target|

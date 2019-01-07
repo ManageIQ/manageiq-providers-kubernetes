@@ -2,15 +2,15 @@
 shared_examples "kubernetes refresher VCR tests" do
   before(:each) do
     auth = AuthToken.new(:name => "test", :auth_key => "valid-token")
-    @ems = FactoryGirl.create(:ems_kubernetes_with_zone, :hostname => "10.35.0.169",
+    @ems = FactoryBot.create(:ems_kubernetes_with_zone, :hostname => "10.35.0.169",
                               :ipaddress => "10.35.0.169", :port => 6443,
                               :authentications => [auth])
     # NOTE: the following :uid_ems should match (downcased) the kubernetes
     #       node systemUUID in the VCR yaml file
-    @openstack_vm = FactoryGirl.create(
+    @openstack_vm = FactoryBot.create(
       :vm_openstack,
       :uid_ems => '8b6c7070-9abd-41ac-a950-e4cfac665673')
-    @ovirt_vm = FactoryGirl.create(
+    @ovirt_vm = FactoryBot.create(
       :vm_redhat,
       :uid_ems => 'cad16607-fb88-4412-a993-5242030f6afa')
   end
@@ -21,10 +21,10 @@ shared_examples "kubernetes refresher VCR tests" do
 
   # Smoke test the use of ContainerLabelTagMapping during refresh.
   before :each do
-    mapping = FactoryGirl.create(:tag_mapping_with_category, :label_name => 'name')
+    mapping = FactoryBot.create(:tag_mapping_with_category, :label_name => 'name')
     @name_category = mapping.tag.classification
 
-    @user_tag = FactoryGirl.create(:classification_cost_center_with_tags).entries.first.tag
+    @user_tag = FactoryBot.create(:classification_cost_center_with_tags).entries.first.tag
   end
 
   def full_refresh_test(expected_extra_tags: [])
@@ -421,7 +421,7 @@ shared_examples "kubernetes refresher VCR tests" do
       end
 
       # fake node that should get archived on later refresh
-      FactoryGirl.create(:container_node, :name => "node", :ems_id => @ems.id)
+      FactoryBot.create(:container_node, :name => "node", :ems_id => @ems.id)
     end
 
     let(:container_volumes_count) { 21 }

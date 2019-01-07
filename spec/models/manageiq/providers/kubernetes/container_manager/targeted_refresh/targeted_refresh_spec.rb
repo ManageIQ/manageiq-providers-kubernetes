@@ -5,7 +5,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
     token             = 'theToken'
     hawkular_hostname = 'host.example.com'
 
-    @ems = FactoryGirl.create(
+    @ems = FactoryBot.create(
       :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
@@ -70,7 +70,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
   end
 
   def create_archived_entities
-    FactoryGirl.create(
+    FactoryBot.create(
       :container,
       :type              => "ManageIQ::Providers::Kubernetes::ContainerManager::Container",
       :ems_ref           => "1b641a4f-aa70-11e7-8a08-001a4a162711_stress4_docker.io/fsimonce/stress-test",
@@ -85,7 +85,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :capabilities_drop => "KILL,MKNOD,SETGID,SETUID,SYS_CHROOT",
       :deleted_on        => Time.now.utc,
     )
-    FactoryGirl.create(
+    FactoryBot.create(
       :container,
       :type              => "ManageIQ::Providers::Kubernetes::ContainerManager::Container",
       :ems_ref           => "82b28922-acd4-11e7-8a08-001a4a162711_stress5_docker.io/fsimonce/stress-test",
@@ -101,7 +101,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :deleted_on        => Time.now.utc,
     )
 
-    FactoryGirl.create(
+    FactoryBot.create(
       :container_group,
       :ems_ref          => "1b641a4f-aa70-11e7-8a08-001a4a162711",
       :name             => "stress4-1-7r2fb",
@@ -115,7 +115,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :deleted_on       => Time.now.utc,
     )
 
-    FactoryGirl.create(
+    FactoryBot.create(
       :container_group,
       :ems_ref          => "82b28922-acd4-11e7-8a08-001a4a162711",
       :name             => "stress5-1-w9vm2",
@@ -129,7 +129,7 @@ shared_examples "openshift refresher VCR targeted refresh tests" do
       :deleted_on       => Time.now.utc,
     )
 
-    FactoryGirl.create(
+    FactoryBot.create(
       :container_image,
       :tag        => "latest",
       :name       => "fsimonce/stress-test",

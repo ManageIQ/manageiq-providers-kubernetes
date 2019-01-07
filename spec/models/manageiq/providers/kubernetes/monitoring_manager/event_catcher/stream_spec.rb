@@ -3,11 +3,11 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
     described_class.new(monitoring_manager)
   end
 
-  let(:default_endpoint) { FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host') }
-  let(:default_authentication) { FactoryGirl.create(:authentication, :authtype => 'bearer') }
+  let(:default_endpoint) { FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host') }
+  let(:default_authentication) { FactoryBot.create(:authentication, :authtype => 'bearer') }
   let(:prometheus_alerts_endpoint) do
     EvmSpecHelper.local_miq_server(:zone => Zone.seed)
-    FactoryGirl.build(
+    FactoryBot.build(
       :endpoint,
       :role       => 'prometheus_alerts',
       :hostname   => 'alerts-prometheus.example.com',
@@ -16,7 +16,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
     )
   end
   let(:prometheus_authentication) do
-    FactoryGirl.build(
+    FactoryBot.build(
       :authentication,
       :authtype => 'prometheus_alerts',
       :auth_key => '_',
@@ -24,7 +24,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
   end
 
   let(:container_manager) do
-    FactoryGirl.create(
+    FactoryBot.create(
       :ems_kubernetes,
       :endpoints       => [
         default_endpoint,
@@ -53,7 +53,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
     context "when event history is not empty" do
       before do
         [
-          FactoryGirl.create(
+          FactoryBot.create(
             :ems_event,
             :source                => "DATAWAREHOUSE",
             :timestamp             => "1970-01-01 00:00:00.000000",
@@ -64,7 +64,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Strea
             }
           ),
           # not real data because this generation also need a 0 index, but good for the test purpose
-          FactoryGirl.create(
+          FactoryBot.create(
             :ems_event,
             :source                => "DATAWAREHOUSE",
             :timestamp             => "1970-01-02 00:00:00.000000",

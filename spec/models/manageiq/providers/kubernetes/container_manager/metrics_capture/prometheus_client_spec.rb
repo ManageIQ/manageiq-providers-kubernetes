@@ -2,7 +2,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
   before(:each) do
     hostname = 'prometheus.example.com'
     token = 'good_token'
-    @ems = FactoryGirl.create(
+    @ems = FactoryBot.create(
       :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,

@@ -15,7 +15,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "regular provider has no metrics support" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
           Endpoint.new(:role => 'default', :hostname => 'hostname')
@@ -26,7 +26,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "provider with hawkular endpoint has metrics support" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
           Endpoint.new(:role => 'default', :hostname => 'hostname'),
@@ -38,7 +38,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "provider with prometheus endpoint has metrics support" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
           Endpoint.new(:role => 'default', :hostname => 'hostname'),
@@ -50,7 +50,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "provider with some role endpoint has no metrics support" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
           Endpoint.new(:role => 'default', :hostname => 'hostname'),
@@ -63,7 +63,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
   end
 
   context "#verify_ssl_mode" do
-    let(:ems) { FactoryGirl.build(:ems_kubernetes) }
+    let(:ems) { FactoryBot.build(:ems_kubernetes) }
 
     it "is secure without endpoint" do
       expect(ems.verify_ssl_mode(nil)).to eq(OpenSSL::SSL::VERIFY_PEER)
@@ -108,12 +108,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
   context "SmartState Analysis Methods" do
     before(:each) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)
-      @ems = FactoryGirl.create(
+      @ems = FactoryBot.create(
         :ems_kubernetes,
         :hostname        => 'hostname',
         :authentications => [
-          FactoryGirl.build(:authentication, :authtype => 'bearer', :auth_key => 'valid-token'),
-          FactoryGirl.build(:authentication, :authtype => 'hawkular')
+          FactoryBot.build(:authentication, :authtype => 'bearer', :auth_key => 'valid-token'),
+          FactoryBot.build(:authentication, :authtype => 'hawkular')
         ]
       )
       allow(@ems).to receive_message_chain(:connect, :proxy_url => "Hello")
@@ -144,8 +144,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it ".scan_job_create" do
-      image = FactoryGirl.create(:container_image, :ext_management_system => @ems)
-      User.current_user = FactoryGirl.create(:user, :userid => "bob")
+      image = FactoryBot.create(:container_image, :ext_management_system => @ems)
+      User.current_user = FactoryBot.create(:user, :userid => "bob")
       job = @ems.raw_scan_job_create(image.class, image.id, User.current_user.userid)
 
       expect(job.state).to eq("waiting_to_start")
@@ -195,11 +195,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         hash_including(:http_proxy_uri => my_proxy_value)
       ).and_return(client)
 
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
+          FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryBot.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
         ]
       )
       ems.update(:options => {:proxy_settings => {:http_proxy => my_proxy_value}})
@@ -210,11 +210,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
   # Test MonitoringManager functionality related to ContainerManager
   context "MonitoringManager" do
     it "Creates a monitoring manager when container manager is created with a prometheus_alert endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryGirl.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
+          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryBot.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
         ]
       )
       expect(ems.monitoring_manager).not_to be_nil
@@ -222,42 +222,42 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "Does not create a monitoring manager when there is no prometheus_alert endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.create(:endpoint, :role => 'default', :hostname => 'host2'),
-          FactoryGirl.create(:endpoint, :role => 'hawkular', :hostname => 'host2'),
+          FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host2'),
+          FactoryBot.create(:endpoint, :role => 'hawkular', :hostname => 'host2'),
         ]
       )
       expect(ems.monitoring_manager).to be_nil
     end
 
     it "Creates a monitoring manager when container manager is updated with a prometheus_alerts endpoint" do
-      ems = FactoryGirl.create(:ems_kubernetes)
-      ems.endpoints << FactoryGirl.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2', :resource => ems)
+      ems = FactoryBot.create(:ems_kubernetes)
+      ems.endpoints << FactoryBot.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2', :resource => ems)
 
       expect(ems.monitoring_manager).not_to be_nil
       expect(ems.monitoring_manager.parent_manager).to eq(ems)
     end
 
     it "Does not create a monitoring manager when added a non prometheus_alerts endpoint" do
-      ems = FactoryGirl.create(:ems_kubernetes)
-      ems.endpoints << FactoryGirl.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
+      ems = FactoryBot.create(:ems_kubernetes)
+      ems.endpoints << FactoryBot.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
       expect(ems.monitoring_manager).to be_nil
     end
 
     it "Deletes the monitoring manager when container manager is removed the prometheus_alerts endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes_with_zone,
         :endpoints => [
-          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host2'),
-          FactoryGirl.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
+          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host2'),
+          FactoryBot.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
         ]
       )
       expect(ems.monitoring_manager).not_to be_nil
       expect(ems.monitoring_manager.parent_manager).to eq(ems)
 
-      ems.endpoints = [FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host3')]
+      ems.endpoints = [FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host3')]
       queue_item = MiqQueue.find_by(:method_name => 'destroy')
       expect(queue_item).not_to be_nil
       expect(queue_item.instance_id).to eq(ems.monitoring_manager.id)
@@ -266,15 +266,15 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
 
   context "VirtualizationManager" do
     it "Creates a virtualization manager when container manager is created with kubevirt endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints       => [
-          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryGirl.build(:endpoint, :role => 'kubevirt', :hostname => 'host'),
+          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryBot.build(:endpoint, :role => 'kubevirt', :hostname => 'host'),
         ],
         :authentications => [
-          FactoryGirl.create(:authentication, :authtype => 'default'),
-          FactoryGirl.create(:authentication, :authtype => 'kubevirt'),
+          FactoryBot.create(:authentication, :authtype => 'default'),
+          FactoryBot.create(:authentication, :authtype => 'kubevirt'),
         ]
       )
 
@@ -286,25 +286,25 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "Does not create a virtualization manager when there is no kubevirt endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryGirl.build(:endpoint, :role => 'hawkular', :hostname => 'host2'),
+          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryBot.build(:endpoint, :role => 'hawkular', :hostname => 'host2'),
         ]
       )
       expect(ems.infra_manager).to be_nil
     end
 
     it "Creates a virtualization manager when container manager is updated with a kubevirt endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
         ]
       )
 
-      ems.endpoints << FactoryGirl.build(:endpoint, :role => 'kubevirt', :hostname => 'host')
+      ems.endpoints << FactoryBot.build(:endpoint, :role => 'kubevirt', :hostname => 'host')
 
       expect(ems.infra_manager).not_to be_nil
       expect(ems.infra_manager.parent_manager).to eq(ems)
@@ -312,23 +312,23 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
 
     it "Does not create a virtualization manager when added a non kubevirt endpoint" do
-      ems = FactoryGirl.create(:ems_kubernetes)
-      ems.endpoints << FactoryGirl.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
+      ems = FactoryBot.create(:ems_kubernetes)
+      ems.endpoints << FactoryBot.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
       expect(ems.infra_manager).to be_nil
     end
 
     it "Deletes the virtualization manager when container manager is removed the kubevirt endpoint" do
-      ems = FactoryGirl.create(
+      ems = FactoryBot.create(
         :ems_kubernetes_with_zone,
         :endpoints => [
-          FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryGirl.build(:endpoint, :role => 'kubevirt', :hostname => 'host')
+          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
+          FactoryBot.build(:endpoint, :role => 'kubevirt', :hostname => 'host')
         ]
       )
       expect(ems.infra_manager).not_to be_nil
       expect(ems.infra_manager.parent_manager).to eq(ems)
 
-      ems.endpoints = [FactoryGirl.build(:endpoint, :role => 'default', :hostname => 'host')]
+      ems.endpoints = [FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host')]
       queue_item = MiqQueue.find_by(:method_name => 'destroy')
       expect(queue_item).not_to be_nil
       expect(queue_item.instance_id).to eq(ems.infra_manager.id)

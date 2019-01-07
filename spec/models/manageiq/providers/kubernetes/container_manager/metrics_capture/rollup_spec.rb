@@ -9,7 +9,7 @@ shared_examples "kubernetes rollup tests" do
     hostname = 'capture.context.com'
     token = 'theToken'
 
-    @ems = FactoryGirl.create(
+    @ems = FactoryBot.create(
       :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
@@ -30,53 +30,53 @@ shared_examples "kubernetes rollup tests" do
   end
 
   let(:container_project) do
-    FactoryGirl.create(:container_project, :ext_management_system => ems)
+    FactoryBot.create(:container_project, :ext_management_system => ems)
   end
 
   let(:container_node_a) do
-    hardware = FactoryGirl.create(:hardware,
+    hardware = FactoryBot.create(:hardware,
                                   :cpu_total_cores => 10,
                                   :memory_mb       => 1024)
 
-    node = FactoryGirl.create(:container_node)
+    node = FactoryBot.create(:container_node)
 
     hardware.update_attributes(:computer_system => node.computer_system)
     node
   end
 
   let(:container_node_b) do
-    hardware = FactoryGirl.create(:hardware,
+    hardware = FactoryBot.create(:hardware,
                                   :cpu_total_cores => 2,
                                   :memory_mb       => 2048)
 
-    node = FactoryGirl.create(:container_node)
+    node = FactoryBot.create(:container_node)
 
     hardware.update_attributes(:computer_system => node.computer_system)
     node
   end
 
   let(:container_group_10core_1GB) do
-    FactoryGirl.create(:container_group,
+    FactoryBot.create(:container_group,
                        :container_project     => container_project,
                        :container_node        => container_node_a,
                        :ext_management_system => ems)
   end
 
   let(:container_group_2core_2GB) do
-    FactoryGirl.create(:container_group,
+    FactoryBot.create(:container_group,
                        :container_project     => container_project,
                        :container_node        => container_node_b,
                        :ext_management_system => ems)
   end
 
   let(:container_image_a) do
-    FactoryGirl.create(:container_image,
+    FactoryBot.create(:container_image,
                        :ext_management_system => ems,
                        :custom_attributes     => [custom_attribute_a])
   end
 
   let(:container_a) do
-    FactoryGirl.create(:container,
+    FactoryBot.create(:container,
                        :name                  => "A",
                        :container_group       => container_group_10core_1GB,
                        :container_image       => container_image_a,
@@ -84,14 +84,14 @@ shared_examples "kubernetes rollup tests" do
   end
 
   let(:custom_attribute_a) do
-    FactoryGirl.create(:custom_attribute,
+    FactoryBot.create(:custom_attribute,
                        :name    => 'com.redhat.component',
                        :value   => 'EAP7',
                        :section => 'docker_labels')
   end
 
   let(:container_b) do
-    FactoryGirl.create(:container,
+    FactoryBot.create(:container,
                        :name                  => "B",
                        :container_group       => container_group_2core_2GB,
                        :container_image       => container_image_b,
@@ -99,13 +99,13 @@ shared_examples "kubernetes rollup tests" do
   end
 
   let(:container_image_b) do
-    FactoryGirl.create(:container_image,
+    FactoryBot.create(:container_image,
                        :ext_management_system => ems,
                        :custom_attributes     => [custom_attribute_b])
   end
 
   let(:custom_attribute_b) do
-    FactoryGirl.create(:custom_attribute,
+    FactoryBot.create(:custom_attribute,
                        :name    => 'com.redhat.component',
                        :value   => 'EAP7',
                        :section => 'docker_labels')
@@ -136,7 +136,7 @@ shared_examples "kubernetes rollup tests" do
         metric_params[:derived_memory_used]      = (metric_params[:mem_usage_absolute_average] / 100.0) * resource.container_node.hardware.memory_mb
         metric_params[:derived_memory_available] = resource.container_node.hardware.memory_mb - metric_params[:derived_memory_used]
       end
-      resource.metrics << FactoryGirl.create(:metric, metric_params)
+      resource.metrics << FactoryBot.create(:metric, metric_params)
     end
   end
 

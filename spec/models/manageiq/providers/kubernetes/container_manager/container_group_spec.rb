@@ -1,37 +1,37 @@
 describe ContainerGroup do
   it "has distinct images" do
-    group = FactoryGirl.create(
+    group = FactoryBot.create(
       :container_group,
       :name => "group",
     )
-    FactoryGirl.create(
+    FactoryBot.create(
       :container_image,
-      :containers => [FactoryGirl.create(:container, :name => "container_a", :container_group => group),
-                      FactoryGirl.create(:container, :name => "container_b", :container_group => group)]
+      :containers => [FactoryBot.create(:container, :name => "container_a", :container_group => group),
+                      FactoryBot.create(:container, :name => "container_b", :container_group => group)]
     )
     expect(group.container_images.count).to eq(1)
   end
 
   # check https://bugzilla.redhat.com/show_bug.cgi?id=1406770
   it "has container volumes" do
-    group = FactoryGirl.create(
+    group = FactoryBot.create(
       :container_group,
       :name => "group",
     )
 
-    ems = FactoryGirl.create(
+    ems = FactoryBot.create(
       :ems_kubernetes,
       :id   => group.id,
       :name => "ems"
     )
 
-    container_volume = FactoryGirl.create(
+    container_volume = FactoryBot.create(
       :container_volume,
       :name   => "container_volume",
       :parent => group
     )
 
-    persistent_volume = FactoryGirl.create(
+    persistent_volume = FactoryBot.create(
       :persistent_volume,
       :name   => "persistent_volume",
       :parent => ems

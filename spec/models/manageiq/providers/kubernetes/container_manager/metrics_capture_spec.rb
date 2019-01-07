@@ -16,52 +16,52 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
       }
     }
 
-    @ems_kubernetes = FactoryGirl.create(
+    @ems_kubernetes = FactoryBot.create(
       :ems_kubernetes,
       :connection_configurations => [{:endpoint       => {:role => :hawkular},
                                       :authentication => {:role => :hawkular}}],
     )
 
-    @ems_kubernetes_prometheus = FactoryGirl.create(
+    @ems_kubernetes_prometheus = FactoryBot.create(
       :ems_kubernetes,
       :connection_configurations => [{:endpoint       => {:role => :prometheus},
                                       :authentication => {:role => :prometheus}}],
     )
 
-    @node = FactoryGirl.create(
+    @node = FactoryBot.create(
       :kubernetes_node,
       :name                  => 'node',
       :ext_management_system => @ems_kubernetes,
       :ems_ref               => 'target'
     )
 
-    @node_prometheus = FactoryGirl.create(
+    @node_prometheus = FactoryBot.create(
       :kubernetes_node,
       :name                  => 'node',
       :ext_management_system => @ems_kubernetes_prometheus,
       :ems_ref               => 'target'
     )
 
-    @node.computer_system.hardware = FactoryGirl.create(
+    @node.computer_system.hardware = FactoryBot.create(
       :hardware,
       :cpu_total_cores => 2,
       :memory_mb       => 2048
     )
 
-    @node_prometheus.computer_system.hardware = FactoryGirl.create(
+    @node_prometheus.computer_system.hardware = FactoryBot.create(
       :hardware,
       :cpu_total_cores => 2,
       :memory_mb       => 2048
     )
 
-    @group = FactoryGirl.create(
+    @group = FactoryBot.create(
       :container_group,
       :ext_management_system => @ems_kubernetes,
       :container_node        => @node,
       :ems_ref               => 'group'
     )
 
-    @container = FactoryGirl.create(
+    @container = FactoryBot.create(
       :kubernetes_container,
       :name                  => 'container',
       :container_group       => @group,

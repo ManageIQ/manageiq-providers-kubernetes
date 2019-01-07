@@ -136,12 +136,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
   context "SmartState Analysis Methods" do
     before(:each) do
       EvmSpecHelper.create_guid_miq_server_zone
-      @ems = FactoryGirl.create(:ems_kubernetes, :hostname => 'hostname')
+      @ems = FactoryBot.create(:ems_kubernetes, :hostname => 'hostname')
     end
 
     context "#initialize" do
       it "Creates a new scan job" do
-        image = FactoryGirl.create(:container_image, :ext_management_system => @ems)
+        image = FactoryBot.create(:container_image, :ext_management_system => @ems)
         job = @ems.raw_scan_job_create(image.class, image.id, "bob")
         expect(job).to have_attributes(
           :dispatch_status => "pending",
@@ -154,16 +154,16 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       end
 
       it "It should raise an error when creating a job with instance of Container Image" do
-        image = FactoryGirl.create(:container_image, :ext_management_system => @ems)
-        User.current_user = FactoryGirl.create(:user, :userid => "bob")
+        image = FactoryBot.create(:container_image, :ext_management_system => @ems)
+        User.current_user = FactoryBot.create(:user, :userid => "bob")
         expect { @ems.raw_scan_job_create(image) }
           .to raise_error(MiqException::Error, "target_class must be a class not an instance")
       end
 
       it "Is backward compatible with #54" do
         # https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/54/files
-        image = FactoryGirl.create(:container_image, :ext_management_system => @ems)
-        User.current_user = FactoryGirl.create(:user, :userid => "bob")
+        image = FactoryBot.create(:container_image, :ext_management_system => @ems)
+        User.current_user = FactoryBot.create(:user, :userid => "bob")
         job = @ems.raw_scan_job_create(image.class, image.id, User.current_user.userid)
         expect(job).to have_attributes(
           :dispatch_status => "pending",
@@ -187,12 +187,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
       allow_any_instance_of(described_class).to receive_messages(
         :image_inspector_client => MockImageInspectorClient.new(IMAGE_ID))
 
-      @ems = FactoryGirl.create(
+      @ems = FactoryBot.create(
         :ems_kubernetes, :hostname => "test.com", :zone => @server.zone, :port => 8443,
         :authentications => [AuthToken.new(:name => "test", :type => 'AuthToken', :auth_key => "a secret")]
       )
 
-      @image = FactoryGirl.create(
+      @image = FactoryBot.create(
         :container_image, :ext_management_system => @ems, :name => IMAGE_NAME,
         :image_ref => "docker://#{IMAGE_ID}"
       )
@@ -205,7 +205,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         @job.signal(:data, '<summary><syncmetadata></syncmetadata></summary>')
       end
 
-      User.current_user = FactoryGirl.create(:user)
+      User.current_user = FactoryBot.create(:user)
       @job = @ems.raw_scan_job_create(@image.class, @image.id)
       @job.options[:image_name] = IMAGE_NAME
       allow(MiqQueue).to receive(:put_unless_exists) do |args|

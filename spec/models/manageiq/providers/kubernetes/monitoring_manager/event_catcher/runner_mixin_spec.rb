@@ -11,11 +11,11 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
     end.include(described_class)
   end
 
-  let(:default_endpoint) { FactoryGirl.create(:endpoint, :role => "default", :hostname => "host") }
-  let(:default_authentication) { FactoryGirl.create(:authentication, :authtype => "bearer") }
+  let(:default_endpoint) { FactoryBot.create(:endpoint, :role => "default", :hostname => "host") }
+  let(:default_authentication) { FactoryBot.create(:authentication, :authtype => "bearer") }
   let(:prometheus_alerts_endpoint) do
     EvmSpecHelper.local_miq_server(:zone => Zone.seed)
-    FactoryGirl.create(
+    FactoryBot.create(
       :endpoint,
       :role       => "prometheus_alerts",
       :hostname   => "alerts-prometheus.example.com",
@@ -24,7 +24,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
     )
   end
   let(:prometheus_authentication) do
-    FactoryGirl.create(
+    FactoryBot.create(
       :authentication,
       :authtype => "prometheus_alerts",
       :auth_key => "_",
@@ -32,7 +32,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
   end
 
   let(:container_manager) do
-    FactoryGirl.create(
+    FactoryBot.create(
       :ems_kubernetes,
       :endpoints       => [
         default_endpoint,
@@ -75,7 +75,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
 
   context "#find_target" do
     it "binds to container node by default" do
-      target = FactoryGirl.create(:container_node, :name => 'testing')
+      target = FactoryBot.create(:container_node, :name => 'testing')
       labels = {
         "instance" => target.name
       }
@@ -88,7 +88,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
     end
 
     it "binds to container node if requested explicitly" do
-      target = FactoryGirl.create(:container_node, :name => 'testing')
+      target = FactoryBot.create(:container_node, :name => 'testing')
       labels = {
         "instance" => target.name
       }
@@ -101,7 +101,7 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
     end
 
     it "binds to the ems if requested explicitly" do
-      target = FactoryGirl.create(:container_node, :name => 'testing')
+      target = FactoryBot.create(:container_node, :name => 'testing')
       subject.instance_variable_set(:@target_ems_id, 8)
       labels = {
         "instance" => target.name

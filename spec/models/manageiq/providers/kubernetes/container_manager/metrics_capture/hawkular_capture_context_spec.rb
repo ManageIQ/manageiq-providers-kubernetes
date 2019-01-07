@@ -3,7 +3,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Hawk
     hostname = 'capture.context.com'
     token = 'theToken'
 
-    @ems = FactoryGirl.create(
+    @ems = FactoryBot.create(
       :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,

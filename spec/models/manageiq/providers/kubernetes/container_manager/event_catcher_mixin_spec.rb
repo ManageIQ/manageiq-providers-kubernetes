@@ -9,7 +9,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       end
     end.include(described_class)
   end
-  let(:ems) { FactoryGirl.create(:ems_kubernetes) }
+  let(:ems) { FactoryBot.create(:ems_kubernetes) }
 
   describe '#queue_event' do
     it 'sends the received event to queue after parsing' do
@@ -257,7 +257,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         end
 
         it 'with matching node takes its uid' do
-          node = FactoryGirl.create(:container_node, :name => 'vm-test-03.example.com')
+          node = FactoryBot.create(:container_node, :name => 'vm-test-03.example.com')
           node.ext_management_system = ems
           node.ems_ref = 'd30a880d-dfa7-11e5-af89-525400c7c086'
           node.save

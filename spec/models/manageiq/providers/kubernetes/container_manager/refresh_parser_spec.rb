@@ -912,10 +912,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
 
       it "fails when provider type is wrong" do
         @node[:identity_infra] = "aws://aws_project/europe-west1/instance_id/"
-        @ems = FactoryGirl.create(:ems_google,
+        @ems = FactoryBot.create(:ems_google,
                                   :provider_region => "europe-west1",
                                   :project         => "aws_project")
-        @vm = FactoryGirl.create(:vm_google,
+        @vm = FactoryBot.create(:vm_google,
                                  :ext_management_system => @ems,
                                  :name                  => "instance_id")
       end
@@ -936,55 +936,55 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
 
       it "cross links google" do
         @node[:identity_infra] = "gce://gce_project/europe-west1/instance_id/"
-        @ems = FactoryGirl.create(:ems_google,
+        @ems = FactoryBot.create(:ems_google,
                                   :provider_region => "europe-west1",
                                   :project         => "gce_project")
-        @vm = FactoryGirl.create(:vm_google,
+        @vm = FactoryBot.create(:vm_google,
                                  :ext_management_system => @ems,
                                  :name                  => "instance_id")
       end
 
       it "cross links amazon" do
         @node[:identity_infra] = "aws:///us-west-1/aws-id"
-        @ems = FactoryGirl.create(:ems_amazon,
+        @ems = FactoryBot.create(:ems_amazon,
                                   :provider_region => "us-west-1")
-        @vm = FactoryGirl.create(:vm_amazon,
+        @vm = FactoryBot.create(:vm_amazon,
                                  :uid_ems               => "aws-id",
                                  :ext_management_system => @ems)
       end
 
       it "cross links openstack through provider id" do
         @node[:identity_infra] = "openstack:///openstack_id"
-        @ems = FactoryGirl.create(:ems_openstack)
-        @vm = FactoryGirl.create(:vm_openstack,
+        @ems = FactoryBot.create(:ems_openstack)
+        @vm = FactoryBot.create(:vm_openstack,
                                  :uid_ems               => 'openstack_id',
                                  :ext_management_system => @ems)
       end
 
       it 'cross links with missing data in ProviderID' do
         @node[:identity_infra] = "gce:////instance_id/"
-        @ems = FactoryGirl.create(:ems_google,
+        @ems = FactoryBot.create(:ems_google,
                                   :provider_region => "europe-west1",
                                   :project         => "gce_project")
-        @vm = FactoryGirl.create(:vm_google,
+        @vm = FactoryBot.create(:vm_google,
                                  :ext_management_system => @ems,
                                  :name                  => "instance_id")
       end
 
       it 'cross links with malformed provider id' do
         @node[:identity_infra] = "gce://instance_id"
-        @ems = FactoryGirl.create(:ems_google,
+        @ems = FactoryBot.create(:ems_google,
                                   :provider_region => "europe-west1",
                                   :project         => "gce_project")
-        @vm = FactoryGirl.create(:vm_google,
+        @vm = FactoryBot.create(:vm_google,
                                  :ext_management_system => @ems,
                                  :name                  => "instance_id")
       end
 
       it "cross links by uuid" do
         @node[:identity_infra] = nil
-        @ems = FactoryGirl.create(:ems_openstack)
-        @vm = FactoryGirl.create(:vm_openstack,
+        @ems = FactoryBot.create(:ems_openstack)
+        @vm = FactoryBot.create(:vm_openstack,
                                  :uid_ems               => @node[:identity_system],
                                  :ext_management_system => @ems)
       end

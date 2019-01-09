@@ -5,15 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Hammer RC-2
-
-### Fixed
-- Raise event containerimage_scan_complete only when scan succeeds. [(#3030](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/303)
-- Override Job#process_cancel to send :cancel signal [(#299)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/299)
-- Use Hawkular memory tag working-set instead of usage [(#305)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/305)
-- Different way to check for scan job's complete state. [(#304)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/304)
-
-## Hammer Beta-1 - Released 2018-10-12
+## Hammer-1
 
 ### Added
 - Refresh Service Catalog service instances [(#290)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/290)
@@ -36,6 +28,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Scanning job will read oscap erros from image-inspector [(#100)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/100)
 
 ### Fixed
+- Raise event containerimage_scan_complete only when scan succeeds. [(#303)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/303)
+- Override Job#process_cancel to send :cancel signal [(#299)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/299)
+- Use Hawkular memory tag working-set instead of usage [(#305)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/305)
+- Different way to check for scan job's complete state. [(#304)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/304)
 - Handle missing service catalog endpoint [(#281)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/281)
 - Fix watches when using service catalog endpoint [(#283)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/283)
 - Restart stale watch threads where they left off [(#275)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/275)

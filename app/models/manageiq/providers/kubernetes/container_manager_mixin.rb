@@ -228,8 +228,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
   def raw_scan_job_create(target_class, target_id = nil, userid = nil, target_name = nil)
     raise MiqException::Error, _("target_class must be a class not an instance") if target_class.kind_of?(ContainerImage)
-    Job.create_job(
-      "ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job",
+    ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job.create_job(
       :userid          => userid,
       :name            => "Container Image Analysis: '#{target_name}'",
       :target_class    => target_class,

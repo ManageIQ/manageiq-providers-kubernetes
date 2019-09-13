@@ -102,7 +102,7 @@ module ManageIQ::Providers
         raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if context.nil?
       rescue TargetValidationError, TargetValidationWarning => e
         _log.send(e.log_severity, "[#{target_name}] #{e.message}")
-        ems.try(:update_attributes,
+        ems.try(:update,
                 :last_metrics_error       => :invalid,
                 :last_metrics_update_date => Time.now.utc)
         raise
@@ -115,13 +115,13 @@ module ManageIQ::Providers
           _log.warn("Metrics missing: [#{target_name}] #{e.message}")
         rescue StandardError => e
           _log.error("Metrics unavailable: [#{target_name}] #{e.message}")
-          ems.update_attributes(:last_metrics_error       => :unavailable,
+          ems.update(:last_metrics_error       => :unavailable,
                                 :last_metrics_update_date => Time.now.utc) if ems
           raise
         end
       end
 
-      ems.update_attributes(:last_metrics_error        => nil,
+      ems.update(:last_metrics_error        => nil,
                             :last_metrics_update_date  => Time.now.utc,
                             :last_metrics_success_date => Time.now.utc) if ems
 

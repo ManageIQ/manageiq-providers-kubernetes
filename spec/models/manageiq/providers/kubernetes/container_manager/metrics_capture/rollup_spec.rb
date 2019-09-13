@@ -40,7 +40,7 @@ shared_examples "kubernetes rollup tests" do
 
     node = FactoryBot.create(:container_node)
 
-    hardware.update_attributes(:computer_system => node.computer_system)
+    hardware.update(:computer_system => node.computer_system)
     node
   end
 
@@ -51,7 +51,7 @@ shared_examples "kubernetes rollup tests" do
 
     node = FactoryBot.create(:container_node)
 
-    hardware.update_attributes(:computer_system => node.computer_system)
+    hardware.update(:computer_system => node.computer_system)
     node
   end
 

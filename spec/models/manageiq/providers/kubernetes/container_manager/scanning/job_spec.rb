@@ -376,15 +376,22 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
         end
 
         it 'will create the pod with complex image names' do
-          samples = ["my.re.po/image20_a.b-c_d", "image-1"]
+          samples = ["my.re.po/image20_a.b-c_d", "image-1",
+                     "longer-than-63-image-name" * 10,
+                     "a" + "-" * 100 + "b",
+                     # Stress test, many weird chars probably impossible in an image name.
+                     "my.re.po/Weird_CHARS^@:\\whatever=+"]
           allow(@job).to receive(:kubernetes_client).and_return(MockKubeClientTwoPullSecrets.new)
           secrets = @job.send(:inspector_admin_secrets)
 
           samples.each do |image_name|
             @job.options[:image_name] = image_name
             pod = @job.send(:pod_definition, secrets)
-            # regexp for DNS-1123 label validation
-            expect(pod[:spec][:hostname].match(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/).captures[0]).not_to be_empty
+            # Regexp for DNS RFC-1123 label validation.
+            # Kubernetes additionally requires lowercase and enforces 63 limit
+            expect(pod[:spec][:hostname]).to match(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/)
+            expect(pod[:spec][:hostname].length).to be > 0
+            expect(pod[:spec][:hostname].length).to be <= 63
           end
         end
       end

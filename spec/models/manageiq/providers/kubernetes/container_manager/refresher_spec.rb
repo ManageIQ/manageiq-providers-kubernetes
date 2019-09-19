@@ -424,15 +424,15 @@ shared_examples "kubernetes refresher VCR tests" do
       FactoryBot.create(:container_node, :name => "node", :ems_id => @ems.id)
     end
 
-    let(:container_volumes_count) { 21 }
+    let(:container_volumes_count) { 68 }
     let(:persintent_volumes_count) { 3 }
     let(:object_counts) do
       # using strings instead of actual model classes for compact rspec diffs
       {
         'ContainerNode'         => 2, # including the fake node
-        'ContainerGroup'        => 9,
-        'Container'             => 9,
-        'ContainerService'      => 12,
+        'ContainerGroup'        => 22,
+        'Container'             => 22,
+        'ContainerService'      => 16,
         'ContainerQuota'        => 9,
         'ContainerQuotaScope'   => 9,
         'ContainerQuotaItem'    => 30,
@@ -588,7 +588,7 @@ shared_examples "kubernetes refresher VCR tests" do
         end
         # ContainerVolume records don't get archived themselves, but some belong to archived pods.
         expect(ContainerVolume.where(:type => 'ContainerVolume').count).to eq(container_volumes_count)
-        expect(@ems.container_volumes.count).to eq(container_volumes_count - 12)
+        expect(@ems.container_volumes.count).to eq(container_volumes_count - 18)
 
         container0 = Container.find_by(:name => "my-container", :container_group => pod0)
         container1 = Container.find_by(:name => "my-container", :container_group => pod1)

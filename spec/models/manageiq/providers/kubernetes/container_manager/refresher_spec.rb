@@ -28,7 +28,7 @@ shared_examples "kubernetes refresher VCR tests" do
   end
 
   def full_refresh_test(expected_extra_tags: [])
-    VCR.use_cassette(described_class.name.underscore) do # , :record => :new_episodes) do
+    VCR.use_cassette(described_class.name.underscore, :match_requests_on => [:method, :host, :path]) do # , :record => :new_episodes) do
       EmsRefresh.refresh(@ems)
     end
     @ems.reload

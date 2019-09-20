@@ -63,8 +63,18 @@ module ManageIQ
 
         def fetch_entities(client, entities)
           entities.each_with_object({}) do |entity, h|
+            continue = nil
+            h[entity[:name].singularize] ||= []
+
             begin
-              h[entity[:name].singularize] = client.send("get_#{entity[:name]}")
+              loop do
+                entities = client.send("get_#{entity[:name]}", :limit => refresher_options.chunk_size, :continue => continue)
+
+                h[entity[:name].singularize].concat(entities)
+                break if entities.last?
+
+                continue = entities.continue
+              end
             rescue KubeException => e
               raise e if entity[:default].nil?
               $log.warn("Unexpected Exception during refresh: #{e}")

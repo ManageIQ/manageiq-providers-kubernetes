@@ -2,7 +2,8 @@ require 'kubeclient'
 
 describe ManageIQ::Providers::Kubernetes::ContainerManager::RefresherMixin do
   let(:client)  { double("client") }
-  let(:dummy) { (Class.new { include ManageIQ::Providers::Kubernetes::ContainerManager::RefresherMixin }).new }
+  let(:ems)     { FactoryBot.create(:ems_kubernetes) }
+  let(:dummy)   { ManageIQ::Providers::Kubernetes::ContainerManager::Refresher.new([ems]) }
 
   context 'when an exception is thrown' do
     before { allow(client).to receive(:get_pods) { raise KubeException.new(0, 'oh-no', nil) } }

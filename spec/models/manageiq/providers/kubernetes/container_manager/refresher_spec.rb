@@ -28,6 +28,11 @@ shared_examples "kubernetes refresher VCR tests" do
   end
 
   def full_refresh_test(expected_extra_tags: [])
+    # VCR by default matches on :method and the whole :uri
+    # In this case we are sending :limit in the :query section but we
+    # want to simulate an older kube API that doesn't respond to that
+    # param.  This can be done by having VCR ignore the :query component
+    # of the URI and return the legacy style responses.
     VCR.use_cassette(described_class.name.underscore, :match_requests_on => [:method, :host, :path]) do # , :record => :new_episodes) do
       EmsRefresh.refresh(@ems)
     end

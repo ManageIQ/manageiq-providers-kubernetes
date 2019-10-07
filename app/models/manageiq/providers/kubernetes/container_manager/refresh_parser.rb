@@ -6,10 +6,6 @@ module ManageIQ::Providers::Kubernetes
     include Vmdb::Logging
     include ContainerManager::EntitiesMapping
 
-    def self.ems_inv_to_hashes(inventory, options = Config::Options.new)
-      new(options).ems_inv_to_hashes(inventory, options)
-    end
-
     def self.ems_inv_to_persister(ems, inventory, options = Config::Options.new)
       new(options).ems_inv_to_persister(ems, inventory, options)
     end
@@ -25,24 +21,6 @@ module ManageIQ::Providers::Kubernetes
       @data_index = {}
       @tag_mapper = ContainerLabelTagMapping.mapper
       @data[:tag_mapper] = @tag_mapper
-    end
-
-    def ems_inv_to_hashes(inventory, _options = Config::Options.new)
-      get_additional_attributes(inventory)
-      get_nodes(inventory)
-      get_namespaces(inventory)
-      get_resource_quotas(inventory)
-      get_limit_ranges(inventory)
-      get_replication_controllers(inventory)
-      get_persistent_volume_claims(inventory)
-      get_persistent_volumes(inventory)
-      get_pods(inventory)
-      get_endpoints(inventory)
-      get_services(inventory)
-      EmsRefresh.log_inv_debug_trace(@data, "data:")
-
-      # Returning a hash triggers save_inventory_container code path.
-      @data
     end
 
     def persister_class

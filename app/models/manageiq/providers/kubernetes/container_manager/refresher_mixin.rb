@@ -10,7 +10,7 @@ module ManageIQ
             ems_targets, sub_ems_targets = targets.partition { |x| x.kind_of?(ExtManagementSystem) }
             all_targets = []
 
-            if sub_ems_targets.present? && refresher_options.inventory_object_refresh
+            if sub_ems_targets.present?
               # We can disable targeted refresh with a setting, then we will just do full ems refresh on any event
               ems_event_collection = InventoryRefresh::TargetCollection.new(:targets    => sub_ems_targets,
                                                                           :manager_id => ems_id)
@@ -42,16 +42,10 @@ module ManageIQ
         end
 
         def parse_targeted_inventory(ems, target, inventory)
-          # TODO(lsmola) we need to move to common Graph Refresh architecture with Inventory Builder having Collector,
-          # Parser and Persister
-          if refresher_options.inventory_object_refresh
-            if target.kind_of?(InventoryRefresh::TargetCollection)
-              refresh_parser_class.target_collection_inv_to_persister(ems, inventory, refresher_options)
-            else
-              refresh_parser_class.ems_inv_to_persister(ems, inventory, refresher_options)
-            end
+          if target.kind_of?(InventoryRefresh::TargetCollection)
+            refresh_parser_class.target_collection_inv_to_persister(ems, inventory, refresher_options)
           else
-            refresh_parser_class.ems_inv_to_hashes(inventory, refresher_options)
+            refresh_parser_class.ems_inv_to_persister(ems, inventory, refresher_options)
           end
         end
 

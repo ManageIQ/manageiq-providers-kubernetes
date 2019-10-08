@@ -61,11 +61,12 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
           :validate   => [{:type => "required-validator"}]
         },
         {
-          :component  => "text-field",
-          :name       => "endpoints.default.port",
-          :type       => "number",
-          :isRequired => true,
-          :validate   => [
+          :component    => "text-field",
+          :name         => "endpoints.default.port",
+          :type         => "number",
+          :isRequired   => true,
+          :initialValue => DEFAULT_PORT,
+          :validate     => [
             {
               :type => "required-validator"
             },

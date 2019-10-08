@@ -50,71 +50,87 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   end
 
   def self.params_for_create
-    @params_for_create ||= {
-      :title  => "Configure #{description}",
-      :fields => [
-        {
-          :component  => "text-field",
-          :name       => "endpoints.default.hostname",
-          :label      => "Hostname",
-          :isRequired => true,
-          :validate   => [{:type => "required-validator"}]
-        },
-        {
-          :component    => "text-field",
-          :name         => "endpoints.default.port",
-          :type         => "number",
-          :isRequired   => true,
-          :initialValue => DEFAULT_PORT,
-          :validate     => [
-            {
-              :type => "required-validator"
-            },
-            {
-              :type             => "validatorTypes.MIN_NUMBER_VALUE",
-              :includeThreshold => true,
-              :value            => 1
-            },
-            {
-              :type             => "validatorTypes.MAX_NUMBER_VALUE",
-              :includeThreshold => true,
-              :value            => 65_535
-            }
-          ]
-        },
-        {
-          :component    => "text-field",
-          :name         => "endpoints.default.path",
-          :label        => "API Path",
-          :type         => "hidden",
-          :initialValue => "/api"
-        },
-        {
-          :component  => "text-field",
-          :name       => "endpoints.default.bearer",
-          :label      => "Token",
-          :type       => "password",
-          :isRequired => true,
-          :validate   => [{:type => "required-validator"}]
-        },
-        {
-          :component => "text-field",
-          :name      => "endpoints.default.http_proxy",
-          :label     => "HTTP Proxy"
-        },
-        {
-          :component => "checkbox",
-          :name      => "endpoints.default.verify_ssl",
-          :label     => "Verify SSL"
-        },
-        {
-          :component => "text-field",
-          :name      => "endpoints.default.ca_file",
-          :label     => "Trusted CA Certificates",
-        },
-      ]
-    }.freeze
+    @params_for_create ||= begin
+      {
+        :title  => "Configure #{description}",
+        :fields => params_for_create_default_endpoint + params_for_create_metrics_endpoint +
+                   params_for_create_monitoring_endpoint + params_for_create_virtualization_endpoint
+      }.freeze
+    end
   end
+
+  def self.params_for_create_default_endpoint
+    [
+      {
+        :component  => "text-field",
+        :name       => "endpoints.default.hostname",
+        :label      => "Hostname",
+        :isRequired => true,
+        :validate   => [{:type => "required-validator"}]
+      },
+      {
+        :component    => "text-field",
+        :name         => "endpoints.default.port",
+        :type         => "number",
+        :isRequired   => true,
+        :initialValue => DEFAULT_PORT,
+        :validate     => [
+          {:type => "required-validator"},
+          {:type => "validatorTypes.MIN_NUMBER_VALUE", :includeThreshold => true, :value => 1},
+          {:type => "validatorTypes.MAX_NUMBER_VALUE", :includeThreshold => true, :value => 65_535}
+        ]
+      },
+      {
+        :component    => "text-field",
+        :name         => "endpoints.default.path",
+        :label        => "API Path",
+        :type         => "hidden",
+        :initialValue => "/api"
+      },
+      {
+        :component  => "text-field",
+        :name       => "endpoints.default.bearer",
+        :label      => "Token",
+        :type       => "password",
+        :isRequired => true,
+        :validate   => [{:type => "required-validator"}]
+      },
+      {
+        :component => "text-field",
+        :name      => "endpoints.default.http_proxy",
+        :label     => "HTTP Proxy"
+      },
+      {
+        :component => "checkbox",
+        :name      => "endpoints.default.verify_ssl",
+        :label     => "Verify SSL"
+      },
+      {
+        :component => "text-field",
+        :name      => "endpoints.default.ca_file",
+        :label     => "Trusted CA Certificates",
+      },
+    ]
+  end
+  private_class_method :params_for_create_default_endpoint
+
+  def self.params_for_create_metrics_endpoint
+    [
+    ]
+  end
+  private_class_method :params_for_create_metrics_endpoint
+
+  def self.params_for_create_monitoring_endpoint
+    [
+    ]
+  end
+  private_class_method :params_for_create_monitoring_endpoint
+
+  def self.params_for_create_virtualization_endpoint
+    [
+    ]
+  end
+  private_class_method :params_for_create_virtualization_endpoint
 
   def self.verify_credentials(args)
     default_endpoint = args.dig("endpoints", "default")

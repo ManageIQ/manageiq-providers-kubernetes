@@ -59,4 +59,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   def self.display_name(number = 1)
     n_('Container Provider (Kubernetes)', 'Container Providers (Kubernetes)', number)
   end
+
+  def self.default_port
+    DEFAULT_PORT
+  end
 end

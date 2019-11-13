@@ -49,106 +49,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     @description ||= "Kubernetes".freeze
   end
 
-  def self.params_for_create
-    @params_for_create ||= begin
-      {
-        :title  => "Configure #{description}",
-        :fields => params_for_create_default_endpoint + params_for_create_metrics_endpoint +
-                   params_for_create_monitoring_endpoint + params_for_create_virtualization_endpoint
-      }.freeze
-    end
-  end
-
-  def self.params_for_create_default_endpoint
-    [
-      {
-        :component  => "text-field",
-        :name       => "endpoints.default.hostname",
-        :label      => "Hostname",
-        :isRequired => true,
-        :validate   => [{:type => "required-validator"}]
-      },
-      {
-        :component    => "text-field",
-        :name         => "endpoints.default.port",
-        :type         => "number",
-        :isRequired   => true,
-        :initialValue => DEFAULT_PORT,
-        :validate     => [
-          {:type => "required-validator"},
-          {:type => "validatorTypes.MIN_NUMBER_VALUE", :includeThreshold => true, :value => 1},
-          {:type => "validatorTypes.MAX_NUMBER_VALUE", :includeThreshold => true, :value => 65_535}
-        ]
-      },
-      {
-        :component    => "text-field",
-        :name         => "endpoints.default.path",
-        :label        => "API Path",
-        :type         => "hidden",
-        :initialValue => "/api"
-      },
-      {
-        :component  => "text-field",
-        :name       => "endpoints.default.bearer",
-        :label      => "Token",
-        :type       => "password",
-        :isRequired => true,
-        :validate   => [{:type => "required-validator"}]
-      },
-      {
-        :component => "text-field",
-        :name      => "endpoints.default.http_proxy",
-        :label     => "HTTP Proxy"
-      },
-      {
-        :component => "checkbox",
-        :name      => "endpoints.default.verify_ssl",
-        :label     => "Verify SSL"
-      },
-      {
-        :component => "text-field",
-        :name      => "endpoints.default.ca_file",
-        :label     => "Trusted CA Certificates",
-      },
-    ]
-  end
-  private_class_method :params_for_create_default_endpoint
-
-  def self.params_for_create_metrics_endpoint
-    [
-    ]
-  end
-  private_class_method :params_for_create_metrics_endpoint
-
-  def self.params_for_create_monitoring_endpoint
-    [
-    ]
-  end
-  private_class_method :params_for_create_monitoring_endpoint
-
-  def self.params_for_create_virtualization_endpoint
-    [
-    ]
-  end
-  private_class_method :params_for_create_virtualization_endpoint
-
-  def self.verify_credentials(args)
-    default_endpoint = args.dig("endpoints", "default")
-    hostname, port = default_endpoint&.values_at("hostname", "port")
-
-    options = default_endpoint&.slice("path", "http_proxy")&.symbolize_keys || {}
-
-    bearer = default_endpoint&.dig("bearer")
-    options[:bearer] = MiqPassword.try_decrypt(bearer) if bearer
-
-    options[:ssl_options] = {
-      :verify_ssl => default_endpoint&.dig("verify_ssl") ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE,
-      :ca_file    => default_endpoint&.dig("ca_file")
-    }
-
-    !!raw_connect(hostname, port, options)
-  end
-
   def self.raw_connect(hostname, port, options)
     kubernetes_connect(hostname, port, options)
   end
@@ -159,5 +59,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
 
   def self.display_name(number = 1)
     n_('Container Provider (Kubernetes)', 'Container Providers (Kubernetes)', number)
+  end
+
+  def self.default_port
+    DEFAULT_PORT
   end
 end

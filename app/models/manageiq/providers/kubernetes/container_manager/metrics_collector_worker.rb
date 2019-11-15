@@ -8,10 +8,6 @@ module ManageIQ::Providers
       @friendly_name ||= "C&U Metrics Collector for Kubernetes"
     end
 
-    def self.ems_class
-      ManageIQ::Providers::Kubernetes::ContainerManager
-    end
-
     # Override PerEmsTypeWorkerMixin.emses_in_zone to limit metrics collection
     def self.emses_in_zone
       super.select do |ems|

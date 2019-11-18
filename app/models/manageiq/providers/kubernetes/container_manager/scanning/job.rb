@@ -419,8 +419,12 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
         }
       },
       :spec       => {
-        # determines the 'target name' in the report
-        :hostname      => options[:image_name].match(/(?:.*\/)*(.*)$/).captures[0].downcase.tr("._-", "").truncate(63),
+        # A hack to smuggle at least partial info which image was scanned into the
+        # OpenSCAP report - determines the "target name" in the report.
+        # Must be lowercase and valid DNS RFC-1123 label up to 63 chars or kubernetes
+        # won't run the pod.
+        :hostname      => options[:image_name].match(/(?:.*\/)*(.*)$/).captures[0]
+                                              .downcase.tr("^a-z0-9", "").truncate(63, :omission => ""),
         :restartPolicy => 'Never',
         :containers    => [
           {

@@ -1502,5 +1502,53 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser do
         )
       end
     end
+
+    describe "parse_capacity_field" do
+      let(:node_spec) do
+        array_recursive_ostruct(
+          :metadata => {
+            :name              => "10.35.0.169",
+            :uid               => "6de77025-35f0-11e5-8917-001a4a5f4a00",
+            :resourceVersion   => "5302",
+            :creationTimestamp => "2015-07-29T12:50:45Z",
+            :labels            => {
+              :"kubernetes.io/hostname" => "10.35.0.169"
+            }
+          },
+          :spec     => {
+            :externalID => "10.35.0.169"
+          },
+          :status   => {
+            :capacity => {
+              :cpu    => "2",
+              :memory => capacity_memory,
+              :pods   => "40"
+            }
+          }
+        )
+      end
+
+      context "with a Decimal SI value" do
+        let(:capacity_memory) { "2M" }
+
+        it "handles parsing of quantities in node spec memory" do
+          expected_memory_mb = 2_000_000.0 / 1.megabyte
+          expect(parser.parse_node(node_spec).dig(:computer_system, :hardware)).to include(
+            :memory_mb => expected_memory_mb
+          )
+        end
+      end
+
+      context "with a IEC 60027-2 value" do
+        let(:capacity_memory) { "2Mi" }
+
+        it "handles parsing of quantities in node spec memory" do
+          expected_memory_mb = 2.0
+          expect(parser.parse_node(node_spec).dig(:computer_system, :hardware)).to include(
+            :memory_mb => expected_memory_mb
+          )
+        end
+      end
+    end
   end
 end

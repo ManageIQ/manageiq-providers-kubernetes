@@ -897,7 +897,7 @@ module ManageIQ::Providers::Kubernetes
     def parse_capacity_field(key, val)
       return nil unless val
       begin
-        val.iec_60027_2_to_i
+        parse_quantity(val)
       rescue ArgumentError
         _log.warn("Capacity attribute - #{key} was in bad format - #{val}")
         nil

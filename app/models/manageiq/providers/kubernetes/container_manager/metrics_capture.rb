@@ -1,5 +1,5 @@
 module ManageIQ::Providers
-  class Kubernetes::ContainerManager::MetricsCapture < BaseManager::MetricsCapture
+  class Kubernetes::ContainerManager::MetricsCapture < ContainerManager::MetricsCapture
     class CollectionFailure < RuntimeError; end
     class NoMetricsFoundError < RuntimeError; end
 

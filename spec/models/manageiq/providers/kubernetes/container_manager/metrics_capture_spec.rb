@@ -70,6 +70,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     )
   end
 
+  context "#perf_capture_object" do
+    it "returns the correct class" do
+      expect(@ems_kubernetes.perf_capture_object.class).to eq(described_class)
+    end
+  end
+
   context "#capture_context" do
     it "detect prometheus metrics provider" do
       metric_capture = described_class.new(@node_prometheus)

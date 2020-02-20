@@ -1,5 +1,3 @@
-require 'kubeclient'
-
 describe ManageIQ::Providers::Kubernetes::ContainerManager::RefresherMixin do
   let(:client)  { double("client") }
   let(:ems)     { FactoryBot.create(:ems_kubernetes) }

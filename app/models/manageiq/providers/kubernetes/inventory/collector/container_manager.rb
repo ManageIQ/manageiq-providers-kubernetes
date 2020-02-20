@@ -1,3 +1,5 @@
+autoload(:KubeException, 'kubeclient')
+
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Collector
   # TODO(lsmola) we need to return iterator for each collection, so we avoid fetching too many items to memory at
   # once.

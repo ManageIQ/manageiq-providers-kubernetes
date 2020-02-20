@@ -1,5 +1,6 @@
-require 'image-inspector-client'
-require 'kubeclient'
+autoload(:ImageInspectorClient, 'image-inspector-client')
+autoload(:Kubeclient, 'kubeclient')
+autoload(:KubeException, 'kubeclient')
 
 class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
   PROVIDER_CLASS = ManageIQ::Providers::Kubernetes::ContainerManager

@@ -1,3 +1,5 @@
+autoload(:KubeException, 'kubeclient')
+
 module ManageIQ::Providers::Kubernetes::ContainerManager::ContainerTemplateMixin
   extend ActiveSupport::Concern
   include ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping

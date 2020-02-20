@@ -1,3 +1,5 @@
+autoload(:KubeException, 'kubeclient')
+
 module ManageIQ
   module Providers
     module Kubernetes

@@ -2,10 +2,15 @@ require 'recursive-open-struct'
 describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
   let(:test_class) do
     Class.new do
+      include Vmdb::Logging
       attr_reader :filtered_events
       def initialize(ems = nil)
         @ems = ems if ems
         @filtered_events = []
+      end
+
+      def log_prefix
+        # Interface stub
       end
     end.include(described_class)
   end

@@ -133,6 +133,8 @@ class MockFailedImageInspectorClient < MockImageInspectorClient
 end
 
 describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
+  let(:img_acq_err) { "can't find image" }
+
   context "SmartState Analysis Methods" do
     before(:each) do
       EvmSpecHelper.create_guid_miq_server_zone
@@ -521,7 +523,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
 
     context 'fetch_metadata fails to access pod' do
       it 'reports failure when fetch_metadata fails to access pod' do
-        IMG_ACQ_ERR = "can't find image".freeze
         allow_any_instance_of(described_class).to receive_messages(
           :image_inspector_client => MockCantAccessImageInspectorClient.new
         )
@@ -535,15 +536,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
 
     context 'Image Acquiring Status' do
       it 'Detects when image acquiring failed and reports the error' do
-        IMG_ACQ_ERR = "can't find image".freeze
         allow_any_instance_of(described_class).to receive_messages(
-          :image_inspector_client => MockFailedImageInspectorClient.new("Sucess", "", IMG_ACQ_ERR, IMAGE_ID)
+          :image_inspector_client => MockFailedImageInspectorClient.new("Sucess", "", img_acq_err, IMAGE_ID)
         )
         expect(MiqEvent).to receive(:raise_evm_job_event).with(@image, :type => "scan", :suffix => "abort")
         @job.signal(:start)
         expect(@job.state).to eq 'finished'
         expect(@job.status).to eq 'error'
-        expect(@job.message).to eq "image acquiring error: #{IMG_ACQ_ERR}"
+        expect(@job.message).to eq "image acquiring error: #{img_acq_err}"
       end
     end
 

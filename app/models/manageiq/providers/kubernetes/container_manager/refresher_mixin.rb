@@ -78,28 +78,6 @@ module ManageIQ
             end
           end
         end
-
-        def manager_refresh_post_processing(_ems, _target, persister)
-          raise_creation_events(persister.container_images)
-          raise_creation_events(persister.container_projects)
-        end
-
-        def raise_creation_events(saved_collection)
-          # We want this post processing job only for batches, for the rest it's after_create hook on the Model
-          return unless saved_collection.saver_strategy == :batch
-
-          # TODO extract the batch size to Settings
-          batch_size = 100
-          saved_collection.created_records.each_slice(batch_size) do |batch|
-            collection_ids = batch.collect { |x| x[:id] }
-            MiqQueue.submit_job(
-              :class_name  => saved_collection.model_class.to_s,
-              :method_name => 'raise_creation_events',
-              :args        => [collection_ids],
-              :priority    => MiqQueue::HIGH_PRIORITY
-            )
-          end
-        end
       end
     end
   end

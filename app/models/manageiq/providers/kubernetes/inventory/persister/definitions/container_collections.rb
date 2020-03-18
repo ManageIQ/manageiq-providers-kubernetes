@@ -9,11 +9,13 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
        container_groups
        container_image_registries
        container_images
+       container_images_creation_events
        container_limits
        container_limit_items
        container_nodes
        container_port_configs
        container_projects
+       container_project_creation_events
        container_quotas
        container_quota_scopes
        container_quota_items

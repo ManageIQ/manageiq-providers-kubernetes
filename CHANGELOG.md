@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 
-## Unreleased as of Sprint 121 - ending 2019-09-30
+## Jansa-1 Alpha-1
 
 ### Added
 - API Chunking Support [(#312)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/312)

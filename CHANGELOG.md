@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## Ivanchuk-3
+- Fix scanning pod fake "hostname" for long image names [(#351)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/351)
+- Fix parsing capacity fields of the form 50M or 1G [(#352)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/352)
+
+## Ivanchuk-2
+- API Chunking Support [(#290)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/290)
+- Test ruby 2.5.5 [(#345)](https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/345)
 
 ## Hammer-1
 

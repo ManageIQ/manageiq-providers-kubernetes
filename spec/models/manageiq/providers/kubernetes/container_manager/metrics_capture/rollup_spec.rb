@@ -211,7 +211,7 @@ shared_examples "kubernetes rollup tests" do
         :derived_memory_used        => 2048.0,
         :derived_vm_numvcpus        => 12.0,
         :derived_memory_available   => 3072.0,
-        :mem_usage_absolute_average => 66.6666666666667
+        :mem_usage_absolute_average => be_within(0.001).of(66.666)
       )
     )
 

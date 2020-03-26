@@ -5,13 +5,9 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   include Vmdb::Logging
   include ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
 
-  def initialize(options = Config::Options.new)
-    @options = options
-
+  def initialize
     @data = {}
     @data_index = {}
-    @tag_mapper = ContainerLabelTagMapping.mapper
-    @data[:tag_mapper] = @tag_mapper
   end
 
   def parse
@@ -19,8 +15,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def persister_inv_to_persister(persister, inventory, options)
-    persister.add_collection_directly(@tag_mapper.tags_to_resolve_collection)
-
     ems_inv_populate_collections(inventory, options)
 
     # The following take parsed hashes from @data_index, populated during
@@ -441,7 +435,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   ## Shared parsing methods
 
   def map_labels(model_name, labels)
-    @tag_mapper.map_labels(model_name, labels)
+    persister.tag_mapper.map_labels(model_name, labels)
   end
 
   def find_host_by_provider_id(provider_id)

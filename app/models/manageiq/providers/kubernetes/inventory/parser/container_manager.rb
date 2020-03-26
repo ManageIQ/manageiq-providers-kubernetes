@@ -2,6 +2,9 @@ require 'bigdecimal'
 require 'shellwords'
 
 class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Parser
+  include Vmdb::Logging
+  include ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
+
   def initialize(options = Config::Options.new)
     @options = options
 

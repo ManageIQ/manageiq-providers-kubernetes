@@ -20,8 +20,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def persister_inv_to_persister(persister, inventory, options)
     persister.add_collection_directly(@tag_mapper.tags_to_resolve_collection)
-    # TODO(lsmola) expose persister and use that and use that instead of @inv_collections
-    @inv_collections = persister.collections
 
     ems_inv_populate_collections(inventory, options)
 
@@ -58,7 +56,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_nodes_graph(inv)
-    collection = @inv_collections[:container_nodes]
+    collection = persister.container_nodes
 
     collector.nodes.each do |data|
       h = parse_node(data)
@@ -84,7 +82,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     hash[:managed_entity] = parent
     children = hash.extract!(:hardware, :operating_system)
 
-    computer_system = @inv_collections[:computer_systems].build(hash)
+    computer_system = persister.computer_systems.build(hash)
 
     get_node_computer_system_hardware_graph(computer_system, children[:hardware])
     get_node_computer_system_operating_system_graph(computer_system, children[:operating_system])
@@ -93,17 +91,17 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_node_computer_system_hardware_graph(parent, hash)
     return if hash.nil?
     hash[:computer_system] = parent
-    @inv_collections[:computer_system_hardwares].build(hash)
+    persister.computer_system_hardwares.build(hash)
   end
 
   def get_node_computer_system_operating_system_graph(parent, hash)
     return if hash.nil?
     hash[:computer_system] = parent
-    @inv_collections[:computer_system_operating_systems].build(hash)
+    persister.computer_system_operating_systems.build(hash)
   end
 
   def get_namespaces_graph(inv)
-    collection = @inv_collections[:container_projects]
+    collection = persister.container_projects
 
     collector.namespaces.each do |ns|
       h = parse_namespace(ns)
@@ -119,7 +117,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_resource_quotas_graph(inv)
-    collection = @inv_collections[:container_quotas]
+    collection = persister.container_quotas
 
     collector.resource_quotas.each do |quota|
       h = parse_resource_quota(quota)
@@ -138,19 +136,19 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_container_quota_scopes_graphs(parent, hashes)
     hashes.each do |hash|
       hash[:container_quota] = parent
-      @inv_collections[:container_quota_scopes].build(hash)
+      persister.container_quota_scopes.build(hash)
     end
   end
 
   def get_container_quota_items_graph(parent, hashes)
     hashes.each do |hash|
       hash[:container_quota] = parent
-      @inv_collections[:container_quota_items].build(hash)
+      persister.container_quota_items.build(hash)
     end
   end
 
   def get_limit_ranges_graph(inv)
-    collection = @inv_collections[:container_limits]
+    collection = persister.container_limits
 
     collector.limit_ranges.each do |data|
       h = parse_range(data)
@@ -165,7 +163,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_limit_range_items_graph(parent, hashes)
-    collection = @inv_collections[:container_limit_items]
+    collection = persister.container_limit_items
     hashes.each do |hash|
       hash[:container_limit] = parent
       collection.build(hash)
@@ -173,7 +171,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_replication_controllers_graph(inv)
-    collection = @inv_collections[:container_replicators]
+    collection = persister.container_replicators
 
     collector.replication_controllers.each do |rc|
       h = parse_replication_controllers(rc)
@@ -193,7 +191,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_persistent_volume_claims_graph(inv)
-    collection = @inv_collections[:persistent_volume_claims]
+    collection = persister.persistent_volume_claims
 
     collector.persistent_volume_claims.each do |pvc|
       h = parse_persistent_volume_claim(pvc)
@@ -204,7 +202,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_persistent_volumes_graph(inv)
-    collection = @inv_collections[:persistent_volumes]
+    collection = persister.persistent_volumes
 
     collector.persistent_volumes.each do |pv|
       h = parse_persistent_volume(pv)
@@ -218,7 +216,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_pods_graph(_inv)
-    collection = @inv_collections[:container_groups]
+    collection = persister.container_groups
 
     collector.pods.each do |pod|
       h = parse_pod(pod)
@@ -250,8 +248,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_container_conditions_graph(parent, hashes)
     model_name = parent.inventory_collection.model_class.base_class.name
     key = [:container_conditions_for, model_name]
-    collection = @inv_collections[key]
-    raise("can't save: missing @inv_collections[#{key}]") if collection.nil?
+    collection = persister.collections[key]
+    raise("can't save: missing inventory collections [#{key}]") if collection.nil?
 
     hashes.to_a.each do |h|
       h = h.merge(:container_entity => parent)
@@ -260,7 +258,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_container_volumes_graph(parent, hashes)
-    collection = @inv_collections[:container_volumes]
+    collection = persister.container_volumes
     hashes.to_a.each do |h|
       h = h.merge(:parent => parent)
       pvc_ref = h.delete(:persistent_volume_claim_ref)
@@ -270,7 +268,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_container_port_configs_graph(parent, hashes)
-    collection = @inv_collections[:container_port_configs]
+    collection = persister.container_port_configs
     hashes.each do |h|
       h[:container] = parent
       collection.build(h)
@@ -278,7 +276,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_container_env_vars_graph(parent, hashes)
-    collection = @inv_collections[:container_env_vars]
+    collection = persister.container_env_vars
     hashes.each do |h|
       h[:container] = parent
       collection.build(h)
@@ -286,13 +284,13 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_container_security_context_graph(parent, h)
-    collection = @inv_collections[:security_contexts]
+    collection = persister.security_contexts
     h[:resource] = parent
     collection.build(h)
   end
 
   def get_containers_graph(parent, hashes)
-    collection = @inv_collections[:containers]
+    collection = persister.containers
 
     hashes.each do |h|
       h[:container_group] = parent
@@ -325,7 +323,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       cgs_by_namespace_and_name.store_path(ep[:namespace], ep[:name], container_groups)
     end
 
-    collection = @inv_collections[:container_services]
+    collection = persister.container_services
 
     collector.services.each do |service|
       h = parse_service(service)
@@ -361,13 +359,13 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_container_service_port_configs_graph(container_service, hashes)
     hashes.to_a.each do |h|
       h = h.merge(:container_service => container_service)
-      @inv_collections[:container_service_port_configs].build(h)
+      persister.container_service_port_configs.build(h)
     end
   end
 
   # TODO: images & registries still rely on @data_index
   def get_container_image_registries_graph
-    collection = @inv_collections[:container_image_registries]
+    collection = persister.container_image_registries
     # Resulting from previously parsed images
     registries = @data_index.fetch_path(:container_image_registry, :by_host_and_port) || []
     registries.each do |_host_port, ir|
@@ -376,7 +374,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_container_images_graph
-    collection = @inv_collections[:container_images]
+    collection = persister.container_images
     # Resulting from previously parsed images
     images = @data_index.fetch_path(:container_image, :by_digest) || []
     images.each do |_digest, im|
@@ -393,7 +391,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     hashes_by_section.each do |section, hashes|
       key = [:custom_attributes_for, model_name, section.to_s]
       collection = persister.collections[key]
-      raise("can't save: missing @inv_collections[#{key}]") if collection.nil?
+      raise("can't save: missing inventory collections [#{key}]") if collection.nil?
       hashes.to_a.each do |h|
         h = h.merge(:resource => parent)
         if h[:section].to_s != section.to_s
@@ -408,8 +406,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_taggings_graph(parent, tags_inventory_objects)
     model_name = parent.inventory_collection.model_class.base_class.name
     key = [:taggings_for, model_name]
-    collection = @inv_collections[key]
-    raise("can't save: missing @inv_collections[#{key}]") if collection.nil?
+    collection = persister.collections[key]
+    raise("can't save: missing inventory collections [#{key}]") if collection.nil?
     tags_inventory_objects.each do |tag|
       collection.build(:taggable => parent, :tag => tag)
     end
@@ -1165,7 +1163,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def lazy_find_project(name:)
     return nil if name.nil?
-    @inv_collections[:container_projects].lazy_find(name, :ref => :by_name)
+    persister.container_projects.lazy_find(name, :ref => :by_name)
   end
 
   def lazy_find_node(name:)
@@ -1176,34 +1174,34 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def lazy_find_replicator(hash)
     return nil if hash.nil?
     search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
-    @inv_collections[:container_replicators].lazy_find_by(search, :ref => :by_container_project_and_name)
+    persister.container_replicators.lazy_find_by(search, :ref => :by_container_project_and_name)
   end
 
   def lazy_find_container_group(hash)
     return nil if hash.nil?
     search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
-    @inv_collections[:container_groups].lazy_find_by(search, :ref => :by_container_project_and_name)
+    persister.container_groups.lazy_find_by(search, :ref => :by_container_project_and_name)
   end
 
   def lazy_find_image(hash)
     return nil if hash.nil?
     hash = hash.merge(:container_image_registry => lazy_find_image_registry(hash[:container_image_registry]))
-    @inv_collections[:container_images].lazy_find_by(hash)
+    persister.container_images.lazy_find_by(hash)
   end
 
   def lazy_find_image_registry(hash)
     return nil if hash.nil?
-    @inv_collections[:container_image_registries].lazy_find_by(hash)
+    persister.container_image_registries.lazy_find_by(hash)
   end
 
   def lazy_find_build_pod(hash)
     return nil if hash.nil?
-    @inv_collections[:container_build_pods].lazy_find_by(hash, :ref => :by_namespace_and_name)
+    persister.container_build_pods.lazy_find_by(hash, :ref => :by_namespace_and_name)
   end
 
   def lazy_find_persistent_volume_claim(hash)
     return nil if hash.nil?
     search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
-    @inv_collections[:persistent_volume_claims].lazy_find_by(search, :ref => :by_container_project_and_name)
+    persister.persistent_volume_claims.lazy_find_by(search, :ref => :by_container_project_and_name)
   end
 end

@@ -1,8 +1,46 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Collector
-  attr_reader :inventory
+  def additional_attributes
+    @additional_attributes ||= {} # TODO is this used?
+  end
 
-  def collect
-    @inventory = fetch_entities(kubernetes_connection, kubernetes_entities)
+  def pods
+    @pods ||= fetch_entity(kubernetes_connection, "pods")
+  end
+
+  def services
+    @services ||= fetch_entity(kubernetes_connection, "services")
+  end
+
+  def endpoints
+    @endpoints ||= fetch_entity(kubernetes_connection, "endpoints")
+  end
+
+  def replication_controllers
+    @replication_controllers ||= fetch_entity(kubernetes_connection, "replication_controllers")
+  end
+
+  def nodes
+    @nodes ||= fetch_entity(kubernetes_connection, "nodes")
+  end
+
+  def namespaces
+    @namespaces ||= fetch_entity(kubernetes_connection, "namespaces")
+  end
+
+  def resource_quotas
+    @resource_quotas ||= fetch_entity(kubernetes_connection, "resource_quotas")
+  end
+
+  def limit_ranges
+    @limit_ranges ||= fetch_entity(kubernetes_connection, "limit_ranges")
+  end
+
+  def persistent_volumes
+    @persistent_volumes ||= fetch_entity(kubernetes_connection, "persistent_volumes")
+  end
+
+  def persistent_volume_claims
+    @persistent_volume_claims ||= fetch_entity(kubernetes_connection, "persistent_volume_claims")
   end
 
   private
@@ -21,23 +59,20 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
     @kubernetes_connection ||= connect("kubernetes")
   end
 
-  def kubernetes_entities
-    %w[pods services replication_controllers nodes endpoints namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims]
-  end
+  def fetch_entity(client, entity)
+    meth = "get_#{entity}"
 
-  def fetch_entities(client, entities)
-    entities.each_with_object({}) do |entity, h|
-      continue = nil
-      h[entity.singularize] ||= []
+    continue = nil
+    results = []
 
-      loop do
-        entities = client.send("get_#{entity}", :limit => refresher_options.chunk_size, :continue => continue)
+    loop do
+      result = client.send(meth, :limit => refresher_options.chunk_size, :continue => continue)
+      results += result
+      break if result.last?
 
-        h[entity.singularize].concat(entities)
-        break if entities.last?
-
-        continue = entities.continue
-      end
+      continue = result.continue
     end
+
+    results
   end
 end

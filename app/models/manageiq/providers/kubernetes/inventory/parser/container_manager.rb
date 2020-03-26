@@ -15,7 +15,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def parse
-    persister_inv_to_persister(persister, collector.inventory, refresher_options)
+    persister_inv_to_persister(persister, nil, refresher_options)
   end
 
   def persister_inv_to_persister(persister, inventory, options)
@@ -48,7 +48,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def get_additional_attributes_graph(inv)
-    (inv["additional_attributes"] || {}).each do |aa|
+    collector.additional_attributes.each do |aa|
       h = parse_additional_attribute(aa)
       next if h.empty? || h[:node].nil?
 
@@ -60,7 +60,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_nodes_graph(inv)
     collection = @inv_collections[:container_nodes]
 
-    inv["node"].each do |data|
+    collector.nodes.each do |data|
       h = parse_node(data)
 
       h.except!(:namespace)
@@ -105,7 +105,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_namespaces_graph(inv)
     collection = @inv_collections[:container_projects]
 
-    inv["namespace"].each do |ns|
+    collector.namespaces.each do |ns|
       h = parse_namespace(ns)
 
       custom_attrs = h.extract!(:labels)
@@ -121,7 +121,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_resource_quotas_graph(inv)
     collection = @inv_collections[:container_quotas]
 
-    inv["resource_quota"].each do |quota|
+    collector.resource_quotas.each do |quota|
       h = parse_resource_quota(quota)
 
       h[:container_project] = lazy_find_project(:name => h[:namespace])
@@ -152,7 +152,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_limit_ranges_graph(inv)
     collection = @inv_collections[:container_limits]
 
-    inv["limit_range"].each do |data|
+    collector.limit_ranges.each do |data|
       h = parse_range(data)
 
       h[:container_project] = lazy_find_project(:name => h[:namespace])
@@ -175,7 +175,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_replication_controllers_graph(inv)
     collection = @inv_collections[:container_replicators]
 
-    inv["replication_controller"].each do |rc|
+    collector.replication_controllers.each do |rc|
       h = parse_replication_controllers(rc)
 
       h[:container_project] = lazy_find_project(:name => h[:namespace])
@@ -195,7 +195,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_persistent_volume_claims_graph(inv)
     collection = @inv_collections[:persistent_volume_claims]
 
-    inv["persistent_volume_claim"].each do |pvc|
+    collector.persistent_volume_claims.each do |pvc|
       h = parse_persistent_volume_claim(pvc)
       h[:container_project] = lazy_find_project(:name => h[:namespace])
 
@@ -206,7 +206,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def get_persistent_volumes_graph(inv)
     collection = @inv_collections[:persistent_volumes]
 
-    inv["persistent_volume"].each do |pv|
+    collector.persistent_volumes.each do |pv|
       h = parse_persistent_volume(pv)
 
       h.except!(:namespace) # TODO: project untested?
@@ -217,10 +217,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_pods_graph(inv)
+  def get_pods_graph(_inv)
     collection = @inv_collections[:container_groups]
 
-    inv["pod"].each do |pod|
+    collector.pods.each do |pod|
       h = parse_pod(pod)
 
       h[:container_project] = lazy_find_project(:name => h[:namespace])
@@ -313,7 +313,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     cgs_by_namespace_and_name = {}
 
     # We don't save endpoints themselves, only parse for cross-linking services<->pods
-    inv["endpoint"].each do |endpoint|
+    collector.endpoints.each do |endpoint|
       ep = parse_endpoint(endpoint)
 
       container_groups = []
@@ -327,7 +327,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     collection = @inv_collections[:container_services]
 
-    inv["service"].each do |service|
+    collector.services.each do |service|
       h = parse_service(service)
 
       h[:container_project] = lazy_find_project(:name => h[:namespace]) # TODO: untested?

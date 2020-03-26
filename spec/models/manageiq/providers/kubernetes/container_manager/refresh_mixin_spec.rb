@@ -8,13 +8,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefresherMixin do
 
     context 'and there is no default value' do
       it 'should raise' do
-        expect { dummy.fetch_entities(client, [{:name => 'pods'}]) }.to raise_error(KubeException)
-      end
-    end
-
-    context 'and there is a default value' do
-      it 'should be returned' do
-        expect(dummy.fetch_entities(client, [{:name => 'pods', :default => []}])).to eq('pod' => [])
+        expect { dummy.fetch_entities(client, ['pods']) }.to raise_error(KubeException)
       end
     end
   end

@@ -18,30 +18,20 @@ module ManageIQ
           refresh_parser_class.ems_inv_to_persister(ems, inventory, refresher_options)
         end
 
-        KUBERNETES_ENTITIES = [
-          {:name => 'pods'}, {:name => 'services'}, {:name => 'replication_controllers'}, {:name => 'nodes'},
-          {:name => 'endpoints'}, {:name => 'namespaces'}, {:name => 'resource_quotas'}, {:name => 'limit_ranges'},
-          {:name => 'persistent_volumes'}, {:name => 'persistent_volume_claims'}
-        ]
+        KUBERNETES_ENTITIES = %w[pods services replication_controllers nodes endpoints namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims]
 
         def fetch_entities(client, entities)
           entities.each_with_object({}) do |entity, h|
             continue = nil
-            h[entity[:name].singularize] ||= []
+            h[entity.singularize] ||= []
 
-            begin
-              loop do
-                entities = client.send("get_#{entity[:name]}", :limit => refresher_options.chunk_size, :continue => continue)
+            loop do
+              entities = client.send("get_#{entity}", :limit => refresher_options.chunk_size, :continue => continue)
 
-                h[entity[:name].singularize].concat(entities)
-                break if entities.last?
+              h[entity.singularize].concat(entities)
+              break if entities.last?
 
-                continue = entities.continue
-              end
-            rescue KubeException => e
-              raise e if entity[:default].nil?
-              $log.warn("Unexpected Exception during refresh: #{e}")
-              h[entity[:name].singularize] = entity[:default]
+              continue = entities.continue
             end
           end
         end

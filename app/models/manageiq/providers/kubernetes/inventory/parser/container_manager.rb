@@ -15,34 +15,34 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     # The following take parsed hashes from @data_index, populated during
     # parsing pods and possibly openshift images, so must be called at the end.
-    get_container_images_graph
-    get_container_image_registries_graph
+    container_images
+    container_image_registries
   end
 
   def ems_inv_populate_collections
-    get_additional_attributes_graph # TODO: untested?
-    get_nodes_graph
-    get_namespaces_graph
-    get_resource_quotas_graph
-    get_limit_ranges_graph
-    get_replication_controllers_graph
-    get_persistent_volume_claims_graph
-    get_persistent_volumes_graph
-    get_pods_graph
-    get_endpoints_and_services_graph
+    additional_attributes # TODO: untested?
+    nodes
+    namespaces
+    resource_quotas
+    limit_ranges
+    replication_controllers
+    persistent_volume_claims
+    persistent_volumes
+    pods
+    endpoints_and_services
   end
 
-  def get_additional_attributes_graph
+  def additional_attributes
     collector.additional_attributes.each do |aa|
       h = parse_additional_attribute(aa)
       next if h.empty? || h[:node].nil?
 
       container_node = lazy_find_node(:name => h.delete(:node))
-      get_custom_attributes_graph(container_node, :additional_attributes => [h])
+      custom_attributes(container_node, :additional_attributes => [h])
     end
   end
 
-  def get_nodes_graph
+  def nodes
     collection = persister.container_nodes
 
     collector.nodes.each do |data|
@@ -56,14 +56,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       container_node = collection.build(h)
 
-      get_container_conditions_graph(container_node, children[:container_conditions])
-      get_node_computer_systems_graph(container_node, children[:computer_system])
-      get_custom_attributes_graph(container_node, :labels => labels)
-      get_taggings_graph(container_node, tags)
+      container_conditions(container_node, children[:container_conditions])
+      node_computer_systems(container_node, children[:computer_system])
+      custom_attributes(container_node, :labels => labels)
+      taggings(container_node, tags)
     end
   end
 
-  def get_node_computer_systems_graph(parent, hash)
+  def node_computer_systems(parent, hash)
     return if hash.nil?
 
     hash[:managed_entity] = parent
@@ -71,23 +71,23 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     computer_system = persister.computer_systems.build(hash)
 
-    get_node_computer_system_hardware_graph(computer_system, children[:hardware])
-    get_node_computer_system_operating_system_graph(computer_system, children[:operating_system])
+    node_computer_system_hardware(computer_system, children[:hardware])
+    node_computer_system_operating_system(computer_system, children[:operating_system])
   end
 
-  def get_node_computer_system_hardware_graph(parent, hash)
+  def node_computer_system_hardware(parent, hash)
     return if hash.nil?
     hash[:computer_system] = parent
     persister.computer_system_hardwares.build(hash)
   end
 
-  def get_node_computer_system_operating_system_graph(parent, hash)
+  def node_computer_system_operating_system(parent, hash)
     return if hash.nil?
     hash[:computer_system] = parent
     persister.computer_system_operating_systems.build(hash)
   end
 
-  def get_namespaces_graph
+  def namespaces
     collection = persister.container_projects
 
     collector.namespaces.each do |ns|
@@ -98,12 +98,12 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       container_project = collection.build(h)
 
-      get_custom_attributes_graph(container_project, custom_attrs) # TODO: untested
-      get_taggings_graph(container_project, tags)
+      custom_attributes(container_project, custom_attrs) # TODO: untested
+      taggings(container_project, tags)
     end
   end
 
-  def get_resource_quotas_graph
+  def resource_quotas
     collection = persister.container_quotas
 
     collector.resource_quotas.each do |quota|
@@ -115,26 +115,26 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       items = h.delete(:container_quota_items)
       container_quota = collection.build(h)
 
-      get_container_quota_scopes_graphs(container_quota, scopes)
-      get_container_quota_items_graph(container_quota, items)
+      container_quota_scopess(container_quota, scopes)
+      container_quota_items(container_quota, items)
     end
   end
 
-  def get_container_quota_scopes_graphs(parent, hashes)
+  def container_quota_scopess(parent, hashes)
     hashes.each do |hash|
       hash[:container_quota] = parent
       persister.container_quota_scopes.build(hash)
     end
   end
 
-  def get_container_quota_items_graph(parent, hashes)
+  def container_quota_items(parent, hashes)
     hashes.each do |hash|
       hash[:container_quota] = parent
       persister.container_quota_items.build(hash)
     end
   end
 
-  def get_limit_ranges_graph
+  def limit_ranges
     collection = persister.container_limits
 
     collector.limit_ranges.each do |data|
@@ -145,11 +145,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       limit = collection.build(h)
 
-      get_limit_range_items_graph(limit, items)
+      limit_range_items(limit, items)
     end
   end
 
-  def get_limit_range_items_graph(parent, hashes)
+  def limit_range_items(parent, hashes)
     collection = persister.container_limit_items
     hashes.each do |hash|
       hash[:container_limit] = parent
@@ -157,7 +157,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_replication_controllers_graph
+  def replication_controllers
     collection = persister.container_replicators
 
     collector.replication_controllers.each do |rc|
@@ -169,15 +169,15 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       tags = h.delete(:tags)
 
       container_replicator = collection.build(h)
-      get_custom_attributes_graph(container_replicator,
+      custom_attributes(container_replicator,
                                   :labels    => custom_attrs[:labels],
                                   # The actual section is "selectors"
                                   :selectors => custom_attrs[:selector_parts])
-      get_taggings_graph(container_replicator, tags)
+      taggings(container_replicator, tags)
     end
   end
 
-  def get_persistent_volume_claims_graph
+  def persistent_volume_claims
     collection = persister.persistent_volume_claims
 
     collector.persistent_volume_claims.each do |pvc|
@@ -188,7 +188,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_persistent_volumes_graph
+  def persistent_volumes
     collection = persister.persistent_volumes
 
     collector.persistent_volumes.each do |pv|
@@ -202,7 +202,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_pods_graph
+  def pods
     collection = persister.container_groups
 
     collector.pods.each do |pod|
@@ -220,19 +220,19 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       container_group = collection.build(h)
 
-      get_containers_graph(container_group, children[:containers])
-      get_container_conditions_graph(container_group, children[:container_conditions])
-      get_container_volumes_graph(container_group, children[:container_volumes])
-      get_custom_attributes_graph(container_group,
+      containers(container_group, children[:containers])
+      container_conditions(container_group, children[:container_conditions])
+      container_volumes(container_group, children[:container_volumes])
+      custom_attributes(container_group,
                                   :labels         => custom_attrs[:labels],
                                   # The actual section is "node_selectors"
                                   :node_selectors => custom_attrs[:node_selector_parts])
-      get_taggings_graph(container_group, tags)
+      taggings(container_group, tags)
     end
   end
 
   # polymorphic, relation disambiguates parent
-  def get_container_conditions_graph(parent, hashes)
+  def container_conditions(parent, hashes)
     model_name = parent.inventory_collection.model_class.base_class.name
     key = [:container_conditions_for, model_name]
     collection = persister.collections[key]
@@ -244,7 +244,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_container_volumes_graph(parent, hashes)
+  def container_volumes(parent, hashes)
     collection = persister.container_volumes
     hashes.to_a.each do |h|
       h = h.merge(:parent => parent)
@@ -254,7 +254,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_container_port_configs_graph(parent, hashes)
+  def container_port_configs(parent, hashes)
     collection = persister.container_port_configs
     hashes.each do |h|
       h[:container] = parent
@@ -262,7 +262,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_container_env_vars_graph(parent, hashes)
+  def container_env_vars(parent, hashes)
     collection = persister.container_env_vars
     hashes.each do |h|
       h[:container] = parent
@@ -270,13 +270,13 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_container_security_context_graph(parent, h)
+  def container_security_context(parent, h)
     collection = persister.security_contexts
     h[:resource] = parent
     collection.build(h)
   end
 
-  def get_containers_graph(parent, hashes)
+  def containers(parent, hashes)
     collection = persister.containers
 
     hashes.each do |h|
@@ -286,15 +286,15 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       container = collection.build(h)
 
-      get_container_port_configs_graph(container, children[:container_port_configs])
-      get_container_env_vars_graph(container, children[:container_env_vars])
-      get_container_security_context_graph(container, children[:security_context]) if children[:security_context]
+      container_port_configs(container, children[:container_port_configs])
+      container_env_vars(container, children[:container_env_vars])
+      container_security_context(container, children[:security_context]) if children[:security_context]
     end
   end
 
   # TODO: how would this work with partial refresh?
   # TODO: can I write get_endpoints() that directly refreshes ContainerGroupsContainerServices join table?
-  def get_endpoints_and_services_graph
+  def endpoints_and_services
     cgs_by_namespace_and_name = {}
 
     # We don't save endpoints themselves, only parse for cross-linking services<->pods
@@ -334,16 +334,16 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       container_service = collection.build(h)
 
-      get_container_service_port_configs_graph(container_service, children[:container_service_port_configs])
-      get_custom_attributes_graph(container_service,
+      container_service_port_configs(container_service, children[:container_service_port_configs])
+      custom_attributes(container_service,
                                   :labels    => custom_attrs[:labels],
                                   # The actual section is "selectors"
                                   :selectors => custom_attrs[:selector_parts])
-      get_taggings_graph(container_service, tags)
+      taggings(container_service, tags)
     end
   end
 
-  def get_container_service_port_configs_graph(container_service, hashes)
+  def container_service_port_configs(container_service, hashes)
     hashes.to_a.each do |h|
       h = h.merge(:container_service => container_service)
       persister.container_service_port_configs.build(h)
@@ -351,7 +351,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   # TODO: images & registries still rely on @data_index
-  def get_container_image_registries_graph
+  def container_image_registries
     collection = persister.container_image_registries
     # Resulting from previously parsed images
     registries = @data_index.fetch_path(:container_image_registry, :by_host_and_port) || []
@@ -360,7 +360,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_container_images_graph
+  def container_images
     collection = persister.container_images
     # Resulting from previously parsed images
     images = @data_index.fetch_path(:container_image, :by_digest) || []
@@ -369,11 +369,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       custom_attrs = im.extract!(:labels, :docker_labels)
       container_image = collection.build(im)
 
-      get_custom_attributes_graph(container_image, custom_attrs)
+      custom_attributes(container_image, custom_attrs)
     end
   end
 
-  def get_custom_attributes_graph(parent, hashes_by_section)
+  def custom_attributes(parent, hashes_by_section)
     model_name = parent.inventory_collection.model_class.base_class.name
     hashes_by_section.each do |section, hashes|
       key = [:custom_attributes_for, model_name, section.to_s]
@@ -390,7 +390,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   # Conveniently, the tags map_labels emits are already in InventoryObject<Tag> form
-  def get_taggings_graph(parent, tags_inventory_objects)
+  def taggings(parent, tags_inventory_objects)
     model_name = parent.inventory_collection.model_class.base_class.name
     key = [:taggings_for, model_name]
     collection = persister.collections[key]

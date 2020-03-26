@@ -1,6 +1,6 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Collector
   def additional_attributes
-    @additional_attributes ||= {} # TODO is this used?
+    @additional_attributes ||= {} # TODO: is this used?
   end
 
   def pods

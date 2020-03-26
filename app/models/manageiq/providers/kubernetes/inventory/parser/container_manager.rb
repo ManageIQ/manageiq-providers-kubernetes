@@ -43,8 +43,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def nodes
-    collection = persister.container_nodes
-
     collector.nodes.each do |data|
       h = parse_node(data)
 
@@ -54,7 +52,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       tags = h.delete(:tags)
       children = h.extract!(:container_conditions, :computer_system)
 
-      container_node = collection.build(h)
+      container_node = persister.container_nodes.build(h)
 
       container_conditions(container_node, children[:container_conditions])
       node_computer_systems(container_node, children[:computer_system])
@@ -88,15 +86,13 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def namespaces
-    collection = persister.container_projects
-
     collector.namespaces.each do |ns|
       h = parse_namespace(ns)
 
       custom_attrs = h.extract!(:labels)
       tags = h.delete(:tags)
 
-      container_project = collection.build(h)
+      container_project = persister.container_projects.build(h)
 
       custom_attributes(container_project, custom_attrs) # TODO: untested
       taggings(container_project, tags)
@@ -104,8 +100,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def resource_quotas
-    collection = persister.container_quotas
-
     collector.resource_quotas.each do |quota|
       h = parse_resource_quota(quota)
 
@@ -113,7 +107,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       scopes = h.delete(:container_quota_scopes)
       items = h.delete(:container_quota_items)
-      container_quota = collection.build(h)
+      container_quota = persister.container_quotas.build(h)
 
       container_quota_scopess(container_quota, scopes)
       container_quota_items(container_quota, items)
@@ -135,31 +129,26 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def limit_ranges
-    collection = persister.container_limits
-
     collector.limit_ranges.each do |data|
       h = parse_range(data)
 
       h[:container_project] = lazy_find_project(:name => h[:namespace])
       items = h.delete(:container_limit_items)
 
-      limit = collection.build(h)
+      limit = persister.container_limits.build(h)
 
       limit_range_items(limit, items)
     end
   end
 
   def limit_range_items(parent, hashes)
-    collection = persister.container_limit_items
     hashes.each do |hash|
       hash[:container_limit] = parent
-      collection.build(hash)
+      persister.container_limit_items.build(hash)
     end
   end
 
   def replication_controllers
-    collection = persister.container_replicators
-
     collector.replication_controllers.each do |rc|
       h = parse_replication_controllers(rc)
 
@@ -168,7 +157,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       custom_attrs = h.extract!(:labels, :selector_parts)
       tags = h.delete(:tags)
 
-      container_replicator = collection.build(h)
+      container_replicator = persister.container_replicators.build(h)
       custom_attributes(container_replicator,
                                   :labels    => custom_attrs[:labels],
                                   # The actual section is "selectors"
@@ -178,19 +167,15 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def persistent_volume_claims
-    collection = persister.persistent_volume_claims
-
     collector.persistent_volume_claims.each do |pvc|
       h = parse_persistent_volume_claim(pvc)
       h[:container_project] = lazy_find_project(:name => h[:namespace])
 
-      collection.build(h)
+      persister.persistent_volume_claims.build(h)
     end
   end
 
   def persistent_volumes
-    collection = persister.persistent_volumes
-
     collector.persistent_volumes.each do |pv|
       h = parse_persistent_volume(pv)
 
@@ -198,13 +183,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       pvc_ref = h.delete(:persistent_volume_claim_ref)
       h[:persistent_volume_claim] = lazy_find_persistent_volume_claim(pvc_ref)
-      collection.build(h)
+      persister.persistent_volumes.build(h)
     end
   end
 
   def pods
-    collection = persister.container_groups
-
     collector.pods.each do |pod|
       h = parse_pod(pod)
 
@@ -218,7 +201,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       tags = h.delete(:tags)
       children = h.extract!(:containers, :container_conditions, :container_volumes)
 
-      container_group = collection.build(h)
+      container_group = persister.container_groups.build(h)
 
       containers(container_group, children[:containers])
       container_conditions(container_group, children[:container_conditions])
@@ -245,46 +228,40 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def container_volumes(parent, hashes)
-    collection = persister.container_volumes
     hashes.to_a.each do |h|
       h = h.merge(:parent => parent)
       pvc_ref = h.delete(:persistent_volume_claim_ref)
       h[:persistent_volume_claim] = lazy_find_persistent_volume_claim(pvc_ref)
-      collection.build(h)
+      persister.container_volumes.build(h)
     end
   end
 
   def container_port_configs(parent, hashes)
-    collection = persister.container_port_configs
     hashes.each do |h|
       h[:container] = parent
-      collection.build(h)
+      persister.container_port_configs.build(h)
     end
   end
 
   def container_env_vars(parent, hashes)
-    collection = persister.container_env_vars
     hashes.each do |h|
       h[:container] = parent
-      collection.build(h)
+      persister.container_env_vars.build(h)
     end
   end
 
-  def container_security_context(parent, h)
-    collection = persister.security_contexts
-    h[:resource] = parent
-    collection.build(h)
+  def container_security_context(parent, hash)
+    hash[:resource] = parent
+    persister.security_contexts.build(hash)
   end
 
   def containers(parent, hashes)
-    collection = persister.containers
-
     hashes.each do |h|
       h[:container_group] = parent
       h[:container_image] = lazy_find_image(h[:container_image])
       children = h.extract!(:container_port_configs, :container_env_vars, :security_context)
 
-      container = collection.build(h)
+      container = persister.containers.build(h)
 
       container_port_configs(container, children[:container_port_configs])
       container_env_vars(container, children[:container_env_vars])
@@ -310,8 +287,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       cgs_by_namespace_and_name.store_path(ep[:namespace], ep[:name], container_groups)
     end
 
-    collection = persister.container_services
-
     collector.services.each do |service|
       h = parse_service(service)
 
@@ -332,7 +307,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
       h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name]) || []
 
-      container_service = collection.build(h)
+      container_service = persister.container_services.build(h)
 
       container_service_port_configs(container_service, children[:container_service_port_configs])
       custom_attributes(container_service,
@@ -352,22 +327,20 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   # TODO: images & registries still rely on @data_index
   def container_image_registries
-    collection = persister.container_image_registries
     # Resulting from previously parsed images
     registries = @data_index.fetch_path(:container_image_registry, :by_host_and_port) || []
     registries.each do |_host_port, ir|
-      collection.build(ir)
+      persister.container_image_registries.build(ir)
     end
   end
 
   def container_images
-    collection = persister.container_images
     # Resulting from previously parsed images
     images = @data_index.fetch_path(:container_image, :by_digest) || []
     images.each do |_digest, im|
       im = im.merge(:container_image_registry => lazy_find_image_registry(im[:container_image_registry]))
       custom_attrs = im.extract!(:labels, :docker_labels)
-      container_image = collection.build(im)
+      container_image = persister.container_images.build(im)
 
       custom_attributes(container_image, custom_attrs)
     end
@@ -379,11 +352,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       key = [:custom_attributes_for, model_name, section.to_s]
       collection = persister.collections[key]
       raise("can't save: missing inventory collections [#{key}]") if collection.nil?
+
       hashes.to_a.each do |h|
         h = h.merge(:resource => parent)
-        if h[:section].to_s != section.to_s
-          raise("unexpected hash with section #{h[:section]} under #{section}")
-        end
+        raise("unexpected hash with section #{h[:section]} under #{section}") if h[:section].to_s != section.to_s
+
         collection.build(h)
       end
     end
@@ -395,6 +368,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     key = [:taggings_for, model_name]
     collection = persister.collections[key]
     raise("can't save: missing inventory collections [#{key}]") if collection.nil?
+
     tags_inventory_objects.each do |tag|
       collection.build(:taggable => parent, :tag => tag)
     end

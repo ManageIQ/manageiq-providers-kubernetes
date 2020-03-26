@@ -27,10 +27,6 @@ module ManageIQ::Providers::Kubernetes
       ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager
     end
 
-    def persister_target_collection_class
-      ManageIQ::Providers::Kubernetes::Inventory::Persister::TargetCollection
-    end
-
     def ems_inv_to_persister(ems, inventory, options = Config::Options.new)
       persister = persister_class.new(ems)
       persister_inv_to_persister(persister, inventory, options)

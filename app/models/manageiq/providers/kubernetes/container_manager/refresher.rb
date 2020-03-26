@@ -2,10 +2,6 @@ module ManageIQ::Providers::Kubernetes
   class ContainerManager::Refresher < ManageIQ::Providers::BaseManager::Refresher
     include ManageIQ::Providers::Kubernetes::ContainerManager::RefresherMixin
 
-    def target_collection_collector_class
-      ManageIQ::Providers::Kubernetes::Inventory::Collector::TargetCollection
-    end
-
     def refresh_parser_class
       ManageIQ::Providers::Kubernetes::ContainerManager::RefreshParser
     end

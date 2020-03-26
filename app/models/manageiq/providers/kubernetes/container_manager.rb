@@ -9,7 +9,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   require_nested :EventParserMixin
   require_nested :MetricsCapture
   require_nested :MetricsCollectorWorker
-  require_nested :RefreshParser
   require_nested :RefreshWorker
   require_nested :Refresher
   require_nested :Scanning

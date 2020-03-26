@@ -11,35 +11,28 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def parse
-    persister_inv_to_persister(persister, nil, refresher_options)
-  end
-
-  def persister_inv_to_persister(persister, inventory, options)
-    ems_inv_populate_collections(inventory, options)
+    ems_inv_populate_collections
 
     # The following take parsed hashes from @data_index, populated during
     # parsing pods and possibly openshift images, so must be called at the end.
     get_container_images_graph
     get_container_image_registries_graph
-
-    # Returning Persister triggers InventoryRefresh::SaveInventory code path.
-    persister
   end
 
-  def ems_inv_populate_collections(inventory, _options)
-    get_additional_attributes_graph(inventory) # TODO: untested?
-    get_nodes_graph(inventory)
-    get_namespaces_graph(inventory)
-    get_resource_quotas_graph(inventory)
-    get_limit_ranges_graph(inventory)
-    get_replication_controllers_graph(inventory)
-    get_persistent_volume_claims_graph(inventory)
-    get_persistent_volumes_graph(inventory)
-    get_pods_graph(inventory)
-    get_endpoints_and_services_graph(inventory)
+  def ems_inv_populate_collections
+    get_additional_attributes_graph # TODO: untested?
+    get_nodes_graph
+    get_namespaces_graph
+    get_resource_quotas_graph
+    get_limit_ranges_graph
+    get_replication_controllers_graph
+    get_persistent_volume_claims_graph
+    get_persistent_volumes_graph
+    get_pods_graph
+    get_endpoints_and_services_graph
   end
 
-  def get_additional_attributes_graph(inv)
+  def get_additional_attributes_graph
     collector.additional_attributes.each do |aa|
       h = parse_additional_attribute(aa)
       next if h.empty? || h[:node].nil?
@@ -49,7 +42,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_nodes_graph(inv)
+  def get_nodes_graph
     collection = persister.container_nodes
 
     collector.nodes.each do |data|
@@ -94,7 +87,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     persister.computer_system_operating_systems.build(hash)
   end
 
-  def get_namespaces_graph(inv)
+  def get_namespaces_graph
     collection = persister.container_projects
 
     collector.namespaces.each do |ns|
@@ -110,7 +103,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_resource_quotas_graph(inv)
+  def get_resource_quotas_graph
     collection = persister.container_quotas
 
     collector.resource_quotas.each do |quota|
@@ -141,7 +134,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_limit_ranges_graph(inv)
+  def get_limit_ranges_graph
     collection = persister.container_limits
 
     collector.limit_ranges.each do |data|
@@ -164,7 +157,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_replication_controllers_graph(inv)
+  def get_replication_controllers_graph
     collection = persister.container_replicators
 
     collector.replication_controllers.each do |rc|
@@ -184,7 +177,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_persistent_volume_claims_graph(inv)
+  def get_persistent_volume_claims_graph
     collection = persister.persistent_volume_claims
 
     collector.persistent_volume_claims.each do |pvc|
@@ -195,7 +188,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_persistent_volumes_graph(inv)
+  def get_persistent_volumes_graph
     collection = persister.persistent_volumes
 
     collector.persistent_volumes.each do |pv|
@@ -209,7 +202,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def get_pods_graph(_inv)
+  def get_pods_graph
     collection = persister.container_groups
 
     collector.pods.each do |pod|
@@ -301,7 +294,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   # TODO: how would this work with partial refresh?
   # TODO: can I write get_endpoints() that directly refreshes ContainerGroupsContainerServices join table?
-  def get_endpoints_and_services_graph(inv)
+  def get_endpoints_and_services_graph
     cgs_by_namespace_and_name = {}
 
     # We don't save endpoints themselves, only parse for cross-linking services<->pods

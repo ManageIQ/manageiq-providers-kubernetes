@@ -58,7 +58,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   def full_refresh
     refresh_block do
       inventory = inventory_klass.build(ems, nil)
-      inventory.parse&.persist!
+      inventory.parse
+      inventory.persister.persist!
 
       save_resource_versions(inventory.collector)
     end
@@ -66,6 +67,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
   def partial_refresh(notices)
     refresh_block do
+      collector = inventory_klass::Collector::WatchNotice.new(ems, notices)
+      persister = inventory_klass::Persister::WatchNotice.new(ems, nil)
+      parser    = inventory_klass::Parser::WatchNotice.new
+
+      parser.collector = collector
+      parser.persister = persister
+      parser.parse
+      persister.persist!
     end
   end
 
@@ -102,6 +111,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   def ensure_collector_threads
     entity_types.each do |entity_type|
       next if collector_threads[entity_type]&.alive?
+
       collector_threads[entity_type] = start_collector_thread(entity_type)
     end
   end

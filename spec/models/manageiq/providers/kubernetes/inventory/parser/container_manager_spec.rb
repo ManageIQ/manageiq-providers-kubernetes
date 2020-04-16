@@ -7,34 +7,42 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
   describe "parse_namespace" do
     it "handles simple data" do
-      expect(parser.send(:parse_namespace,
-                         array_recursive_ostruct(
-                           :metadata => {
-                             :name              => "proj2",
-                             :selfLink          => "/api/v1/namespaces/proj2",
-                             :uid               => "554c1eaa-f4f6-11e5-b943-525400c7c086",
-                             :resourceVersion   => "150569",
-                             :creationTimestamp => "2016-03-28T15:04:13Z",
-                             :labels            => {:department => "Warp-drive"},
-                             :annotations       => {:"openshift.io/description"  => "",
-                                                    :"openshift.io/display-name" => "Project 2"}
-                           },
-                           :spec     => {:finalizers => ["openshift.io/origin", "kubernetes"]},
-                           :status   => {:phase => "Active"}
-                         )
-                        )).to eq(:ems_ref          => "554c1eaa-f4f6-11e5-b943-525400c7c086",
-                                 :name             => "proj2",
-                                 :ems_created_on   => "2016-03-28T15:04:13Z",
-                                 :resource_version => "150569",
-                                 :labels           => [
-                                   {
-                                     :section => "labels",
-                                     :name    => "department",
-                                     :value   => "Warp-drive",
-                                     :source  => "kubernetes"
-                                   }
-                                 ],
-                                 :tags             => [])
+      parsed = parser.send(:parse_namespace,
+        array_recursive_ostruct(
+          :metadata => {
+            :name              => "proj2",
+            :selfLink          => "/api/v1/namespaces/proj2",
+            :uid               => "554c1eaa-f4f6-11e5-b943-525400c7c086",
+            :resourceVersion   => "150569",
+            :creationTimestamp => "2016-03-28T15:04:13Z",
+            :labels            => {:department => "Warp-drive"},
+            :annotations       => {:"openshift.io/description"  => "",
+                                   :"openshift.io/display-name" => "Project 2"}
+          },
+          :spec     => {:finalizers => ["openshift.io/origin", "kubernetes"]},
+          :status   => {:phase => "Active"}
+        )
+      )
+
+      expect(parsed.data).to include(
+        :ems_ref          => "554c1eaa-f4f6-11e5-b943-525400c7c086",
+        :name             => "proj2",
+        :ems_created_on   => "2016-03-28T15:04:13Z",
+        :resource_version => "150569",
+      )
+
+      custom_attributes_collection = persister.collections[[:custom_attributes_for, "ContainerProject", "labels"]]
+      expect(custom_attributes_collection.data.map(&:data)).to include(
+        a_hash_including(
+          :section => "labels",
+          :name    => "department",
+          :value   => "Warp-drive",
+          :source  => "kubernetes"
+        )
+      )
+
+      taggings_collection = persister.collections[[:taggings_for, "ContainerProject"]]
+      expect(taggings_collection.data.map(&:data)).to be_empty
     end
   end
 
@@ -423,11 +431,12 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
     pod_states.each do |name, data|
       it "sets correct STI types for #{name}" do
-        result = parser.send(:parse_pod, array_recursive_ostruct(data))
+        result = parser.send(:parse_pod, array_recursive_ostruct(data)).data
 
         expect(result[:type]).to eq('ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup')
+
         # https://bugzilla.redhat.com/show_bug.cgi?id=1517676
-        expect(result[:containers].collect { |c| c[:type] }.uniq).to eq(['ManageIQ::Providers::Kubernetes::ContainerManager::Container'])
+        expect(persister.containers.data.collect { |c| c.data[:type] }.uniq).to eq(['ManageIQ::Providers::Kubernetes::ContainerManager::Container'])
       end
     end
   end
@@ -649,7 +658,7 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
   describe "quota parsing" do
     it "handles simple data" do
-      expect(parser.send(
+      resource_quota = parser.send(
         :parse_resource_quota,
         array_recursive_ostruct(
           :metadata => {
@@ -683,91 +692,99 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             }
           }
         )
-      )).to eq(:name                   => 'test-quota',
-               :ems_ref                => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-               :ems_created_on         => '2015-08-17T09:16:46Z',
-               :resource_version       => '165339',
-               :namespace              => 'test-namespace',
-               :container_quota_scopes => [
-                 {
-                   :scope => "Terminating"
-                 },
-                 {
-                   :scope => "NotBestEffort"
-                 }
-               ],
-               :container_quota_items  => [
-                 {
-                   :resource       => "cpu",
-                   :quota_desired  => 30,
-                   :quota_enforced => 30,
-                   :quota_observed => 0.1
-                 },
-                 {
-                   :resource       => "pods",
-                   :quota_desired  => 100,
-                   :quota_enforced => 50,
-                   :quota_observed => 50
-                 },
-                 {
-                   :resource       => "memory",
-                   :quota_desired  => 10_000_000,
-                   :quota_enforced => 104_857_600,
-                   :quota_observed => 130_000
-                 }
-               ]
-              )
+      )
+
+      expect(resource_quota.data).to include(
+        :name             => 'test-quota',
+        :ems_ref          => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+        :ems_created_on   => '2015-08-17T09:16:46Z',
+        :resource_version => '165339',
+        :namespace        => 'test-namespace'
+      )
+
+      expect(persister.container_quota_scopes.data.map(&:data)).to include(
+        a_hash_including(:scope => "Terminating"),
+        a_hash_including(:scope => "NotBestEffort")
+      )
+
+      expect(persister.container_quota_items.data.map(&:data)).to include(
+        a_hash_including(
+          :resource       => "cpu",
+          :quota_desired  => 30,
+          :quota_enforced => 30,
+          :quota_observed => 0.1
+        ),
+        a_hash_including(
+          :resource       => "pods",
+          :quota_desired  => 100,
+          :quota_enforced => 50,
+          :quota_observed => 50
+        ),
+        a_hash_including(
+          :resource       => "memory",
+          :quota_desired  => 10_000_000,
+          :quota_enforced => 104_857_600,
+          :quota_observed => 130_000
+        )
+      )
     end
 
     it "handles quotas with no specification" do
-      expect(parser.send(:parse_resource_quota,
-                         array_recursive_ostruct(
-                           :metadata => {
-                             :name              => 'test-quota',
-                             :namespace         => 'test-namespace',
-                             :uid               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-                             :resourceVersion   => '165339',
-                             :creationTimestamp => '2015-08-17T09:16:46Z',
-                           },
-                           :spec     => {},
-                           :status   => {})))
-        .to eq(:name                   => 'test-quota',
-               :ems_ref                => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-               :ems_created_on         => '2015-08-17T09:16:46Z',
-               :resource_version       => '165339',
-               :namespace              => 'test-namespace',
-               :container_quota_scopes => [],
-               :container_quota_items  => [])
+      quota = parser.send(:parse_resource_quota,
+        array_recursive_ostruct(
+          :metadata => {
+            :name              => 'test-quota',
+            :namespace         => 'test-namespace',
+            :uid               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+            :resourceVersion   => '165339',
+            :creationTimestamp => '2015-08-17T09:16:46Z',
+          },
+          :spec     => {},
+          :status   => {}
+        )).data
+
+      expect(quota).to include(
+        :name             => 'test-quota',
+        :ems_ref          => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+        :ems_created_on   => '2015-08-17T09:16:46Z',
+        :resource_version => '165339',
+        :namespace        => 'test-namespace'
+      )
     end
 
     it "handles quotas with no status" do
-      expect(parser.send(:parse_resource_quota,
-                         array_recursive_ostruct(
-                           :metadata => {
-                             :name              => 'test-quota',
-                             :namespace         => 'test-namespace',
-                             :uid               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-                             :resourceVersion   => '165339',
-                             :creationTimestamp => '2015-08-17T09:16:46Z'},
-                           :spec     => {
-                             :hard => {
-                               :cpu => '30'
-                             }},
-                           :status   => {})))
-        .to eq(:name                   => 'test-quota',
-               :ems_ref                => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
-               :ems_created_on         => '2015-08-17T09:16:46Z',
-               :resource_version       => '165339',
-               :namespace              => 'test-namespace',
-               :container_quota_scopes => [],
-               :container_quota_items  => [
-                 {
-                   :resource       => "cpu",
-                   :quota_desired  => 30,
-                   :quota_enforced => nil,
-                   :quota_observed => nil
-                 }
-               ])
+      quota = parser.send(:parse_resource_quota,
+        array_recursive_ostruct(
+          :metadata => {
+            :name              => 'test-quota',
+            :namespace         => 'test-namespace',
+            :uid               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+            :resourceVersion   => '165339',
+            :creationTimestamp => '2015-08-17T09:16:46Z'},
+          :spec     => {
+            :hard => {
+              :cpu => '30'
+            }
+          },
+          :status   => {}
+        )
+      ).data
+
+      expect(quota).to include(
+        :name             => 'test-quota',
+        :ems_ref          => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
+        :ems_created_on   => '2015-08-17T09:16:46Z',
+        :resource_version => '165339',
+        :namespace        => 'test-namespace',
+      )
+
+      expect(persister.container_quota_scopes.data).to be_empty
+      expect(persister.container_quota_items.data.first.data).to include(
+        :resource       => "cpu",
+        :quota_desired  => 30,
+        :quota_enforced => nil,
+        :quota_observed => nil
+      )
     end
   end
 
@@ -789,29 +806,33 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
           ]
         },
       }
+
       parsed = {
         :name                  => 'test-range',
         :ems_ref               => 'af3d1a10-44c0-11e5-b186-0aaeec44370e',
         :ems_created_on        => '2015-08-17T09:16:46Z',
         :resource_version      => '2',
-        :namespace             => 'test-namespace',
-        :container_limit_items => [
-          {
+        :namespace             => 'test-namespace'
+      }
+
+      %w(min max default defaultRequest maxLimitRequestRatio).each do |k8s_name|
+        from_k8s[:spec][:limits][0][k8s_name.to_sym] = {:cpu => '512Mi'}
+        #parsed[:container_limit_items][0][k8s_name.underscore.to_sym] = '512Mi'
+        # note each iteration ADDS ANOTHER limit type to data & result
+        range = parser.send(:parse_range, array_recursive_ostruct(from_k8s))
+        expect(range.data).to include(parsed)
+
+        expect(persister.container_limit_items.data.map(&:data)).to include(
+          a_hash_including(
             :item_type               => "Container",
             :resource                => "cpu",
             :max                     => nil,
-            :min                     => nil,
+            :min                     => "512Mi",
             :default                 => nil,
             :default_request         => nil,
             :max_limit_request_ratio => nil
-          }
-        ]
-      }
-      %w(min max default defaultRequest maxLimitRequestRatio).each do |k8s_name|
-        from_k8s[:spec][:limits][0][k8s_name.to_sym] = {:cpu => '512Mi'}
-        parsed[:container_limit_items][0][k8s_name.underscore.to_sym] = '512Mi'
-        # note each iteration ADDS ANOTHER limit type to data & result
-        expect(parser.send(:parse_range, array_recursive_ostruct(from_k8s))).to eq(parsed)
+          )
+        )
       end
     end
 
@@ -836,11 +857,9 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
         :ems_created_on        => '2015-08-17T09:16:46Z',
         :resource_version      => '2',
         :namespace             => 'test-namespace',
-        :container_limit_items => []
       }
       ranges.each do |range|
-        expect(parser.send(:parse_range, array_recursive_ostruct(range)))
-          .to eq(parsed)
+        expect(parser.send(:parse_range, array_recursive_ostruct(range)).data).to include(parsed)
       end
     end
   end
@@ -1014,33 +1033,19 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             }
           }
         )
-      )).to eq({
+      ).data).to include({
         :name                       => 'test-node',
         :ems_ref                    => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
         :ems_created_on             => '2015-12-06T11:10:21Z',
-        :container_conditions       => [],
         :container_runtime_version  => nil,
         :identity_infra             => 'aws:///zone/aws-id',
         :identity_machine           => 'id',
         :identity_system            => 'uuid',
         :kubernetes_kubelet_version => nil,
         :kubernetes_proxy_version   => nil,
-        :labels                     => [],
-        :tags                       => [],
         :lives_on_id                => nil,
         :lives_on_type              => nil,
         :max_container_groups       => nil,
-        :computer_system            => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace                  => nil,
         :resource_version           => '369104',
         :type                       => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
       })
@@ -1067,33 +1072,19 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             :capacity => {}
           }
         )
-      )).to eq({
+      ).data).to include({
         :name                       => 'test-node',
         :ems_ref                    => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
         :ems_created_on             => '2015-12-06T11:10:21Z',
-        :container_conditions       => [],
         :container_runtime_version  => nil,
         :identity_infra             => nil,
         :identity_machine           => 'id',
         :identity_system            => 'uuid',
         :kubernetes_kubelet_version => nil,
         :kubernetes_proxy_version   => nil,
-        :labels                     => [],
-        :tags                       => [],
         :lives_on_id                => nil,
         :lives_on_type              => nil,
         :max_container_groups       => nil,
-        :computer_system            => {
-          :hardware         => {
-            :cpu_total_cores => nil,
-            :memory_mb       => nil
-          },
-          :operating_system => {
-            :distribution   => nil,
-            :kernel_version => nil
-          }
-        },
-        :namespace                  => nil,
         :resource_version           => '3691041',
         :type                       => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
       })
@@ -1116,29 +1107,15 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             :capacity => {}
           }
         )
-      )).to eq(
+      ).data).to include(
         {
           :name                 => 'test-node',
           :ems_ref              => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
           :ems_created_on       => '2016-01-01T11:10:21Z',
-          :container_conditions => [],
           :identity_infra       => 'aws:///zone/aws-id',
-          :labels               => [],
-          :tags                 => [],
           :lives_on_id          => nil,
           :lives_on_type        => nil,
           :max_container_groups => nil,
-          :computer_system      => {
-            :hardware         => {
-              :cpu_total_cores => nil,
-              :memory_mb       => nil
-            },
-            :operating_system => {
-              :distribution   => nil,
-              :kernel_version => nil
-            }
-          },
-          :namespace             => nil,
           :resource_version      => '369104',
           :type                  => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
         })
@@ -1294,12 +1271,11 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             :phase => 'Available'
           }
         )
-      )).to eq(
+      ).data).to include(
         {
           :name                        => 'test-volume',
           :ems_ref                     => '66213621-80a1-11e5-b907-28d2447dcefe',
           :ems_created_on              => '2015-12-06T11:10:21Z',
-          :namespace                   => nil,
           :resource_version            => '448015',
           :type                        => 'PersistentVolume',
           :status_phase                => 'Available',
@@ -1321,7 +1297,6 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
           :iscsi_lun                   => nil,
           :iscsi_target_portal         => nil,
           :nfs_server                  => nil,
-          :persistent_volume_claim_ref => nil,
           :rbd_ceph_monitors           => '',
           :rbd_image                   => nil,
           :rbd_keyring                 => nil,
@@ -1360,7 +1335,7 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             :phase => 'Pending',
           }
         )
-      )).to eq(
+      ).data).to include(
         {
           :name                 => 'test-claim',
           :ems_ref              => '1577c5ba-a3f6-11e5-9845-28d2447dcefe',
@@ -1402,7 +1377,7 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
             }
           }
         )
-      )).to eq(
+      ).data).to include(
         {
           :name                 => 'test-claim',
           :ems_ref              => '1577c5ba-a3f6-11e5-9845-28d2447dcefe',
@@ -1535,7 +1510,8 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
         it "handles parsing of quantities in node spec memory" do
           expected_memory_mb = 2_000_000.0 / 1.megabyte
-          expect(parser.parse_node(node_spec).dig(:computer_system, :hardware)).to include(
+          parser.parse_node(node_spec)
+          expect(persister.computer_system_hardwares.data.first.data).to include(
             :memory_mb => expected_memory_mb
           )
         end
@@ -1546,7 +1522,8 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
         it "handles parsing of quantities in node spec memory" do
           expected_memory_mb = 2.0
-          expect(parser.parse_node(node_spec).dig(:computer_system, :hardware)).to include(
+          parser.parse_node(node_spec)
+          expect(persister.computer_system_hardwares.data.first.data).to include(
             :memory_mb => expected_memory_mb
           )
         end

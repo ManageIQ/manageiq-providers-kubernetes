@@ -35,6 +35,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     raise 'Kubernetes api_version cannot be modified'
   end
 
+  def inventory_object_refresh?
+    true
+  end
+
   def self.api_version
     kubernetes_version
   end

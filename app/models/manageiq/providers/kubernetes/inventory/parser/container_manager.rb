@@ -44,173 +44,49 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def nodes
     collector.nodes.each do |data|
-      h = parse_node(data)
-
-      h.except!(:namespace)
-
-      labels = h.delete(:labels)
-      tags = h.delete(:tags)
-      children = h.extract!(:container_conditions, :computer_system)
-
-      container_node = persister.container_nodes.build(h)
-
-      container_conditions(container_node, children[:container_conditions])
-      node_computer_systems(container_node, children[:computer_system])
-      custom_attributes(container_node, :labels => labels)
-      taggings(container_node, tags)
+      parse_node(data)
     end
-  end
-
-  def node_computer_systems(parent, hash)
-    return if hash.nil?
-
-    hash[:managed_entity] = parent
-    children = hash.extract!(:hardware, :operating_system)
-
-    computer_system = persister.computer_systems.build(hash)
-
-    node_computer_system_hardware(computer_system, children[:hardware])
-    node_computer_system_operating_system(computer_system, children[:operating_system])
-  end
-
-  def node_computer_system_hardware(parent, hash)
-    return if hash.nil?
-    hash[:computer_system] = parent
-    persister.computer_system_hardwares.build(hash)
-  end
-
-  def node_computer_system_operating_system(parent, hash)
-    return if hash.nil?
-    hash[:computer_system] = parent
-    persister.computer_system_operating_systems.build(hash)
   end
 
   def namespaces
     collector.namespaces.each do |ns|
-      h = parse_namespace(ns)
-
-      custom_attrs = h.extract!(:labels)
-      tags = h.delete(:tags)
-
-      container_project = persister.container_projects.build(h)
-
-      custom_attributes(container_project, custom_attrs) # TODO: untested
-      taggings(container_project, tags)
+      parse_namespace(ns)
     end
   end
 
   def resource_quotas
     collector.resource_quotas.each do |quota|
-      h = parse_resource_quota(quota)
-
-      h[:container_project] = lazy_find_project(:name => h[:namespace])
-
-      scopes = h.delete(:container_quota_scopes)
-      items = h.delete(:container_quota_items)
-      container_quota = persister.container_quotas.build(h)
-
-      container_quota_scopess(container_quota, scopes)
-      container_quota_items(container_quota, items)
-    end
-  end
-
-  def container_quota_scopess(parent, hashes)
-    hashes.each do |hash|
-      hash[:container_quota] = parent
-      persister.container_quota_scopes.build(hash)
-    end
-  end
-
-  def container_quota_items(parent, hashes)
-    hashes.each do |hash|
-      hash[:container_quota] = parent
-      persister.container_quota_items.build(hash)
+      parse_resource_quota(quota)
     end
   end
 
   def limit_ranges
     collector.limit_ranges.each do |data|
-      h = parse_range(data)
-
-      h[:container_project] = lazy_find_project(:name => h[:namespace])
-      items = h.delete(:container_limit_items)
-
-      limit = persister.container_limits.build(h)
-
-      limit_range_items(limit, items)
-    end
-  end
-
-  def limit_range_items(parent, hashes)
-    hashes.each do |hash|
-      hash[:container_limit] = parent
-      persister.container_limit_items.build(hash)
+      parse_range(data)
     end
   end
 
   def replication_controllers
     collector.replication_controllers.each do |rc|
-      h = parse_replication_controllers(rc)
-
-      h[:container_project] = lazy_find_project(:name => h[:namespace])
-
-      custom_attrs = h.extract!(:labels, :selector_parts)
-      tags = h.delete(:tags)
-
-      container_replicator = persister.container_replicators.build(h)
-      custom_attributes(container_replicator,
-                                  :labels    => custom_attrs[:labels],
-                                  # The actual section is "selectors"
-                                  :selectors => custom_attrs[:selector_parts])
-      taggings(container_replicator, tags)
+      parse_replication_controller(rc)
     end
   end
 
   def persistent_volume_claims
     collector.persistent_volume_claims.each do |pvc|
-      h = parse_persistent_volume_claim(pvc)
-      h[:container_project] = lazy_find_project(:name => h[:namespace])
-
-      persister.persistent_volume_claims.build(h)
+      parse_persistent_volume_claim(pvc)
     end
   end
 
   def persistent_volumes
     collector.persistent_volumes.each do |pv|
-      h = parse_persistent_volume(pv)
-
-      h.except!(:namespace) # TODO: project untested?
-
-      pvc_ref = h.delete(:persistent_volume_claim_ref)
-      h[:persistent_volume_claim] = lazy_find_persistent_volume_claim(pvc_ref)
-      persister.persistent_volumes.build(h)
+      parse_persistent_volume(pv)
     end
   end
 
   def pods
     collector.pods.each do |pod|
-      h = parse_pod(pod)
-
-      h[:container_project] = lazy_find_project(:name => h[:namespace])
-      h[:container_node] = lazy_find_node(:name => h.delete(:container_node_name))
-      h[:container_replicator] = lazy_find_replicator(h.delete(:container_replicator_ref))
-      h[:container_build_pod] = lazy_find_build_pod(:namespace => h[:namespace],
-                                                    :name      => h.delete(:build_pod_name))
-
-      custom_attrs = h.extract!(:labels, :node_selector_parts)
-      tags = h.delete(:tags)
-      children = h.extract!(:containers, :container_conditions, :container_volumes)
-
-      container_group = persister.container_groups.build(h)
-
-      containers(container_group, children[:containers])
-      container_conditions(container_group, children[:container_conditions])
-      container_volumes(container_group, children[:container_volumes])
-      custom_attributes(container_group,
-                                  :labels         => custom_attrs[:labels],
-                                  # The actual section is "node_selectors"
-                                  :node_selectors => custom_attrs[:node_selector_parts])
-      taggings(container_group, tags)
+      parse_pod(pod)
     end
   end
 
@@ -464,14 +340,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   end
 
   def parse_node(node)
-    new_result = parse_base_item(node)
+    new_result = parse_base_item(node).except(:namespace)
 
     labels = parse_labels(node)
+    tags   = map_labels('ContainerNode', labels)
+
     new_result.merge!(
       :type           => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
       :identity_infra => node.spec.providerID,
-      :labels         => labels,
-      :tags           => map_labels('ContainerNode', labels),
       :lives_on_id    => nil,
       :lives_on_type  => nil
     )
@@ -491,7 +367,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     node_memory = parse_capacity_field("Node-Memory", node_memory)
     node_memory &&= node_memory / 1.megabyte
 
-    new_result[:computer_system] = {
+    computer_system = {
       :hardware         => {
         :cpu_total_cores => node.status.try(:capacity).try(:cpu),
         :memory_mb       => node_memory
@@ -505,10 +381,41 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     max_container_groups = node.status.try(:capacity).try(:pods)
     new_result[:max_container_groups] = parse_capacity_field("Pods", max_container_groups)
 
-    new_result[:container_conditions] = parse_conditions(node)
+    container_conditions = parse_conditions(node)
     cross_link_node(new_result)
 
-    new_result
+    container_node = persister.container_nodes.build(new_result)
+
+    container_conditions(container_node, container_conditions)
+    node_computer_systems(container_node, computer_system)
+    custom_attributes(container_node, :labels => labels)
+    taggings(container_node, tags)
+
+    container_node
+  end
+
+  def node_computer_systems(parent, hash)
+    return if hash.nil?
+
+    hash[:managed_entity] = parent
+    children = hash.extract!(:hardware, :operating_system)
+
+    computer_system = persister.computer_systems.build(hash)
+
+    node_computer_system_hardware(computer_system, children[:hardware])
+    node_computer_system_operating_system(computer_system, children[:operating_system])
+  end
+
+  def node_computer_system_hardware(parent, hash)
+    return if hash.nil?
+    hash[:computer_system] = parent
+    persister.computer_system_hardwares.build(hash)
+  end
+
+  def node_computer_system_operating_system(parent, hash)
+    return if hash.nil?
+    hash[:computer_system] = parent
+    persister.computer_system_operating_systems.build(hash)
   end
 
   def parse_service(service)
@@ -542,25 +449,28 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     new_result = parse_base_item(pod)
 
     new_result.merge!(
-      :type                => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup',
-      :restart_policy      => pod.spec.restartPolicy,
-      :dns_policy          => pod.spec.dnsPolicy,
-      :ipaddress           => pod.status.podIP,
-      :phase               => pod.status.phase,
-      :message             => pod.status.message,
-      :reason              => pod.status.reason,
-      :container_node_name => pod.spec.nodeName,
-      :containers          => [],
-      :build_pod_name      => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
+      :type              => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup',
+      :container_project => lazy_find_project(:name => new_result[:namespace]),
+      :restart_policy    => pod.spec.restartPolicy,
+      :dns_policy        => pod.spec.dnsPolicy,
+      :ipaddress         => pod.status.podIP,
+      :phase             => pod.status.phase,
+      :message           => pod.status.message,
+      :reason            => pod.status.reason,
+      :container_node    => lazy_find_node(:name => pod.spec.nodeName)
+    )
+
+    new_result[:container_build_pod] = lazy_find_build_pod(
+      :namespace => new_result[:namespace],
+      :name => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
     )
 
     # TODO, map volumes
     # TODO, podIP
     containers_index = {}
-    containers = pod.spec.containers
-    containers.each do |container_spec|
+    containers = pod.spec.containers.each_with_object([]) do |container_spec, arr|
       containers_index[container_spec.name] = parse_container_spec(container_spec, pod.metadata.uid)
-      new_result[:containers] << containers_index[container_spec.name]
+      arr << containers_index[container_spec.name]
     end
 
     unless pod.status.nil? || pod.status.containerStatuses.nil?
@@ -576,7 +486,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       end
     end
 
-    new_result[:container_replicator_ref] = nil
     # NOTE: what we are trying to access here is the attribute:
     #   pod.metadata.annotations.kubernetes.io/created-by
     # but 'annotations' may be nil. The weird attribute name is
@@ -586,20 +495,30 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       # NOTE: the annotation content is JSON, so it needs to be parsed
       createdby = JSON.parse(createdby_txt)
       if createdby.kind_of?(Hash) && !createdby['reference'].nil?
-        new_result[:container_replicator_ref] = {
+        new_result[:container_replicator] = lazy_find_replicator(
           :namespace => createdby['reference']['namespace'],
           :name      => createdby['reference']['name']
-        }
+        )
       end
     end
 
-    new_result[:container_conditions] = parse_conditions(pod)
+    container_conditions = parse_conditions(pod)
 
-    new_result[:labels] = parse_labels(pod)
-    new_result[:tags] = map_labels('ContainerGroup', new_result[:labels])
-    new_result[:node_selector_parts] = parse_node_selector_parts(pod)
-    new_result[:container_volumes] = parse_volumes(pod)
-    new_result
+    labels = parse_labels(pod)
+    tags   = map_labels('ContainerGroup', labels)
+
+    node_selector_parts = parse_node_selector_parts(pod)
+    container_volumes = parse_volumes(pod)
+
+    container_group = persister.container_groups.build(new_result)
+
+    containers(container_group, containers)
+    container_conditions(container_group, container_conditions)
+    container_volumes(container_group, container_volumes)
+    custom_attributes(container_group, :labels => labels, :node_selectors => node_selector_parts)
+    taggings(container_group, tags)
+
+    container_group
   end
 
   def parse_endpoint(entity)
@@ -621,33 +540,39 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_namespace(namespace)
     new_result = parse_base_item(namespace).except(:namespace)
-    new_result[:labels] = parse_labels(namespace)
-    new_result[:tags] = map_labels('ContainerProject', new_result[:labels])
-    new_result
+
+    labels = parse_labels(namespace)
+    tags   = map_labels('ContainerProject', labels)
+
+    container_project = persister.container_projects.build(new_result)
+
+    custom_attributes(container_project, :labels => labels) # TODO: untested
+    taggings(container_project, tags)
+
+    container_project
   end
 
   def parse_persistent_volume(persistent_volume)
-    new_result = parse_base_item(persistent_volume)
+    new_result = parse_base_item(persistent_volume).except(:namespace)
     new_result.merge!(parse_volume_source(persistent_volume.spec))
     new_result.merge!(
-      :type                        => 'PersistentVolume',
-      :capacity                    => parse_resource_list(persistent_volume.spec.capacity.to_h),
-      :access_modes                => persistent_volume.spec.accessModes.join(','),
-      :reclaim_policy              => persistent_volume.spec.persistentVolumeReclaimPolicy,
-      :status_phase                => persistent_volume.status.phase,
-      :status_message              => persistent_volume.status.message,
-      :status_reason               => persistent_volume.status.reason,
-      :persistent_volume_claim_ref => nil,
+      :type           => 'PersistentVolume',
+      :capacity       => parse_resource_list(persistent_volume.spec.capacity.to_h),
+      :access_modes   => persistent_volume.spec.accessModes.join(','),
+      :reclaim_policy => persistent_volume.spec.persistentVolumeReclaimPolicy,
+      :status_phase   => persistent_volume.status.phase,
+      :status_message => persistent_volume.status.message,
+      :status_reason  => persistent_volume.status.reason
     )
 
     unless persistent_volume.spec.claimRef.nil?
-      new_result[:persistent_volume_claim_ref] = {
+      new_result[:persistent_volume_claim] = lazy_find_persistent_volume_claim(
         :namespace => persistent_volume.spec.claimRef.namespace,
         :name      => persistent_volume.spec.claimRef.name,
-      }
+      )
     end
 
-    new_result
+    persister.persistent_volumes.build(new_result)
   end
 
   def parse_resource_list(hash)
@@ -670,6 +595,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def parse_persistent_volume_claim(claim)
     new_result = parse_base_item(claim)
     new_result.merge!(
+      :container_project    => lazy_find_project(:name => new_result[:namespace]),
       :desired_access_modes => claim.spec.accessModes,
       :requests             => parse_resource_list(claim.spec.resources.requests.to_h),
       :limits               => parse_resource_list(claim.spec.resources.limits.to_h),
@@ -678,14 +604,22 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
       :capacity             => parse_resource_list(claim.status.capacity.to_h),
     )
 
-    new_result
+    persister.persistent_volume_claims.build(new_result)
   end
 
   def parse_resource_quota(resource_quota)
     new_result = parse_base_item(resource_quota)
-    new_result[:container_quota_scopes] = resource_quota.spec.scopes.to_a.collect { |scope| {:scope => scope} }
-    new_result[:container_quota_items] = parse_resource_quota_items(resource_quota)
-    new_result
+
+    scopes = resource_quota.spec.scopes.to_a.collect { |scope| {:scope => scope} }
+    items = parse_resource_quota_items(resource_quota)
+
+    new_result[:container_project] = lazy_find_project(:name => new_result[:namespace])
+    container_quota = persister.container_quotas.build(new_result)
+
+    container_quota_scopess(container_quota, scopes)
+    container_quota_items(container_quota, items)
+
+    container_quota
   end
 
   def parse_resource_quota_items(resource_quota)
@@ -713,10 +647,36 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     new_result_h.values
   end
 
+  def container_quota_scopess(parent, hashes)
+    hashes.each do |hash|
+      hash[:container_quota] = parent
+      persister.container_quota_scopes.build(hash)
+    end
+  end
+
+  def container_quota_items(parent, hashes)
+    hashes.each do |hash|
+      hash[:container_quota] = parent
+      persister.container_quota_items.build(hash)
+    end
+  end
+
   def parse_range(limit_range)
     new_result = parse_base_item(limit_range)
-    new_result[:container_limit_items] = parse_range_items limit_range
-    new_result
+    new_result[:container_project] = lazy_find_project(:name => new_result[:namespace])
+    limit = persister.container_limits.build(new_result)
+
+    items = parse_range_items(limit_range)
+    limit_range_items(limit, items)
+
+    limit
+  end
+
+  def limit_range_items(parent, hashes)
+    hashes.each do |hash|
+      hash[:container_limit] = parent
+      persister.container_limit_items.build(hash)
+    end
   end
 
   def parse_range_items(limit_range)
@@ -764,18 +724,25 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def parse_replication_controllers(container_replicator)
+  def parse_replication_controller(container_replicator)
     new_result = parse_base_item(container_replicator)
 
-    labels = parse_labels(container_replicator)
+    labels         = parse_labels(container_replicator)
+    tags           = map_labels('ContainerReplicator', labels)
+    selector_parts = parse_selector_parts(container_replicator)
+
     # TODO: parse template
     new_result.merge!(
       :replicas         => container_replicator.spec.replicas,
       :current_replicas => container_replicator.status.replicas,
-      :labels           => labels,
-      :tags             => map_labels('ContainerReplicator', labels),
-      :selector_parts   => parse_selector_parts(container_replicator)
+      :container_project => lazy_find_project(:name => new_result[:namespace]),
     )
+
+    container_replicator = persister.container_replicators.build(new_result)
+
+    custom_attributes(container_replicator, :labels => labels, :selectors => selector_parts)
+    taggings(container_replicator, tags)
+
     new_result
   end
 

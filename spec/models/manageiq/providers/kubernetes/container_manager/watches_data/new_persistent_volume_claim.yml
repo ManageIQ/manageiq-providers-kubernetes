@@ -1,0 +1,32 @@
+---
+:metadata:
+  :name: my-persistentvolumeclaim-0
+  :namespace: default
+  :selfLink: "/api/v1/namespaces/default/persistentvolumeclaims/my-persistentvolumeclaim-0"
+  :uid: 9b0629a3-dadf-11e9-86a6-525400b7d5c1
+  :resourceVersion: '10335'
+  :creationTimestamp: '2019-09-19T13:15:52Z'
+  :annotations:
+    :pv.kubernetes.io/bind-completed: 'yes'
+    :pv.kubernetes.io/bound-by-controller: 'yes'
+  :finalizers:
+  - kubernetes.io/pvc-protection
+:spec:
+  :accessModes:
+  - ReadWriteOnce
+  :selector:
+    :matchLabels:
+      :my-pv-label: my-pv-0
+  :resources:
+    :requests:
+      :storage: 8Mi
+  :volumeName: my-persistentvolume-0
+  :storageClassName: manual
+:status:
+  :phase: Bound
+  :accessModes:
+  - ReadWriteOnce
+  :capacity:
+    :storage: 10Mi
+:kind: PersistentVolumeClaim
+:apiVersion: v1

@@ -35,7 +35,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
     collector.replication_controllers.each do |notice|
       replication_controller = notice.object
 
-      persister.container_replication_controllers.targeted_scope << replication_controller.metadata.uid
+      persister.container_replicators.targeted_scope << replication_controller.metadata.uid
       next if notice.type == "DELETED"
 
       parse_replication_controller(replication_controller)

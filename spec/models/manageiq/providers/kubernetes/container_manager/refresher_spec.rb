@@ -4,9 +4,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   let!(:ems) do
     FactoryBot.create(
       :ems_kubernetes_with_zone,
-      :hostname => "10.35.0.169",
-      :ipaddress => "10.35.0.169",
-      :port => 6443,
+      :hostname        => "10.35.0.169",
+      :ipaddress       => "10.35.0.169",
+      :port            => 6443,
       :authentications => [
         AuthToken.new(:name => "test", :auth_key => "valid-token")
       ]
@@ -558,9 +558,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
 
           it "archives & disconnects objects" do
             archived = {
-              'ContainerNode'  => 1, # the fake node
-              'ContainerGroup' => 2 * 2 + 1,
-              'Container'      => 2 * 2 + 1,
+              'ContainerNode'      => 1, # the fake node
+              'ContainerGroup'     => 2 * 2 + 1,
+              'Container'          => 2 * 2 + 1,
               'ContainerQuota'     => 2 * 3,
               'ContainerQuotaItem' => 2 * 10 + 2
             }
@@ -609,7 +609,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
             archived_items = ContainerQuotaItem.archived.joins(:container_quota).merge(ContainerQuota.active)
             expect(archived_items.pluck(:resource)).to contain_exactly(
               'pods', # observed changed
-              'requests.cpu', # requested changed
+              'requests.cpu' # requested changed
             )
             assert_modified_container_quota_item
           end
@@ -621,6 +621,195 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         expect(object.deleted_on).not_to be_nil
         expect(object.archived?).to be true
       end
+    end
+  end
+
+  context "Targeted refresh" do
+    before { full_refresh }
+
+    context "limit_ranges" do
+      let(:new_limit_range) { load_watch_notice_data("new_limit_range") }
+      let(:limit_range)     { load_watch_notice_data("limit_range") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_limit_range)])
+        expect(ems.container_limits.pluck(:ems_ref)).to include(new_limit_range.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        limit_range[:spec][:limits][0][:default][:cpu]    = "200m"
+        limit_range[:spec][:limits][0][:default][:memory] = "1024Mi"
+
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => limit_range)])
+
+        container_limit = ems.container_limits.find_by(:ems_ref => limit_range.dig(:metadata, :uid))
+
+        cpu_limit = container_limit.container_limit_items.find_by(:resource => "cpu")
+        mem_limit = container_limit.container_limit_items.find_by(:resource => "memory")
+
+        expect(cpu_limit.default).to eq("200m")
+        expect(mem_limit.default).to eq("1024Mi")
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => limit_range)])
+        expect(ems.container_limits.pluck(:ems_ref)).not_to include(limit_range.dig(:metadata, :uid))
+      end
+    end
+
+    context "nodes" do
+      let(:new_node) { load_watch_notice_data("node") }
+      let(:node)     { load_watch_notice_data("node") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_node)])
+        expect(ems.container_nodes.pluck(:ems_ref)).to include(new_node.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        node[:status][:capacity][:pods] = "100"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => node)])
+        expect(ems.container_nodes.find_by(:ems_ref => node.dig(:metadata, :uid)).max_container_groups).to eq(100)
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => node)])
+        expect(ems.container_nodes.pluck(:ems_ref)).not_to include(node.dig(:metadata, :uid))
+      end
+    end
+
+    context "persistent_volumes" do
+      let(:new_pv) { load_watch_notice_data("new_persistent_volume") }
+      let(:pv)     { load_watch_notice_data("persistent_volume") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_pv)])
+        expect(ems.persistent_volumes.pluck(:ems_ref)).to include(new_pv.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        pv[:spec][:capacity][:storage] = "20Gi"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => pv)])
+        persistent_volume = ems.persistent_volumes.find_by(:ems_ref => pv.dig(:metadata, :uid))
+        expect(persistent_volume.capacity[:storage]).to eq(20.gigabytes)
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => pv)])
+        expect(ems.persistent_volumes.pluck(:ems_ref)).not_to include(pv.dig(:metadata, :uid))
+      end
+    end
+
+    context "persistent_volume_claims" do
+      let(:new_pvc) { load_watch_notice_data("new_persistent_volume_claim") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_pvc)])
+        expect(ems.persistent_volume_claims.pluck(:ems_ref)).to include(new_pvc.dig(:metadata, :uid))
+      end
+    end
+
+    context "pods" do
+      let(:new_pod) { load_watch_notice_data("new_pod") }
+      let(:pod)     { load_watch_notice_data("pod") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_pod)])
+        expect(ems.container_groups.pluck(:ems_ref)).to include(new_pod.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        pod[:status][:phase] = "Failed"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => pod)])
+        expect(ems.container_groups.find_by(:ems_ref => pod.dig(:metadata, :uid)).phase).to eq("Failed")
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => pod)])
+        expect(ems.container_groups.pluck(:ems_ref)).not_to include(pod.dig(:metadata, :uid))
+      end
+    end
+
+    context "projects" do
+      let(:new_namespace) { load_watch_notice_data("new_namespace") }
+      let(:namespace)     { load_watch_notice_data("namespace") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_namespace)])
+        expect(ems.container_projects.pluck(:ems_ref)).to include(new_namespace.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        namespace[:metadata][:name] = "my-not-as-new-project"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => namespace)])
+        expect(ems.container_projects.pluck(:name)).to include("my-not-as-new-project")
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => namespace)])
+        expect(ems.container_projects.pluck(:ems_ref)).not_to include(namespace.dig(:metadata, :uid))
+      end
+    end
+
+    context "replication_controllers" do
+      let(:replication_controller)     { load_watch_notice_data("replication_controller") }
+      let(:new_replication_controller) { load_watch_notice_data("new_replication_controller") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_replication_controller)])
+        expect(ems.container_replicators.pluck(:ems_ref)).to include(new_replication_controller.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        replication_controller[:metadata][:name] = "monitoring-heapster-controller-updated"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => replication_controller)])
+
+        container_replicator = ems.container_replicators.find_by(:ems_ref => replication_controller[:metadata][:uid])
+        expect(container_replicator.name).to eq("monitoring-heapster-controller-updated")
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => replication_controller)])
+        expect(ems.container_replicators.pluck(:ems_ref)).not_to include(replication_controller.dig(:metadata, :uid))
+      end
+    end
+
+    context "resource_quotas" do
+      let(:resource_quota)     { load_watch_notice_data("resource_quota") }
+      let(:new_resource_quota) { load_watch_notice_data("new_resource_quota") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_resource_quota)])
+        expect(ems.container_quotas.pluck(:ems_ref)).to include(new_resource_quota.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        resource_quota[:spec][:hard][:cpu] = "40"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => resource_quota)])
+
+        quota = ems.container_quotas.find_by(:ems_ref => resource_quota[:metadata][:uid])
+        expect(quota.container_quota_items.first.quota_desired).to eq(40)
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => resource_quota)])
+        expect(ems.container_quotas.pluck(:ems_ref)).not_to include(resource_quota.dig(:metadata, :uid))
+      end
+    end
+
+    def targeted_refresh(notices)
+      collector = ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice.new(ems, notices)
+      persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::WatchNotice.new(ems, nil)
+      parser    = ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice.new
+
+      parser.collector = collector
+      parser.persister = persister
+      parser.parse
+      persister.persist!
+    end
+
+    def load_watch_notice_data(type)
+      YAML.load_file("spec/models/manageiq/providers/kubernetes/container_manager/watches_data/#{type}.yml")
     end
   end
 

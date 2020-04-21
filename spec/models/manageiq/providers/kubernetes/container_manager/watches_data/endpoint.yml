@@ -1,0 +1,16 @@
+---
+:metadata:
+  :name: kubernetes
+  :namespace: default
+  :selfLink: "/api/v1/namespaces/default/endpoints/kubernetes"
+  :uid: 6668dc12-35f0-11e5-8917-001a4a5f4a00
+  :resourceVersion: '8'
+  :creationTimestamp: '2015-07-29T12:50:33Z'
+:subsets:
+- :addresses:
+  - :ip: 10.35.0.169
+  :ports:
+  - :port: 6443
+    :protocol: TCP
+:kind: Endpoint
+:apiVersion: v1

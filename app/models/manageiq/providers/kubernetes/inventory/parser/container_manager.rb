@@ -408,12 +408,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def node_computer_system_hardware(parent, hash)
     return if hash.nil?
+
     hash[:computer_system] = parent
     persister.computer_system_hardwares.build(hash)
   end
 
   def node_computer_system_operating_system(parent, hash)
     return if hash.nil?
+
     hash[:computer_system] = parent
     persister.computer_system_operating_systems.build(hash)
   end
@@ -462,7 +464,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     new_result[:container_build_pod] = lazy_find_build_pod(
       :namespace => new_result[:namespace],
-      :name => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
+      :name      => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
     )
 
     # TODO, map volumes
@@ -733,8 +735,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     # TODO: parse template
     new_result.merge!(
-      :replicas         => container_replicator.spec.replicas,
-      :current_replicas => container_replicator.status.replicas,
+      :replicas          => container_replicator.spec.replicas,
+      :current_replicas  => container_replicator.status.replicas,
       :container_project => lazy_find_project(:name => new_result[:namespace]),
     )
 

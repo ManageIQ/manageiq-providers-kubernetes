@@ -1,0 +1,62 @@
+---
+:metadata:
+  :name: monitoring-heapster-controller-4j5zu
+  :generateName: monitoring-heapster-controller-
+  :namespace: default
+  :selfLink: "/api/v1/namespaces/default/pods/monitoring-heapster-controller-4j5zu"
+  :uid: 1f60bc7c-35f2-11e5-8917-001a4a5f4a00
+  :resourceVersion: '5253'
+  :creationTimestamp: '2015-07-29T13:02:52Z'
+  :labels:
+    :name: heapster
+  :annotations:
+    :kubernetes.io/created-by: '{"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"ReplicationController","namespace":"default","name":"monitoring-heapster-controller","uid":"1f2d2157-35f2-11e5-8917-001a4a5f4a00","apiVersion":"v1","resourceVersion":"100"}}'
+:spec:
+  :volumes:
+  - :name: default-token-a2ui3
+    :secret:
+      :secretName: default-token-a2ui3
+  :containers:
+  - :name: heapster
+    :image: example.com:1234/kubernetes/heapster:v0.16.0
+    :command:
+    - "/heapster"
+    - "--source=kubernetes:https://kubernetes"
+    - "--sink=influxdb:http://monitoring-influxdb:80"
+    :resources: {}
+    :volumeMounts:
+    - :name: default-token-a2ui3
+      :readOnly: true
+      :mountPath: "/var/run/secrets/kubernetes.io/serviceaccount"
+    :terminationMessagePath: "/dev/termination-log"
+    :imagePullPolicy: IfNotPresent
+  :restartPolicy: Always
+  :dnsPolicy: ClusterFirst
+  :serviceAccountName: default
+  :nodeName: 10.35.0.169
+:status:
+  :phase: Running
+  :conditions:
+  - :type: Ready
+    :status: 'True'
+  :hostIP: 10.35.0.169
+  :podIP: 172.17.0.3
+  :startTime: '2015-07-29T13:02:53Z'
+  :containerStatuses:
+  - :name: heapster
+    :state:
+      :running:
+        :startedAt: '2015-07-29T15:49:04Z'
+    :lastState:
+      :terminated:
+        :exitCode: 1
+        :startedAt: '2015-07-29T15:48:42Z'
+        :finishedAt: '2015-07-29T15:48:42Z'
+        :containerID: docker://7780ef155c1d87a3f8a36a6ad5a6a3e25cdc4f9c90693276c32c924ca603382d
+    :ready: true
+    :restartCount: 2
+    :image: example.com:1234/kubernetes/heapster:v0.16.0
+    :imageID: docker://f79cf2701046bea8d5f1384f7efe79dd4d20620b3594fff5be39142fa862259d
+    :containerID: docker://2baa337fef20ab18c5cae16937fca0b4a59ccbb5ecac1f89ad7898a02d74e3c9
+:kind: Pod
+:apiVersion: v1

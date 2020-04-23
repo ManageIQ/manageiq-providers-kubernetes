@@ -1,4 +1,6 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
+  include Spec::Support::EmsRefreshHelper
+
   let!(:openstack_vm) { FactoryBot.create(:vm_openstack, :uid_ems => '8b6c7070-9abd-41ac-a950-e4cfac665673') }
   let!(:ovirt_vm)     { FactoryBot.create(:vm_redhat,    :uid_ems => 'cad16607-fb88-4412-a993-5242030f6afa') }
   let!(:ems) do
@@ -626,6 +628,18 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
 
   context "Targeted refresh" do
     before { full_refresh }
+
+    it "doesn't impact unassociated records" do
+      after_full_refresh = serialize_inventory
+
+      targeted_refresh(
+        %w[pod node namespace limit_range persistent_volume replication_controller resource_quota].map do |type|
+          Kubeclient::Resource.new(:type => "MODIFIED", :object => load_watch_notice_data(type))
+        end
+      )
+
+      assert_inventory_not_changed(after_full_refresh, serialize_inventory)
+    end
 
     context "limit_ranges" do
       let(:new_limit_range) { load_watch_notice_data("new_limit_range") }

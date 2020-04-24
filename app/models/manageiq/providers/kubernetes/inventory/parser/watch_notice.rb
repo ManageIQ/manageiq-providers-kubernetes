@@ -2,7 +2,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
   def parse
     pods
     services
-    endpoints
     replication_controllers
     nodes
     namespaces
@@ -24,11 +23,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
   end
 
   def services
-    # TODO: services depend on endpoints
-  end
+    collector.services.each do |notice|
+      service = notice.object
 
-  def endpoints
-    # TODO: endpoints are only used for services
+      persister.container_services.targeted_scope << service.metadata.uid
+      next if notice.type == "DELETED"
+
+      parse_service(service)
+    end
   end
 
   def replication_controllers

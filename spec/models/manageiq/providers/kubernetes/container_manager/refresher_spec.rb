@@ -721,6 +721,20 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_pvc)])
         expect(ems.persistent_volume_claims.pluck(:ems_ref)).to include(new_pvc.dig(:metadata, :uid))
       end
+
+      # The VCR for full-refresh doesn't have any persistent volume claims so we
+      # have to add a new one then modify/delete it
+      it "updated" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_pvc)])
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => new_pvc)])
+        expect(ems.persistent_volume_claims.pluck(:ems_ref)).to include(new_pvc.dig(:metadata, :uid))
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_pvc)])
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => new_pvc)])
+        expect(ems.persistent_volume_claims.pluck(:ems_ref)).not_to include(new_pvc.dig(:metadata, :uid))
+      end
     end
 
     context "pods" do

@@ -1,14 +1,14 @@
 ---
 :metadata:
-  :name: monitoring-grafana
+  :name: monitoring-grafana-2
   :namespace: default
-  :selfLink: "/api/v1/namespaces/default/services/monitoring-grafana"
-  :uid: 1f1b4bc0-35f2-11e5-8917-001a4a5f4a00
+  :selfLink: "/api/v1/namespaces/default/services/monitoring-grafana-2"
+  :uid: 41ebdba8-4aed-4f4c-a588-84945a672cfe
   :resourceVersion: '99'
   :creationTimestamp: '2015-07-29T13:02:52Z'
   :labels:
     :kubernetes.io/cluster-service: 'true'
-    :kubernetes.io/name: monitoring-grafana
+    :kubernetes.io/name: monitoring-grafana-2
 :spec:
   :ports:
   - :protocol: TCP

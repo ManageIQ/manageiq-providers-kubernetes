@@ -154,6 +154,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
         container_groups = []
         ep.delete(:container_groups_refs).each do |ref|
           next if ref.nil?
+
           cg = lazy_find_container_group(:namespace => ref[:namespace], :name => ref[:name])
           container_groups << cg unless cg.nil?
         end
@@ -406,16 +407,18 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     tags           = map_labels('ContainerService', labels)
     selector_parts = parse_selector_parts(service)
 
-    container_groups = cgs_by_namespace_and_name.fetch_path(new_result[:namespace], new_result[:name]) || []
-
     new_result.merge!(
       :container_project => lazy_find_project(:name => new_result[:namespace]),
       # TODO: We might want to change portal_ip to clusterIP
       :portal_ip         => service.spec.clusterIP,
       :session_affinity  => service.spec.sessionAffinity,
-      :service_type      => service.spec.type,
-      :container_groups  => container_groups
+      :service_type      => service.spec.type
     )
+
+    if cgs_by_namespace_and_name
+      container_groups = cgs_by_namespace_and_name.fetch_path(new_result[:namespace], new_result[:name]) || []
+      new_result[:container_groups] = container_groups
+    end
 
     container_service_port_configs = Array(service.spec.ports).collect do |port_entry|
       parse_service_port_config(port_entry, new_result[:ems_ref])

@@ -633,7 +633,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       after_full_refresh = serialize_inventory
 
       targeted_refresh(
-        %w[pod node namespace limit_range persistent_volume replication_controller resource_quota].map do |type|
+        %w[pod node namespace service limit_range persistent_volume replication_controller resource_quota].map do |type|
           Kubeclient::Resource.new(:type => "MODIFIED", :object => load_watch_notice_data(type))
         end
       )
@@ -808,6 +808,30 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       it "deleted" do
         targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => resource_quota)])
         expect(ems.container_quotas.pluck(:ems_ref)).not_to include(resource_quota.dig(:metadata, :uid))
+      end
+    end
+
+    context "services" do
+      let(:new_service) { load_watch_notice_data("new_service") }
+      let(:service)     { load_watch_notice_data("service") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => new_service)])
+        expect(ems.container_services.pluck(:ems_ref)).to include(new_service.dig(:metadata, :uid))
+      end
+
+      it "updated" do
+        service[:spec][:clusterIP] = "10.0.0.116"
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => service)])
+
+        container_service = ems.container_services.find_by(:ems_ref => service.dig(:metadata, :uid))
+        expect(container_service.portal_ip).to eq("10.0.0.116")
+        expect(container_service.reload.container_groups.count).to eq(1)
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => service)])
+        expect(ems.container_services.pluck(:ems_ref)).not_to include(service.dig(:metadata, :uid))
       end
     end
 

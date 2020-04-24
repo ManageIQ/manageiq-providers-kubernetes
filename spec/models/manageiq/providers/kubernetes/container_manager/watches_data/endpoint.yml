@@ -1,16 +1,25 @@
 ---
 :metadata:
-  :name: kubernetes
+  :name: monitoring-grafana
   :namespace: default
-  :selfLink: "/api/v1/namespaces/default/endpoints/kubernetes"
-  :uid: 6668dc12-35f0-11e5-8917-001a4a5f4a00
-  :resourceVersion: '8'
-  :creationTimestamp: '2015-07-29T12:50:33Z'
+  :selfLink: "/api/v1/namespaces/default/endpoints/monitoring-grafana"
+  :uid: 1f3049d8-35f2-11e5-8917-001a4a5f4a00
+  :resourceVersion: '197'
+  :creationTimestamp: '2015-07-29T13:02:52Z'
+  :labels:
+    :kubernetes.io/cluster-service: 'true'
+    :kubernetes.io/name: monitoring-grafana
 :subsets:
 - :addresses:
-  - :ip: 10.35.0.169
+  - :ip: 172.17.0.2
+    :targetRef:
+      :kind: Pod
+      :namespace: default
+      :name: monitoring-influx-grafana-controller-22icy
+      :uid: 1f60be5d-35f2-11e5-8917-001a4a5f4a00
+      :resourceVersion: '194'
   :ports:
-  - :port: 6443
+  - :port: 8080
     :protocol: TCP
 :kind: Endpoint
 :apiVersion: v1

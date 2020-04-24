@@ -22,6 +22,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
     end
   end
 
+  def cgs_by_namespace_and_name
+    nil
+  end
+
   def services
     collector.services.each do |notice|
       service = notice.object

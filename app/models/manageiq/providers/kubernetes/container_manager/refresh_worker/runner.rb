@@ -3,16 +3,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
     super
 
     @ems       = ExtManagementSystem.find(@cfg[:ems_id])
-    @ems_class = @ems.class
     @finish    = Concurrent::AtomicBoolean.new
     @queue     = Queue.new
 
-    @connect_options            = @ems.connect_options
     @refresher_thread           = nil
     @refresh_notice_threshold   = 100
-    @collector_threads          = Concurrent::Map.new
-    @resource_version_by_entity = Concurrent::Map.new
-    @watches_by_entity          = Concurrent::Map.new
+    @collector_threads          = {}
+    @resource_version_by_entity = {}
   end
 
   def do_before_work_loop
@@ -34,8 +31,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   private
 
   attr_accessor :collector_threads, :refresher_thread
-  attr_reader   :connect_options, :ems, :ems_class, :finish, :queue, :refresh_notice_threshold,
-                :resource_version_by_entity, :watches_by_entity
+  attr_reader   :ems, :finish, :queue, :refresh_notice_threshold, :resource_version_by_entity
 
   def entity_types
     %w[pods services endpoints replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
@@ -117,35 +113,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def start_collector_thread(entity_type)
-    Thread.new { collector_thread(entity_type) }
+    ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThread.start!(ems, queue, entity_type, resource_version_by_entity[entity_type])
   end
 
   def stop_collector_threads
-    entity_types.each { |entity_type| stop_collector_thread(entity_type) }
-  end
-
-  def stop_collector_thread(entity_type)
-    thread = collector_threads[entity_type]
-    return unless thread&.alive?
-
-    watches_by_entity[entity_type]&.finish
-    thread.join(10)
-  end
-
-  def collector_thread(entity_type)
-    resource_version = resource_version_by_entity[entity_type]
-    watches_by_entity[entity_type] = watch = connection.send("watch_#{entity_type}", :resource_version => resource_version)
-
-    until finish.true?
-      watch.each { |notice| queue.push(notice) }
-    end
-  end
-
-  def connection(_entity_type = nil)
-    hostname, port = connect_options.values_at(:hostname, :port)
-    connect_options[:service] ||= "kubernetes"
-
-    ems_class.raw_connect(hostname, port, connect_options)
+    collector_threads.each_value(&:stop!)
   end
 
   def inventory_klass

@@ -37,7 +37,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   attr_accessor :resource_version, :thread, :watch
 
   def collector_thread
-    _log.debug("Starting watch thread for #{entity_type}")
+    _log.debug { "Starting watch thread for #{entity_type}" }
 
     until finish.true?
       self.watch ||= connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
@@ -59,7 +59,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
       self.resource_version = nil
     end
 
-    _log.debug("Exiting watch thread #{entity_type}")
+    _log.debug { "Exiting watch thread #{entity_type}" }
   rescue => err
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)

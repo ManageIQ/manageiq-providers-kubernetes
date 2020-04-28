@@ -121,7 +121,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def refresher
-    _log.debug("Starting refresher thread")
+    _log.debug("#{log_header} Starting refresher thread")
 
     loop do
       notices = []
@@ -135,10 +135,15 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
       notices << queue.pop until queue.empty? || notices.count > refresh_notice_threshold
       notices.compact!
 
+      _log.debug { "#{log_header} Refreshing #{notices.count} total notices" }
+      notices_by_kind = notices.group_by { |notice| notice.object.kind }
+      notices_by_kind.each do |kind, notices|
+        _log.debug { "#{log_header}   #{kind}: #{notices.count} notices" }
+      end
       partial_refresh(notices)
     end
 
-    _log.debug("Exiting refresher thread")
+    _log.debug { "#{log_header} Exiting refresher thread" }
   end
 
   def ensure_collector_threads

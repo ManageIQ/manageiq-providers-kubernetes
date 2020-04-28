@@ -9,7 +9,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   require_nested :EventParserMixin
   require_nested :MetricsCapture
   require_nested :MetricsCollectorWorker
-  require_nested :RefreshParser
   require_nested :RefreshWorker
   require_nested :Refresher
   require_nested :Scanning
@@ -34,6 +33,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
 
   def api_version=(_value)
     raise 'Kubernetes api_version cannot be modified'
+  end
+
+  def inventory_object_refresh?
+    true
   end
 
   def self.api_version

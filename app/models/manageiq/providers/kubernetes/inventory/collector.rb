@@ -1,4 +1,3 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector < ManageIQ::Providers::Inventory::Collector
-  require_nested :TargetCollection
-  require_nested :Watches
+  require_nested :ContainerManager
 end

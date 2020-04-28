@@ -1,49 +1,78 @@
-autoload(:KubeException, 'kubeclient')
-
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Collector
-  # TODO(lsmola) we need to return iterator for each collection, so we avoid fetching too many items to memory at
-  # once.
-  # Hints from cben:
-  # A slightly open question in kubeclient iterator interface was how it should expose whole-collection resource_version
-  # (and other metadata). Should iterator yield it with every item, or return it at the end?
-  # With streaming parse (abonas/kubeclient#254), this depends on order of json. k8s puts items last, so version is
-  # known by time we start yielding; this is unlikely to change but I feel weird hardcoding this assumption...
-  # For chunking (abonas/kubeclient#283), we'll have metadata in each chunk, so either API works. Chunking also brings
-  # risk of getting 410 Gone if we wait too long, not sure how to handle that.
-
-  def namespaces
-    @namespaces ||= connection.get_namespaces
+  def additional_attributes
+    @additional_attributes ||= {} # TODO: is this used?
   end
 
   def pods
-    @pods ||= connection.get_pods
+    @pods ||= fetch_entity(kubernetes_connection, "pods")
   end
 
-  def cluster_service_classes
-    @cluster_service_classes ||= service_catalog_connection&.get_cluster_service_classes || []
+  def services
+    @services ||= fetch_entity(kubernetes_connection, "services")
   end
 
-  def cluster_service_plans
-    @cluster_service_plans ||= service_catalog_connection&.get_cluster_service_plans || []
+  def endpoints
+    @endpoints ||= fetch_entity(kubernetes_connection, "endpoints")
   end
 
-  def service_instances
-    @service_instances ||= service_catalog_connection&.get_service_instances || []
+  def replication_controllers
+    @replication_controllers ||= fetch_entity(kubernetes_connection, "replication_controllers")
+  end
+
+  def nodes
+    @nodes ||= fetch_entity(kubernetes_connection, "nodes")
+  end
+
+  def namespaces
+    @namespaces ||= fetch_entity(kubernetes_connection, "namespaces")
+  end
+
+  def resource_quotas
+    @resource_quotas ||= fetch_entity(kubernetes_connection, "resource_quotas")
+  end
+
+  def limit_ranges
+    @limit_ranges ||= fetch_entity(kubernetes_connection, "limit_ranges")
+  end
+
+  def persistent_volumes
+    @persistent_volumes ||= fetch_entity(kubernetes_connection, "persistent_volumes")
+  end
+
+  def persistent_volume_claims
+    @persistent_volume_claims ||= fetch_entity(kubernetes_connection, "persistent_volume_claims")
   end
 
   private
 
-  def connection
-    @connection ||= connect("kubernetes")
-  end
-
-  def service_catalog_connection
-    @service_catalog_connection ||= connect("kubernetes_service_catalog")
+  def refresher_options
+    Settings.ems_refresh[manager.class.ems_type]
   end
 
   def connect(service)
     manager.connect(:service => service)
   rescue KubeException
     nil
+  end
+
+  def kubernetes_connection
+    @kubernetes_connection ||= connect("kubernetes")
+  end
+
+  def fetch_entity(client, entity)
+    meth = "get_#{entity}"
+
+    continue = nil
+    results = []
+
+    loop do
+      result = client.send(meth, :limit => refresher_options.chunk_size, :continue => continue)
+      results += result
+      break if result.last?
+
+      continue = result.continue
+    end
+
+    results
   end
 end

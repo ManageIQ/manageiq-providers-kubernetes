@@ -34,7 +34,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   attr_reader   :ems, :finish, :queue, :refresh_notice_threshold, :resource_version_by_entity
 
   def entity_types
-    %w[pods services endpoints replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
+    %w[pods replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
   end
 
   def refresh_block

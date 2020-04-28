@@ -2,9 +2,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   def after_initialize
     super
 
-    @ems       = ExtManagementSystem.find(@cfg[:ems_id])
-    @finish    = Concurrent::AtomicBoolean.new
-    @queue     = Queue.new
+    @ems    = ExtManagementSystem.find(@cfg[:ems_id])
+    @finish = Concurrent::AtomicBoolean.new
+    @queue  = Queue.new
 
     @refresher_thread           = nil
     @refresh_notice_threshold   = 100
@@ -14,18 +14,21 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
   def do_before_work_loop
     # Prime the entities' resourceVersions by performing an initial full refresh
-    full_refresh
+    # if we're using streaming refresh, otherwise queue an initial full the standard way
+    streaming_refresh? ? full_refresh : super
   end
 
   def do_work
-    ensure_refresher_thread
-    ensure_collector_threads
+    ensure_threads if streaming_refresh?
+
+    super
   end
 
   def before_exit(_message, _exit_code)
+    return unless streaming_refresh?
+
     finish.make_true
-    stop_collector_threads
-    stop_refresher_thread
+    stop_threads
   end
 
   private
@@ -78,6 +81,16 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
     end
   end
 
+  def ensure_threads
+    ensure_refresher_thread
+    ensure_collector_threads
+  end
+
+  def stop_threads
+    stop_collector_threads
+    stop_refresher_thread
+  end
+
   def ensure_refresher_thread
     self.refresher_thread = start_refresher_thread unless refresher_thread&.alive?
   end
@@ -122,6 +135,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
   def stop_collector_threads
     collector_threads.each_value(&:stop!)
+  end
+
+  def streaming_refresh?
+    refresher_options&.streaming_refresh
+  end
+
+  def refresher_options
+    Settings.ems_refresh[ems.emstype]
   end
 
   def inventory_klass

@@ -19,22 +19,35 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def do_work
-    ensure_threads if streaming_refresh?
+    streaming_refresh? ? ensure_threads : stop_threads
 
     super
   end
 
-  def before_exit(_message, _exit_code)
-    return unless streaming_refresh?
+  def deliver_queue_message(msg)
+    # If we are using streaming refresh a user initiated full refresh should
+    # do a full refresh and restart the collector threads
+    if streaming_refresh?
+      super { restart_inventory_collector if full_refresh_queued?(msg) }
+    else
+      super
+    end
+  end
 
-    finish.make_true
-    stop_threads
+  def before_exit(_message, _exit_code)
+    stop_threads if streaming_refresh?
   end
 
   private
 
   attr_accessor :collector_threads, :refresher_thread
   attr_reader   :ems, :finish, :queue, :refresh_notice_threshold, :resource_version_by_entity
+
+  def restart_inventory_collector
+    stop_collector_threads
+    full_refresh
+    ensure_collector_threads
+  end
 
   def kubernetes_entity_types
     %w[pods replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
@@ -87,6 +100,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def stop_threads
+    finish.make_true
     stop_collector_threads
     stop_refresher_thread
   end
@@ -100,11 +114,15 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def stop_refresher_thread
+    return unless refresher_thread&.alive?
+
     queue.push(nil) # Push a nil to unblock the refresher thread
     refresher_thread.join(10)
   end
 
   def refresher
+    _log.debug("Starting refresher thread")
+
     loop do
       notices = []
 
@@ -119,6 +137,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
       partial_refresh(notices)
     end
+
+    _log.debug("Exiting refresher thread")
   end
 
   def ensure_collector_threads
@@ -135,6 +155,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
   def stop_collector_threads
     collector_threads.each_value(&:stop!)
+  end
+
+  def refresh_queued?(msg)
+    msg.class_name == "EmsRefresh" && msg.method_name == "refresh"
+  end
+
+  def full_refresh_queued?(msg)
+    refresh_queued?(msg) && msg.data.any? { |klass, _id| klass == ems.class.name }
   end
 
   def streaming_refresh?

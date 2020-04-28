@@ -37,13 +37,18 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   attr_accessor :resource_version, :thread, :watch
 
   def collector_thread
+    _log.debug("Starting watch thread for #{entity_type}")
+
     until finish.true?
       self.watch ||= connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
 
       watch.each do |notice|
         # If we get a 410 gone with this resource version break out and restart
         # the watch
-        break if notice.kind == "Status" && notice.code == 410
+        if notice.kind == "Status" && notice.code == 410
+          _log.warn("Caught 410 Gone, restarting watch")
+          break
+        end
 
         queue.push(notice)
       end
@@ -53,6 +58,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
       self.watch = nil
       self.resource_version = nil
     end
+
+    _log.debug("Exiting watch thread #{entity_type}")
   rescue => err
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)

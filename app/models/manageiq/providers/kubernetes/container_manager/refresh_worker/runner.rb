@@ -33,8 +33,12 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   attr_accessor :collector_threads, :refresher_thread
   attr_reader   :ems, :finish, :queue, :refresh_notice_threshold, :resource_version_by_entity
 
-  def entity_types
+  def kubernetes_entity_types
     %w[pods replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
+  end
+
+  def entity_types
+    kubernetes_entity_types
   end
 
   def refresh_block
@@ -113,7 +117,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def start_collector_thread(entity_type)
-    ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThread.start!(ems, queue, entity_type, resource_version_by_entity[entity_type])
+    ems.class::RefreshWorker::WatchThread.start!(ems, queue, entity_type, resource_version_by_entity[entity_type])
   end
 
   def stop_collector_threads

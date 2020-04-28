@@ -38,7 +38,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
   def collector_thread
     until finish.true?
-      self.watch ||= connection.send("watch_#{entity_type}", :resource_version => resource_version)
+      self.watch ||= connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
 
       watch.each do |notice|
         # If we get a 410 gone with this resource version break out and restart

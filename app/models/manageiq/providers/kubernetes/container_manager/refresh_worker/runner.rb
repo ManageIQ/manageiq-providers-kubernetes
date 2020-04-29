@@ -137,8 +137,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
       _log.debug { "#{log_header} Refreshing #{notices.count} total notices" }
       notices_by_kind = notices.group_by { |notice| notice.object.kind }
-      notices_by_kind.each do |kind, notices|
-        _log.debug { "#{log_header}   #{kind}: #{notices.count} notices" }
+      notices_by_kind.each do |kind, n|
+        _log.debug { "#{log_header}   #{kind}: #{n.count} notices" }
       end
       partial_refresh(notices)
     end

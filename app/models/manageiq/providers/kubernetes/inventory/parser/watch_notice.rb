@@ -22,8 +22,4 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
       inventory_collection.targeted_scope << object.metadata.uid
     end
   end
-
-  def cgs_by_namespace_and_name
-    nil
-  end
 end

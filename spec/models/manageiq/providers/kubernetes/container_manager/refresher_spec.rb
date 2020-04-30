@@ -850,6 +850,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
     end
 
     def targeted_refresh(notices)
+      endpoint = Kubeclient::Resource.new(load_watch_notice_data("endpoint"))
+      kube = double("Kubeclient::Client")
+      allow(kube).to receive(:get_endpoint).and_return(endpoint)
+      allow(ems).to receive(:connect).and_return(kube)
+
       collector = ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice.new(ems, notices)
       persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::WatchNotice.new(ems, nil)
       parser    = ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice.new

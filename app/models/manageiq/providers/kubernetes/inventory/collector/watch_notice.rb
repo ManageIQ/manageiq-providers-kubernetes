@@ -1,5 +1,5 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Collector
-  attr_reader :additional_attributes, :pods, :services, :endpoints, :replication_controllers,
+  attr_reader :additional_attributes, :pods, :services, :replication_controllers,
               :namespaces, :nodes, :notices, :resource_quotas, :limit_ranges,
               :persistent_volumes, :persistent_volume_claims
 
@@ -12,13 +12,24 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
     super(manager, nil)
   end
 
+  def endpoints
+    @endpoints ||= begin
+      services.each_with_object([]) do |service, results|
+        begin
+          endpoint = kubernetes_connection.get_endpoint(service.metadata.name, service.metadata.namespace)
+          results << endpoint
+        rescue Kubeclient::ResourceNotFoundError
+        end
+      end
+    end
+  end
+
   private
 
   def initialize_collections!
     @additional_attributes    = {}
     @pods                     = []
     @services                 = []
-    @endpoints                = []
     @replication_controllers  = []
     @nodes                    = []
     @namespaces               = []

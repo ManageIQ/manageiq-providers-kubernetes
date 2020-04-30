@@ -50,7 +50,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def kubernetes_entity_types
-    %w[pods services replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
+    %w[pods services endpoints replication_controllers nodes namespaces resource_quotas limit_ranges persistent_volumes persistent_volume_claims].freeze
   end
 
   def entity_types

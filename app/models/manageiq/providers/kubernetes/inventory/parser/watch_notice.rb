@@ -18,6 +18,9 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
       object = notice.object
       kind   = object.kind
 
+      collection_name = resource_by_entity(kind.underscore)
+      next if collection_name.nil?
+
       inventory_collection = persister.send(resource_by_entity(kind.underscore).tableize)
       inventory_collection.targeted_scope << object.metadata.uid
     end

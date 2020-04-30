@@ -1,5 +1,5 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Collector
-  attr_reader :additional_attributes, :pods, :services, :replication_controllers,
+  attr_reader :additional_attributes, :pods, :replication_controllers,
               :namespaces, :nodes, :notices, :resource_quotas, :limit_ranges,
               :persistent_volumes, :persistent_volume_claims
 
@@ -12,15 +12,36 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
     super(manager, nil)
   end
 
+  # Endpoints and services come from two different watches but are
+  # merged into one model in manageiq.  This means we have to watch
+  # for updates to both entity kinds and if we receive an update
+  # we have to get the current state of the other one.
+  #
+  # If we get an endpoint notice we have to get the service with
+  # the same name and namespace, and vice versa
   def endpoints
-    @endpoints ||= begin
-      services.each_with_object([]) do |service, results|
-        begin
-          endpoint = kubernetes_connection.get_endpoint(service.metadata.name, service.metadata.namespace)
-          results << endpoint
-        rescue Kubeclient::ResourceNotFoundError
-        end
-      end
+    return @endpoints if @endpoints.any?
+
+    @endpoints = @services.each_with_object([]) do |service, results|
+      name      = service.metadata.name
+      namespace = service.metadata.namespace
+
+      results << kubernetes_connection.get_endpoint(name, namespace)
+    rescue Kubeclient::ResourceNotFoundError
+      nil
+    end
+  end
+
+  def services
+    return @services if @services.any?
+
+    @services = @endpoints.each_with_object([]) do |endpoint, results|
+      name      = endpoint.metadata.name
+      namespace = endpoint.metadata.namespace
+
+      results << kubernetes_connection.get_service(name, namespace)
+    rescue Kubeclient::ResourceNotFoundError
+      nil
     end
   end
 
@@ -29,6 +50,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
   def initialize_collections!
     @additional_attributes    = {}
     @pods                     = []
+    @endpoints                = []
     @services                 = []
     @replication_controllers  = []
     @nodes                    = []

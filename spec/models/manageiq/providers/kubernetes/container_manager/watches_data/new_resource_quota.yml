@@ -1,0 +1,17 @@
+:metadata:
+  :name: quota3
+  :namespace: default
+  :selfLink: "/api/v1/namespaces/default/resourcequotas/quota3"
+  :uid: c282c024-0fbd-485d-ae63-5f64489aaec6
+  :resourceVersion: '165339'
+  :creationTimestamp: '2015-08-17T09:16:46Z'
+:spec:
+  :hard:
+    :cpu: '30'
+:status:
+  :hard:
+    :cpu: '30'
+  :used:
+    :cpu: 100m
+:kind: ResourceQuota
+:apiVersion: v1

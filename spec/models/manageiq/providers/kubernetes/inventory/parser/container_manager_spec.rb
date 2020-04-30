@@ -3,7 +3,13 @@ require 'recursive-open-struct'
 describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
   let(:ems)       { FactoryBot.create(:ems_kubernetes) }
   let(:persister) { ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager.new(ems) }
-  let(:parser)    { described_class.new.tap { |p| p.persister = persister } }
+  let(:collector) { ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager.new(ems, nil) }
+  let(:parser) do
+    described_class.new.tap do |p|
+      p.persister = persister
+      p.collector = collector
+    end
+  end
 
   describe "parse_namespace" do
     it "handles simple data" do
@@ -1424,7 +1430,10 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
     describe "parse_service" do
       it "handles simple data" do
-        expect(parser.parse_service(service)).to eq(
+        allow(collector).to receive(:endpoints).and_return([])
+
+        parsed_service = parser.parse_service(service)
+        expect(parsed_service.data).to include(
           :ems_ref                        => "13d3bcf7-e6f9-11e6-a348-001a4a162683",
           :name                           => "docker-registry",
           :namespace                      => "default",
@@ -1433,17 +1442,39 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
           :portal_ip                      => "172.30.185.88",
           :session_affinity               => "ClientIP",
           :service_type                   => "ClusterIP",
-          :labels                         => [
-            {:section => "labels", :source => "kubernetes", :name => "docker-registry", :value => "default"},
-          ],
-          :tags                           => [],
-          :selector_parts                 => [
-            {:section => "selectors", :source => "kubernetes", :name => "docker-registry", :value => "default"},
-          ],
-          :container_service_port_configs => [
-            {:ems_ref => "13d3bcf7-e6f9-11e6-a348-001a4a162683_5000_5000",
-             :name => "5000-tcp", :protocol => "TCP", :port => 5000, :target_port => 5000, :node_port => nil},
-          ]
+        )
+
+        labels_collection = persister.collections[[:custom_attributes_for, "ContainerService", "labels"]]
+        expect(labels_collection.data.map(&:data)).to include(
+          a_hash_including(
+            :section => "labels",
+            :name    => "docker-registry",
+            :value   => "default",
+            :source  => "kubernetes"
+          )
+        )
+        selectors_collection = persister.collections[[:custom_attributes_for, "ContainerService", "selectors"]]
+        expect(selectors_collection.data.map(&:data)).to include(
+          a_hash_including(
+            :section => "selectors",
+            :name    => "docker-registry",
+            :value   => "default",
+            :source  => "kubernetes"
+          )
+        )
+
+        taggings_collection = persister.collections[[:taggings_for, "ContainerService"]]
+        expect(taggings_collection.data.map(&:data)).to be_empty
+
+        expect(persister.container_service_port_configs.data.map(&:data)).to include(
+          a_hash_including(
+            :ems_ref     => "13d3bcf7-e6f9-11e6-a348-001a4a162683_5000_5000",
+            :name        => "5000-tcp",
+            :protocol    => "TCP",
+            :port        => 5000,
+            :target_port => 5000,
+            :node_port   => nil
+          )
         )
       end
     end

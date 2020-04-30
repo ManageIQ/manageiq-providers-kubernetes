@@ -62,17 +62,22 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
   def fetch_entity(client, entity)
     meth = "get_#{entity}"
 
-    continue = nil
+    continue = resource_version = kind = nil
     results = []
 
     loop do
       result = client.send(meth, :limit => refresher_options.chunk_size, :continue => continue)
+      break if result.nil?
+
+      kind = result.kind
+      resource_version = result.resourceVersion
+
       results += result
       break if result.last?
 
       continue = result.continue
     end
 
-    results
+    Kubeclient::Common::EntityList.new(kind, resource_version, results)
   end
 end

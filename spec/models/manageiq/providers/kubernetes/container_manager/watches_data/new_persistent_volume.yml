@@ -1,0 +1,20 @@
+:metadata:
+  :name: pv0002
+  :selfLink: "/api/v1/persistentvolumes/pv0002"
+  :uid: 8503e3f6-b3b0-44cd-bedc-325fb497c7c3
+  :resourceVersion: '380779'
+  :creationTimestamp: '2015-08-24T14:21:43Z'
+  :labels:
+    :type: local
+:spec:
+  :capacity:
+    :storage: 20Gi
+  :hostPath:
+    :path: "/tmp/data02"
+  :accessModes:
+  - ReadWriteOnce
+  :persistentVolumeReclaimPolicy: Retain
+:status:
+  :phase: Available
+:kind: PersistentVolume
+:apiVersion: v1

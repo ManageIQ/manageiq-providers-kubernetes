@@ -29,7 +29,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     persistent_volume_claims
     persistent_volumes
     pods
-    endpoints_and_services
+    services
   end
 
   def additional_attributes
@@ -145,52 +145,29 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
+  def cgs_by_namespace_and_name
+    @cgs_by_namespace_and_name ||= begin
+      # We don't save endpoints themselves, only parse for cross-linking services<->pods
+      collector.endpoints.each_with_object({}) do |endpoint, result|
+        ep = parse_endpoint(endpoint)
+
+        container_groups = []
+        ep.delete(:container_groups_refs).each do |ref|
+          next if ref.nil?
+
+          cg = lazy_find_container_group(:namespace => ref[:namespace], :name => ref[:name])
+          container_groups << cg unless cg.nil?
+        end
+        result.store_path(ep[:namespace], ep[:name], container_groups)
+      end
+    end
+  end
+
   # TODO: how would this work with partial refresh?
   # TODO: can I write get_endpoints() that directly refreshes ContainerGroupsContainerServices join table?
-  def endpoints_and_services
-    cgs_by_namespace_and_name = {}
-
-    # We don't save endpoints themselves, only parse for cross-linking services<->pods
-    collector.endpoints.each do |endpoint|
-      ep = parse_endpoint(endpoint)
-
-      container_groups = []
-      ep.delete(:container_groups_refs).each do |ref|
-        next if ref.nil?
-        cg = lazy_find_container_group(:namespace => ref[:namespace], :name => ref[:name])
-        container_groups << cg unless cg.nil?
-      end
-      cgs_by_namespace_and_name.store_path(ep[:namespace], ep[:name], container_groups)
-    end
-
+  def services
     collector.services.each do |service|
-      h = parse_service(service)
-
-      h[:container_project] = lazy_find_project(:name => h[:namespace]) # TODO: untested?
-
-      # TODO: with multiple ports, how can I match any of them to known registries,
-      # like https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/57 ?
-      if h[:container_service_port_configs].any?
-        registry_port = h[:container_service_port_configs].last[:port]
-        h[:container_image_registry] = lazy_find_image_registry(
-          :host => h[:portal_ip], :port => registry_port
-        )
-      end
-
-      custom_attrs = h.extract!(:labels, :selector_parts)
-      tags = h.delete(:tags)
-      children = h.extract!(:container_service_port_configs)
-
-      h[:container_groups] = cgs_by_namespace_and_name.fetch_path(h[:namespace], h[:name]) || []
-
-      container_service = persister.container_services.build(h)
-
-      container_service_port_configs(container_service, children[:container_service_port_configs])
-      custom_attributes(container_service,
-                                  :labels    => custom_attrs[:labels],
-                                  # The actual section is "selectors"
-                                  :selectors => custom_attrs[:selector_parts])
-      taggings(container_service, tags)
+      parse_service(service)
     end
   end
 
@@ -408,12 +385,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def node_computer_system_hardware(parent, hash)
     return if hash.nil?
+
     hash[:computer_system] = parent
     persister.computer_system_hardwares.build(hash)
   end
 
   def node_computer_system_operating_system(parent, hash)
     return if hash.nil?
+
     hash[:computer_system] = parent
     persister.computer_system_operating_systems.build(hash)
   end
@@ -421,27 +400,44 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def parse_service(service)
     new_result = parse_base_item(service)
 
-    if new_result[:ems_ref].nil? # Typically this happens for kubernetes services
-      new_result[:ems_ref] = "#{new_result[:namespace]}_#{new_result[:name]}"
-    end
+    # Typically this happens for kubernetes services
+    new_result[:ems_ref] = "#{new_result[:namespace]}_#{new_result[:name]}" if new_result[:ems_ref].nil?
 
-    labels = parse_labels(service)
+    labels         = parse_labels(service)
+    tags           = map_labels('ContainerService', labels)
+    selector_parts = parse_selector_parts(service)
+
     new_result.merge!(
+      :container_project => lazy_find_project(:name => new_result[:namespace]),
       # TODO: We might want to change portal_ip to clusterIP
-      :portal_ip        => service.spec.clusterIP,
-      :session_affinity => service.spec.sessionAffinity,
-      :service_type     => service.spec.type,
-      :labels           => labels,
-      :tags             => map_labels('ContainerService', labels),
-      :selector_parts   => parse_selector_parts(service),
+      :portal_ip         => service.spec.clusterIP,
+      :session_affinity  => service.spec.sessionAffinity,
+      :service_type      => service.spec.type
     )
 
-    ports = service.spec.ports
-    new_result[:container_service_port_configs] = Array(ports).collect do |port_entry|
+    if cgs_by_namespace_and_name
+      container_groups = cgs_by_namespace_and_name.fetch_path(new_result[:namespace], new_result[:name]) || []
+      new_result[:container_groups] = container_groups
+    end
+
+    container_service_port_configs = Array(service.spec.ports).collect do |port_entry|
       parse_service_port_config(port_entry, new_result[:ems_ref])
     end
 
-    new_result
+    # TODO: with multiple ports, how can I match any of them to known registries,
+    # like https://github.com/ManageIQ/manageiq-providers-kubernetes/pull/57 ?
+    if container_service_port_configs.any?
+      registry_port = container_service_port_configs.last[:port]
+      new_result[:container_image_registry] = lazy_find_image_registry(:host => new_result[:portal_ip], :port => registry_port)
+    end
+
+    container_service = persister.container_services.build(new_result)
+
+    container_service_port_configs(container_service, container_service_port_configs)
+    custom_attributes(container_service, :labels => labels, :selectors => selector_parts)
+    taggings(container_service, tags)
+
+    container_service
   end
 
   def parse_pod(pod)
@@ -462,7 +458,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     new_result[:container_build_pod] = lazy_find_build_pod(
       :namespace => new_result[:namespace],
-      :name => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
+      :name      => pod.metadata.try(:annotations).try("openshift.io/build.name".to_sym)
     )
 
     # TODO, map volumes
@@ -733,8 +729,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     # TODO: parse template
     new_result.merge!(
-      :replicas         => container_replicator.spec.replicas,
-      :current_replicas => container_replicator.status.replicas,
+      :replicas          => container_replicator.spec.replicas,
+      :current_replicas  => container_replicator.status.replicas,
       :container_project => lazy_find_project(:name => new_result[:namespace]),
     )
 

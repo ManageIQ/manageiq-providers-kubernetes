@@ -49,16 +49,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < 
     Settings.ems_refresh[manager.class.ems_type]
   end
 
-  def connect(service)
-    manager.connect(:service => service)
-  rescue KubeException
-    nil
-  end
-
-  def kubernetes_connection
-    @kubernetes_connection ||= connect("kubernetes")
-  end
-
   def fetch_entity(client, entity)
     meth = "get_#{entity}"
 

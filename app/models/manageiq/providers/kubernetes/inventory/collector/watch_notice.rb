@@ -20,29 +20,41 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
   # If we get an endpoint notice we have to get the service with
   # the same name and namespace, and vice versa
   def endpoints
-    return @endpoints if @endpoints.any?
+    return @endpoints if @endpoints_collected
 
-    @endpoints = @services.each_with_object([]) do |service, results|
-      name      = service.metadata.name
-      namespace = service.metadata.namespace
+    services = @services.map do |service|
+      [service.metadata.name, service.metadata.namespace]
+    end
 
-      results << kubernetes_connection.get_endpoint(name, namespace)
+    endpoints_to_collect = services - @endpoints.map { |ep| [ep.metadata.name, ep.metadata.namespace] }
+
+    endpoints_to_collect.each do |name, namespace|
+      @endpoints << kubernetes_connection.get_endpoint(name, namespace)
     rescue Kubeclient::ResourceNotFoundError
       nil
     end
+
+    @endpoints_collected = true
+    @endpoints
   end
 
   def services
-    return @services if @services.any?
+    return @services if @services_collected
 
-    @services = @endpoints.each_with_object([]) do |endpoint, results|
-      name      = endpoint.metadata.name
-      namespace = endpoint.metadata.namespace
+    endpoints = @endpoints.map do |endpoint|
+      [endpoint.metadata.name, endpoint.metadata.namespace]
+    end
 
-      results << kubernetes_connection.get_service(name, namespace)
+    services_to_collect = endpoints - @services.map { |svc| [svc.metadata.name, svc.metadata.namespace] }
+
+    services_to_collect.each do |name, namespace|
+      @services << kubernetes_connection.get_service(name, namespace)
     rescue Kubeclient::ResourceNotFoundError
       nil
     end
+
+    @services_collected = true
+    @services
   end
 
   private

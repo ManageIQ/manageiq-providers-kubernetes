@@ -871,9 +871,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
 
         targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => endpoint)])
 
-        container_service = ems.container_projects
-          .find_by(:name => endpoint.dig(:metadata, :namespace))
-          .container_services.find_by(:name => endpoint.dig(:metadata, :name))
+        container_project = ems.container_projects.find_by(:name => endpoint.dig(:metadata, :namespace))
+        container_service = container_project.container_services.find_by(:name => endpoint.dig(:metadata, :name))
 
         expect(container_service.reload.container_groups.count).to eq(2)
       end

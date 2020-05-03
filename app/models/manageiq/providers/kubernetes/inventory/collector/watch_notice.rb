@@ -20,40 +20,20 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
   # If we get an endpoint notice we have to get the service with
   # the same name and namespace, and vice versa
   def endpoints
-    return @endpoints if @endpoints_collected
-
-    services = @services.map do |service|
-      [service.metadata.name, service.metadata.namespace]
+    unless @endpoints_collected
+      @endpoints += get_missing("endpoints")
+      @endpoints_collected = true
     end
 
-    endpoints_to_collect = services - @endpoints.map { |ep| [ep.metadata.name, ep.metadata.namespace] }
-
-    endpoints_to_collect.each do |name, namespace|
-      @endpoints << kubernetes_connection.get_endpoint(name, namespace)
-    rescue Kubeclient::ResourceNotFoundError
-      nil
-    end
-
-    @endpoints_collected = true
     @endpoints
   end
 
   def services
-    return @services if @services_collected
-
-    endpoints = @endpoints.map do |endpoint|
-      [endpoint.metadata.name, endpoint.metadata.namespace]
+    unless @services_collected
+      @services += get_missing("services")
+      @services_collected = true
     end
 
-    services_to_collect = endpoints - @services.map { |svc| [svc.metadata.name, svc.metadata.namespace] }
-
-    services_to_collect.each do |name, namespace|
-      @services << kubernetes_connection.get_service(name, namespace)
-    rescue Kubeclient::ResourceNotFoundError
-      nil
-    end
-
-    @services_collected = true
     @services
   end
 
@@ -62,8 +42,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
   def initialize_collections!
     @additional_attributes    = {}
     @pods                     = []
-    @endpoints                = []
     @services                 = []
+    @endpoints                = []
     @replication_controllers  = []
     @nodes                    = []
     @namespaces               = []
@@ -92,5 +72,39 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
     notices.reject { |n| n.type == "DELETED" }.each do |notice|
       instance_variable_get("@#{notice.object.kind.tableize}") << notice.object
     end
+  end
+
+  def get_missing(kind)
+    get_collection(kind.singularize, send("missing_#{kind}"))
+  end
+
+  def missing_endpoints
+    service_targets - endpoint_targets
+  end
+
+  def missing_services
+    endpoint_targets - service_targets
+  end
+
+  def service_targets
+    @services.map { |svc| name_and_namespace(svc) }.compact
+  end
+
+  def endpoint_targets
+    @endpoints.map { |ep| name_and_namespace(ep) }.compact
+  end
+
+  def name_and_namespace(obj)
+    obj&.metadata&.to_h&.values_at(:name, :namespace)&.compact
+  end
+
+  def get_collection(kind, objects_to_collect)
+    objects_to_collect.map { |name, namespace| safe_get(kind, name, namespace) }.compact
+  end
+
+  def safe_get(kind, name, namespace)
+    kubernetes_connection.send("get_#{kind}", name, namespace)
+  rescue Kubeclient::ResourceNotFoundError
+    nil
   end
 end

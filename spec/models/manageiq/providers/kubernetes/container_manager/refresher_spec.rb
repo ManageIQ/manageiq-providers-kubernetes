@@ -849,7 +849,49 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       end
     end
 
+    context "endpoints" do
+      let(:endpoint) { load_watch_notice_data("endpoint") }
+
+      it "created" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "ADDED", :object => endpoint)])
+        expect(ems.container_services.pluck(:name)).to include(endpoint.dig(:metadata, :name))
+      end
+
+      it "updated" do
+        endpoint[:subsets][0][:addresses] << {
+          :ip        => "172.17.0.3",
+          :targetRef => {
+            :kind            => "Pod",
+            :namespace       => "default",
+            :name            => "monitoring-heapster-controller-4j5zu",
+            :uid             => "1f60be5d-35f2-11e5-8917-001a4a5f4a00",
+            :resourceVersion => "195"
+          }
+        }
+
+        targeted_refresh([Kubeclient::Resource.new(:type => "MODIFIED", :object => endpoint)])
+
+        container_project = ems.container_projects.find_by(:name => endpoint.dig(:metadata, :namespace))
+        container_service = container_project.container_services.find_by(:name => endpoint.dig(:metadata, :name))
+
+        expect(container_service.reload.container_groups.count).to eq(2)
+      end
+
+      it "deleted" do
+        targeted_refresh([Kubeclient::Resource.new(:type => "DELETED", :object => endpoint)])
+        expect(ems.container_services.pluck(:name)).to include(endpoint.dig(:metadata, :name))
+      end
+    end
+
     def targeted_refresh(notices)
+      endpoint = Kubeclient::Resource.new(load_watch_notice_data("endpoint"))
+      service  = Kubeclient::Resource.new(load_watch_notice_data("service"))
+
+      kube = double("Kubeclient::Client")
+      allow(kube).to receive(:get_endpoint).and_return(endpoint)
+      allow(kube).to receive(:get_service).and_return(service)
+      allow(ems).to receive(:connect).and_return(kube)
+
       collector = ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice.new(ems, notices)
       persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::WatchNotice.new(ems, nil)
       parser    = ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice.new

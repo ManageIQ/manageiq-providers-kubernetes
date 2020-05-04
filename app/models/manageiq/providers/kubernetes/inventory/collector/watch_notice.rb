@@ -1,5 +1,5 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Collector
-  attr_reader :additional_attributes, :pods, :services, :endpoints, :replication_controllers,
+  attr_reader :additional_attributes, :pods, :replication_controllers,
               :namespaces, :nodes, :notices, :resource_quotas, :limit_ranges,
               :persistent_volumes, :persistent_volume_claims
 
@@ -10,6 +10,31 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
     populate_collections!
 
     super(manager, nil)
+  end
+
+  # Endpoints and services come from two different watches but are
+  # merged into one model in manageiq.  This means we have to watch
+  # for updates to both entity kinds and if we receive an update
+  # we have to get the current state of the other one.
+  #
+  # If we get an endpoint notice we have to get the service with
+  # the same name and namespace, and vice versa
+  def endpoints
+    unless @endpoints_collected
+      @endpoints += get_missing("endpoints")
+      @endpoints_collected = true
+    end
+
+    @endpoints
+  end
+
+  def services
+    unless @services_collected
+      @services += get_missing("services")
+      @services_collected = true
+    end
+
+    @services
   end
 
   private
@@ -47,5 +72,39 @@ class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < Manag
     notices.reject { |n| n.type == "DELETED" }.each do |notice|
       instance_variable_get("@#{notice.object.kind.tableize}") << notice.object
     end
+  end
+
+  def get_missing(kind)
+    get_collection(kind.singularize, send("missing_#{kind}"))
+  end
+
+  def missing_endpoints
+    service_targets - endpoint_targets
+  end
+
+  def missing_services
+    endpoint_targets - service_targets
+  end
+
+  def service_targets
+    @services.map { |svc| name_and_namespace(svc) }.compact
+  end
+
+  def endpoint_targets
+    @endpoints.map { |ep| name_and_namespace(ep) }.compact
+  end
+
+  def name_and_namespace(obj)
+    obj&.metadata&.to_h&.values_at(:name, :namespace)&.compact
+  end
+
+  def get_collection(kind, objects_to_collect)
+    objects_to_collect.map { |name, namespace| safe_get(kind, name, namespace) }.compact
+  end
+
+  def safe_get(kind, name, namespace)
+    kubernetes_connection.send("get_#{kind}", name, namespace)
+  rescue Kubeclient::ResourceNotFoundError
+    nil
   end
 end

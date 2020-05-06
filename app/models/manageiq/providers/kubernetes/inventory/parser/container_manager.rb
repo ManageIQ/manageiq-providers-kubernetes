@@ -926,6 +926,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     }
   end
 
+  def parse_default_manager_ref(obj)
+    obj.metadata.uid
+  end
+
+  %w[pod service replication_controller node namespace resource_quota limit_range persistent_volume persistent_volume_claim].each do |kind|
+    alias_method :"parse_#{kind}_manager_ref", :parse_default_manager_ref
+  end
+
   def parse_image_name(image, image_ref)
     # parsing using same logic as in docker
     # https://github.com/docker/docker/blob/348f6529b71502b561aa493e250fd5be248da0d5/reference/reference.go#L174

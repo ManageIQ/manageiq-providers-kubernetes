@@ -21,8 +21,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ
       collection_name = resource_by_entity(kind.underscore)
       next if collection_name.nil?
 
+      manager_ref = send("parse_#{kind.underscore}_manager_ref", object)
+      next if manager_ref.nil?
+
       inventory_collection = persister.send(resource_by_entity(kind.underscore).tableize)
-      inventory_collection.targeted_scope << object.metadata.uid
+      inventory_collection.targeted_scope << manager_ref
     end
   end
 end

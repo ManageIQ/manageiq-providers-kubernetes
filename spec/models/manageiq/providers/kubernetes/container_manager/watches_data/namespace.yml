@@ -1,0 +1,14 @@
+---
+:metadata:
+  :name: default
+  :selfLink: "/api/v1/namespaces/default"
+  :uid: 665eae8f-35f0-11e5-8917-001a4a5f4a00
+  :resourceVersion: '6'
+  :creationTimestamp: '2015-07-29T12:50:33Z'
+:spec:
+  :finalizers:
+  - kubernetes
+:status:
+  :phase: Active
+:kind: Namespace
+:apiVersion: v1

@@ -1,0 +1,16 @@
+---
+:metadata:
+  :name: limits
+  :namespace: default
+  :selfLink: "/api/v1/namespaces/default/limitranges/limits"
+  :uid: '081e3eb8-4035-11e5-b186-0aaeec44370e'
+  :resourceVersion: '497'
+  :creationTimestamp: '2015-08-11T14:27:01Z'
+:spec:
+  :limits:
+  - :type: Container
+    :default:
+      :cpu: 100m
+      :memory: 512Mi
+:kind: LimitRange
+:apiVersion: v1

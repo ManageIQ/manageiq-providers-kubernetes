@@ -1,0 +1,36 @@
+---
+:metadata:
+  :name: 10.35.0.169
+  :selfLink: "/api/v1/nodes/10.35.0.169"
+  :uid: 6de77025-35f0-11e5-8917-001a4a5f4a00
+  :resourceVersion: '5302'
+  :creationTimestamp: '2015-07-29T12:50:45Z'
+  :labels:
+    :kubernetes.io/hostname: 10.35.0.169
+:spec:
+  :externalID: 10.35.0.169
+:status:
+  :capacity:
+    :cpu: '2'
+    :memory: 2048080Ki
+    :pods: '40'
+  :conditions:
+  - :type: Ready
+    :status: 'True'
+    :lastHeartbeatTime: '2015-07-29T15:53:23Z'
+    :lastTransitionTime: '2015-07-29T12:50:45Z'
+    :reason: kubelet is posting ready status
+  :addresses:
+  - :type: LegacyHostIP
+    :address: 10.35.0.169
+  :nodeInfo:
+    :machineID: 8b6c70709abd41aca950e4cfac665673
+    :systemUUID: 8B6C7070-9ABD-41AC-A950-E4CFAC665673
+    :bootID: da9a3173-328f-4bd6-a422-17189d74e3a4
+    :kernelVersion: 3.18.9-100.fc20.x86_64
+    :osImage: Fedora 20 (Heisenbug)
+    :containerRuntimeVersion: docker://1.5.0
+    :kubeletVersion: v1.0.0-dirty
+    :kubeProxyVersion: v1.0.0-dirty
+:kind: Node
+:apiVersion: v1

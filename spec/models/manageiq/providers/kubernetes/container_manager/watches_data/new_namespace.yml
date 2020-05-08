@@ -1,0 +1,8 @@
+---
+:kind: Namespace
+:apiVersion: v1
+:metadata:
+  :name: my-new-project
+  :selfLink: "/api/v1/namespaces/my-new-project"
+  :uid: 9d5d61ed-b861-4140-9e64-8efc7048d10d
+  :resourceVersion: '750378'

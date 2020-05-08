@@ -1,0 +1,26 @@
+---
+:metadata:
+  :name: monitoring-grafana
+  :namespace: default
+  :selfLink: "/api/v1/namespaces/default/services/monitoring-grafana"
+  :uid: 1f1b4bc0-35f2-11e5-8917-001a4a5f4a00
+  :resourceVersion: '99'
+  :creationTimestamp: '2015-07-29T13:02:52Z'
+  :labels:
+    :kubernetes.io/cluster-service: 'true'
+    :kubernetes.io/name: monitoring-grafana
+:spec:
+  :ports:
+  - :protocol: TCP
+    :port: 80
+    :targetPort: 8080
+    :nodePort: 0
+  :selector:
+    :name: influxGrafana
+  :clusterIP: 10.0.0.115
+  :type: ClusterIP
+  :sessionAffinity: None
+:status:
+  :loadBalancer: {}
+:kind: Service
+:apiVersion: v1

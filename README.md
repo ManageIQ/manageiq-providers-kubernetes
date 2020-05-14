@@ -4,7 +4,6 @@
 [![Build Status](https://travis-ci.com/ManageIQ/manageiq-providers-kubernetes.svg?branch=master)](https://travis-ci.com/ManageIQ/manageiq-providers-kubernetes)
 [![Code Climate](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes.svg)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes)
 [![Test Coverage](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/badges/coverage.svg)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/coverage)
-[![Dependency Status](https://gemnasium.com/ManageIQ/manageiq-providers-kubernetes.svg)](https://gemnasium.com/ManageIQ/manageiq-providers-kubernetes)
 [![Security](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/master.svg)](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/master)
 
 [![Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ManageIQ/manageiq-providers-kubernetes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

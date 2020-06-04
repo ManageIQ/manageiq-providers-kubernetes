@@ -52,6 +52,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
         data = context.collect_metrics
 
         expect(data).to be_a_kind_of(Hash)
+        expect(data.keys).to include(start_time, end_time)
+        expect(data[start_time].keys).to include(
+          "cpu_usage_rate_average",
+          "mem_usage_absolute_average"
+        )
       end
     end
   end

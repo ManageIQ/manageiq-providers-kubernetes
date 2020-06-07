@@ -2,13 +2,13 @@
 http_interactions:
 - request:
     method: get
-    uri: https://prometheus.example.com/api/v1/query_range?end=1514360400&query=sum(rate(container_cpu_usage_seconds_total%7Bjob=%22kubernetes-cadvisor%22,namespace=%22openshift-metrics%22,pod_name=%22prometheus-0%22%7D%5B2m%5D))&start=1514359740&step=60s
+    uri: https://prometheus-k8s-openshift-monitoring.apps-crc.testing/api/v1/query_range?end=1591301400&query=sum(rate(container_cpu_usage_seconds_total%7Bjob=%22kubelet%22,namespace=%22openshift-service-catalog-controller-manager-operator%22,pod=%22openshift-service-catalog-controller-manager-operator-7c9f4hsgz%22%7D%5B2m%5D))&start=1591300740&step=60s
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw
+      - Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlpLSkFHTlhvb2xWWDYtMFE0aTdoQnVOVGdqWE1MZlAtM3lHcjZNYjQ3eUEifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tY3BkdHYiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImRmNTEwZWUzLTFkZGQtNDcyZS1iMjk0LTBhNTljODIyNmVhZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.cqriwRlFx5o_gberghVB2Hu8f6GNkl3vp_uEMDnQLjU5uxtlcofN2CkdR4CoShRafadPZVBGWRTfJkVTLVpiVrSmHrUDlokLjBToi-ycHhuKUJHZLTBQACkogBov_bYzkhpk3Vk5mBQuduq0shuxStSjPfcfwNMMfsKow43tsKWiH7WcnUGQu8XT_Fi6nHI2w70cPxK21i_U5eCXkThYwfYrDCdOAyAT7sITNJ0svuKF3DqpQduK3zEta28m-wTTqcZwRjjIUAUTKJJX-Vc1hLXzp7OB6xXddqVpKVeIFgChip0elcrkzyx3bwZ6yddnsjZEz4vsJqjMM4qxQ6CUaQ
       User-Agent:
       - Faraday v0.9.2
       Accept-Encoding:
@@ -20,43 +20,35 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Access-Control-Allow-Headers:
-      - Accept, Authorization, Content-Type, Origin
-      Access-Control-Allow-Methods:
-      - GET, OPTIONS
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Date
       Content-Length:
-      - '519'
+      - '522'
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 Dec 2017 07:54:30 GMT
+      - Thu, 04 Jun 2020 20:11:43 GMT
       Gap-Auth:
       - system:serviceaccount:management-infra:management-admin@cluster.local
       Gap-Upstream-Address:
       - localhost:9090
       Set-Cookie:
-      - f81241e3a913aa890fb02ba92a29f1be=ecb5793ccea9607e269bba7b11f5f86f; path=/;
+      - 97f6663f1252f61343f526ad937cfc1a=41969530b090af0a3ef9c58b94740b5c; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1514359740,"0.016199869318839787"],[1514359800,"0.003910354105901491"],[1514359860,"0.017476361910637003"],[1514359920,"0.004244103600003531"],[1514359980,"0.03871586998332839"],[1514360040,"0.004662914783334849"],[1514360100,"0.016685201566670554"],[1514360160,"0.004475603949996998"],[1514360220,"0.019991581533340148"],[1514360280,"0.0049949036483937104"],[1514360340,"0.027816417093044547"],[1514360400,"0.005678786283334484"]]}]}}'
-    http_version: 
-  recorded_at: Wed, 27 Dec 2017 07:54:30 GMT
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1591300740,"0.00416660039789347"],[1591300800,"0.003924169324808049"],[1591300860,"0.0034910044246023626"],[1591300920,"0.0032216035442711034"],[1591300980,"0.004150080057039806"],[1591301040,"0.004276820505337512"],[1591301100,"0.004625728756786101"],[1591301160,"0.0045358477544529905"],[1591301220,"0.004154411352814793"],[1591301280,"0.003925327101081367"],[1591301340,"0.004217626594779828"],[1591301400,"0.0039734434275677105"]]}]}}'
+    http_version: null
+  recorded_at: Thu, 04 Jun 2020 20:11:43 GMT
 - request:
     method: get
-    uri: https://prometheus.example.com/api/v1/query_range?end=1514360400&query=sum(container_memory_usage_bytes%7Bjob=%22kubernetes-cadvisor%22,namespace=%22openshift-metrics%22,pod_name=%22prometheus-0%22%7D)&start=1514359740&step=60s
+    uri: https://prometheus-k8s-openshift-monitoring.apps-crc.testing/api/v1/query_range?end=1591301400&query=sum(container_memory_usage_bytes%7Bjob=%22kubelet%22,namespace=%22openshift-service-catalog-controller-manager-operator%22,pod=%22openshift-service-catalog-controller-manager-operator-7c9f4hsgz%22%7D)&start=1591300740&step=60s
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw
+      - Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlpLSkFHTlhvb2xWWDYtMFE0aTdoQnVOVGdqWE1MZlAtM3lHcjZNYjQ3eUEifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tY3BkdHYiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImRmNTEwZWUzLTFkZGQtNDcyZS1iMjk0LTBhNTljODIyNmVhZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.cqriwRlFx5o_gberghVB2Hu8f6GNkl3vp_uEMDnQLjU5uxtlcofN2CkdR4CoShRafadPZVBGWRTfJkVTLVpiVrSmHrUDlokLjBToi-ycHhuKUJHZLTBQACkogBov_bYzkhpk3Vk5mBQuduq0shuxStSjPfcfwNMMfsKow43tsKWiH7WcnUGQu8XT_Fi6nHI2w70cPxK21i_U5eCXkThYwfYrDCdOAyAT7sITNJ0svuKF3DqpQduK3zEta28m-wTTqcZwRjjIUAUTKJJX-Vc1hLXzp7OB6xXddqVpKVeIFgChip0elcrkzyx3bwZ6yddnsjZEz4vsJqjMM4qxQ6CUaQ
       User-Agent:
       - Faraday v0.9.2
       Accept-Encoding:
@@ -68,43 +60,35 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Access-Control-Allow-Headers:
-      - Accept, Authorization, Content-Type, Origin
-      Access-Control-Allow-Methods:
-      - GET, OPTIONS
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Date
       Content-Length:
       - '387'
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 Dec 2017 07:54:30 GMT
+      - Thu, 04 Jun 2020 20:11:43 GMT
       Gap-Auth:
       - system:serviceaccount:management-infra:management-admin@cluster.local
       Gap-Upstream-Address:
       - localhost:9090
       Set-Cookie:
-      - f81241e3a913aa890fb02ba92a29f1be=ecb5793ccea9607e269bba7b11f5f86f; path=/;
+      - 97f6663f1252f61343f526ad937cfc1a=686cccfc403617370aea053cdb9052cf; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1514359740,"701825024"],[1514359800,"702038016"],[1514359860,"706293760"],[1514359920,"706543616"],[1514359980,"698667008"],[1514360040,"698970112"],[1514360100,"703111168"],[1514360160,"703369216"],[1514360220,"696795136"],[1514360280,"697102336"],[1514360340,"696197120"],[1514360400,"696586240"]]}]}}'
-    http_version: 
-  recorded_at: Wed, 27 Dec 2017 07:54:30 GMT
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1591300740,"148959232"],[1591300800,"148959232"],[1591300860,"148963328"],[1591300920,"148963328"],[1591300980,"148963328"],[1591301040,"148779008"],[1591301100,"148779008"],[1591301160,"148615168"],[1591301220,"148852736"],[1591301280,"148824064"],[1591301340,"148856832"],[1591301400,"148799488"]]}]}}'
+    http_version: null
+  recorded_at: Thu, 04 Jun 2020 20:11:43 GMT
 - request:
     method: get
-    uri: https://prometheus.example.com/api/v1/query_range?end=1514360400&query=sum(rate(container_network_receive_bytes_total%7Bjob=%22kubernetes-cadvisor%22,namespace=%22openshift-metrics%22,pod_name=%22prometheus-0%22,interface=~%22eth.*%22%7D%5B2m%5D))%20%2B%20sum(rate(container_network_transmit_bytes_total%7Bjob=%22kubernetes-cadvisor%22,namespace=%22openshift-metrics%22,pod_name=%22prometheus-0%22,interface=~%22eth.*%22%7D%5B2m%5D))&start=1514359740&step=60s
+    uri: https://prometheus-k8s-openshift-monitoring.apps-crc.testing/api/v1/query_range?end=1591301400&query=sum(rate(container_network_receive_bytes_total%7Bjob=%22kubelet%22,namespace=%22openshift-service-catalog-controller-manager-operator%22,pod=%22openshift-service-catalog-controller-manager-operator-7c9f4hsgz%22,interface=~%22eth.*%22%7D%5B2m%5D))%20%2B%20sum(rate(container_network_transmit_bytes_total%7Bjob=%22kubelet%22,namespace=%22openshift-service-catalog-controller-manager-operator%22,pod=%22openshift-service-catalog-controller-manager-operator-7c9f4hsgz%22,interface=~%22eth.*%22%7D%5B2m%5D))&start=1591300740&step=60s
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Authorization:
-      - Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw
+      - Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlpLSkFHTlhvb2xWWDYtMFE0aTdoQnVOVGdqWE1MZlAtM3lHcjZNYjQ3eUEifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tY3BkdHYiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImRmNTEwZWUzLTFkZGQtNDcyZS1iMjk0LTBhNTljODIyNmVhZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.cqriwRlFx5o_gberghVB2Hu8f6GNkl3vp_uEMDnQLjU5uxtlcofN2CkdR4CoShRafadPZVBGWRTfJkVTLVpiVrSmHrUDlokLjBToi-ycHhuKUJHZLTBQACkogBov_bYzkhpk3Vk5mBQuduq0shuxStSjPfcfwNMMfsKow43tsKWiH7WcnUGQu8XT_Fi6nHI2w70cPxK21i_U5eCXkThYwfYrDCdOAyAT7sITNJ0svuKF3DqpQduK3zEta28m-wTTqcZwRjjIUAUTKJJX-Vc1hLXzp7OB6xXddqVpKVeIFgChip0elcrkzyx3bwZ6yddnsjZEz4vsJqjMM4qxQ6CUaQ
       User-Agent:
       - Faraday v0.9.2
       Accept-Encoding:
@@ -116,32 +100,24 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Access-Control-Allow-Headers:
-      - Accept, Authorization, Content-Type, Origin
-      Access-Control-Allow-Methods:
-      - GET, OPTIONS
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Date
       Content-Length:
-      - '453'
+      - '485'
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 Dec 2017 07:54:30 GMT
+      - Thu, 04 Jun 2020 20:11:43 GMT
       Gap-Auth:
       - system:serviceaccount:management-infra:management-admin@cluster.local
       Gap-Upstream-Address:
       - localhost:9090
       Set-Cookie:
-      - f81241e3a913aa890fb02ba92a29f1be=ecb5793ccea9607e269bba7b11f5f86f; path=/;
+      - 97f6663f1252f61343f526ad937cfc1a=41969530b090af0a3ef9c58b94740b5c; path=/;
         HttpOnly; Secure
       Cache-Control:
       - private
     body:
       encoding: UTF-8
-      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1514359740,"7114.781420309661"],[1514359800,"7978.832980549675"],[1514359860,"7671.222146297562"],[1514359920,"7489.150000000001"],[1514359980,"7889.416666666666"],[1514360040,"7173.900000000001"],[1514360100,"8473.45"],[1514360160,"6486.466666666666"],[1514360220,"7491.25"],[1514360280,"7983.833063884398"],[1514360340,"7640.772653789103"],[1514360400,"6135.25"]]}]}}'
-    http_version: 
-  recorded_at: Wed, 27 Dec 2017 07:54:30 GMT
-recorded_with: VCR 3.0.3
+      string: '{"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1591300740,"859.3386810081583"],[1591300800,"951.6084163674068"],[1591300860,"1147.913184717874"],[1591300920,"1070.4096452659014"],[1591300980,"884.0189442360486"],[1591301040,"827.3777849175193"],[1591301100,"941.4790774754867"],[1591301160,"1009.5220613541978"],[1591301220,"965.1447388914847"],[1591301280,"843.9193972759068"],[1591301340,"898.9296102385108"],[1591301400,"894.3980457531443"]]}]}}'
+    http_version: null
+  recorded_at: Thu, 04 Jun 2020 20:11:43 GMT
+recorded_with: VCR 5.1.0

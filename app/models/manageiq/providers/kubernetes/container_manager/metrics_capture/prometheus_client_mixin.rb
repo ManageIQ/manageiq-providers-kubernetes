@@ -44,7 +44,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
     }
   end
 
-  def labels_to_s(labels, job = "kubernetes-cadvisor")
+  def labels_to_s(labels, job = "kubelet")
     labels.merge(:job => job).compact.sort.map { |k, v| "#{k}=\"#{v}\"" }.join(',')
   end
 

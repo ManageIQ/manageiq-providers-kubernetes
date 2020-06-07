@@ -18,11 +18,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
 
     def collect_node_metrics
       # set node labels
-      labels = labels_to_s(
-        :container_name => "",
-        :id             => "/",
-        :instance       => @target.name,
-      )
+      labels = labels_to_s(:id => "/", :node => @target.name)
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)
       collect_metrics_for_labels(labels)
@@ -31,9 +27,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     def collect_container_metrics
       # set container labels
       labels = labels_to_s(
-        :container_name => @target.name,
-        :pod_name       => @target.container_group.name,
-        :namespace      => @target.container_project.name,
+        :container => @target.name,
+        :pod       => @target.container_group.name,
+        :namespace => @target.container_project.name,
       )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average)
@@ -47,7 +43,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       #       (OpenShift's equivalent of kubernetes 'pause' pod)
 
       labels = labels_to_s(
-        :pod_name  => @target.name,
+        :pod       => @target.name,
         :namespace => @target.container_project.name,
       )
 

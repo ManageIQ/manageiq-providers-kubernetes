@@ -3,16 +3,16 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
     @record = :none
     # @record = :new_episodes
 
-    master_hostname = 'master.example.com'
-    hostname = 'prometheus.example.com'
-    token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tZnJyeDgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRhODY5NDczLWQ1ZGQtMTFlNy1iNjhlLTAwMWE0YTE2MjZiZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.UhGy45pjWTak0NznD1v2rQtbf-XYis_5_ZKqVL0o7_4NFc69hsZZ4i_pSl2Pb4qsyNhWyZRY0JpKmBDz8CXIiZTb92laqrg_QQO4qMxo1nn2dHq_8nsMfdMAzR_dDzbUAlyPjhLMqUU9CecWzTodZ_PxLEfjZpMw8qIVAtca5fl5xgK1TbvnBdbnD_wK57PphadAZ1MCUdgzNgrs58WC59R1dv0lCL15UEXxamowLDZy1zWOG-WiHxFz5wN5iN7KCkPMnABOLoQ4k53kg-4sZzwqCPziUqyWm0mer2TwLzhqkuztzJnQ9AQBtt1kWvFKmPfGDUZ91bfGNfKeyd1gFw'
+    master_hostname = 'api.crc.testing'
+    hostname = 'prometheus-k8s-openshift-monitoring.apps-crc.testing'
+    token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IlpLSkFHTlhvb2xWWDYtMFE0aTdoQnVOVGdqWE1MZlAtM3lHcjZNYjQ3eUEifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJtYW5hZ2VtZW50LWluZnJhIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1hbmFnZW1lbnQtYWRtaW4tdG9rZW4tY3BkdHYiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoibWFuYWdlbWVudC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImRmNTEwZWUzLTFkZGQtNDcyZS1iMjk0LTBhNTljODIyNmVhZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDptYW5hZ2VtZW50LWluZnJhOm1hbmFnZW1lbnQtYWRtaW4ifQ.cqriwRlFx5o_gberghVB2Hu8f6GNkl3vp_uEMDnQLjU5uxtlcofN2CkdR4CoShRafadPZVBGWRTfJkVTLVpiVrSmHrUDlokLjBToi-ycHhuKUJHZLTBQACkogBov_bYzkhpk3Vk5mBQuduq0shuxStSjPfcfwNMMfsKow43tsKWiH7WcnUGQu8XT_Fi6nHI2w70cPxK21i_U5eCXkThYwfYrDCdOAyAT7sITNJ0svuKF3DqpQduK3zEta28m-wTTqcZwRjjIUAUTKJJX-Vc1hLXzp7OB6xXddqVpKVeIFgChip0elcrkzyx3bwZ6yddnsjZEz4vsJqjMM4qxQ6CUaQ'
 
     @ems = FactoryBot.create(
       :ems_kubernetes_with_zone,
       :name                      => 'KubernetesProvider',
       :connection_configurations => [{:endpoint       => {:role       => :default,
                                                           :hostname   => master_hostname,
-                                                          :port       => "8443",
+                                                          :port       => "6443",
                                                           :verify_ssl => false},
                                       :authentication => {:role     => :bearer,
                                                           :auth_key => token,
@@ -39,8 +39,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
   end
 
   it "will read prometheus metrics" do
-    start_time = Time.parse("2017-12-27 07:30:00 UTC").utc
-    end_time   = Time.parse("2017-12-27 07:40:00 UTC").utc
+    start_time = Time.parse("2020-06-04 20:00:00 UTC").utc
+    end_time   = Time.parse("2020-06-04 20:10:00 UTC").utc
     interval   = 60
 
     @targets.each do |target_name, target|
@@ -52,13 +52,18 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
         data = context.collect_metrics
 
         expect(data).to be_a_kind_of(Hash)
+        expect(data.keys).to include(start_time, end_time)
+        expect(data[start_time].keys).to include(
+          "cpu_usage_rate_average",
+          "mem_usage_absolute_average"
+        )
       end
     end
   end
 
   it "will read only specific timespan prometheus metrics" do
-    start_time = Time.parse("2017-12-27 07:30:00 UTC").utc
-    end_time   = Time.parse("2017-12-27 07:40:00 UTC").utc
+    start_time = Time.parse("2020-06-04 20:00:00 UTC").utc
+    end_time   = Time.parse("2020-06-04 20:10:00 UTC").utc
     interval   = 60
 
     @targets.each do |target_name, target|

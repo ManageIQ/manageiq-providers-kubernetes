@@ -382,6 +382,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   end
 
   def queue_metrics_capture
-    self.perf_capture_object.perf_capture_all_queue
+    self.perf_capture_object.perf_capture
   end
 end

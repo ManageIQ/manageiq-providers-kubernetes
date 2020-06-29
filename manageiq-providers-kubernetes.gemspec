@@ -16,9 +16,9 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency("hawkular-client",                 "~> 4.1")
   s.add_runtime_dependency("image-inspector-client",          "~> 2.0")
   s.add_runtime_dependency("kubeclient",                      "~> 4.6")
+  s.add_runtime_dependency("more_core_extensions",            ">= 3.6", "< 5")
   s.add_runtime_dependency("prometheus-alert-buffer-client",  "~> 0.2.0")
   s.add_runtime_dependency("prometheus-api-client",           "~> 0.6")
-  s.add_runtime_dependency("more_core_extensions",            "~> 3.6")
 
   s.add_development_dependency("codeclimate-test-reporter", "~> 1.0.0")
   s.add_development_dependency("recursive-open-struct",     "~> 1.0.0")

@@ -82,7 +82,7 @@ http_interactions:
   recorded_at: Thu, 04 Jun 2020 20:10:12 GMT
 - request:
     method: get
-    uri: https://prometheus-k8s-openshift-monitoring.apps-crc.testing/api/v1/query_range?end=1591301400&query=sum(rate(container_network_receive_bytes_total%7Bid=%22/%22,job=%22kubelet%22,node=%22crc-dv9sm-master-0%22,interface=~%22eth.*%22%7D%5B2m%5D))%20%2B%20sum(rate(container_network_transmit_bytes_total%7Bid=%22/%22,job=%22kubelet%22,node=%22crc-dv9sm-master-0%22,interface=~%22eth.*%22%7D%5B2m%5D))&start=1591300740&step=60s
+    uri: https://prometheus-k8s-openshift-monitoring.apps-crc.testing/api/v1/query_range?end=1591301400&query=sum(rate(container_network_receive_bytes_total%7Bid=%22/%22,job=%22kubelet%22,node=%22crc-dv9sm-master-0%22,interface=~%22eth.*%7Cens.*%7Cenp.*%7Ceno.*%22%7D%5B2m%5D))%20%2B%20sum(rate(container_network_transmit_bytes_total%7Bid=%22/%22,job=%22kubelet%22,node=%22crc-dv9sm-master-0%22,interface=~%22eth.*%7Cens.*%7Cenp.*%7Ceno.*%22%7D%5B2m%5D))&start=1591300740&step=60s
     body:
       encoding: US-ASCII
       string: ''

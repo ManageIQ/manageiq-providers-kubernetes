@@ -67,8 +67,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       # prometheus field is in bytes
       # miq field is on kb ( / 1000 )
       if @metrics.include?('net_usage_rate_average')
-        net_resid = "sum(rate(container_network_receive_bytes_total{#{labels},interface=~\"eth.*\"}[#{AVG_OVER}])) + " \
-                    "sum(rate(container_network_transmit_bytes_total{#{labels},interface=~\"eth.*\"}[#{AVG_OVER}]))"
+        interfaces = "eth.*|ens.*|enp.*|eno.*"
+        net_resid = "sum(rate(container_network_receive_bytes_total{#{labels},interface=~\"#{interfaces}\"}[#{AVG_OVER}])) + " \
+                    "sum(rate(container_network_transmit_bytes_total{#{labels},interface=~\"#{interfaces}\"}[#{AVG_OVER}]))"
         fetch_counters_data(net_resid, 'net_usage_rate_average', 1000.0)
       end
 

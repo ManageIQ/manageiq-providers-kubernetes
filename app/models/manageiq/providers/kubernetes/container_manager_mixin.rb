@@ -161,7 +161,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     end
   end
 
-  PERF_ROLLUP_CHILDREN = :container_nodes
+  PERF_ROLLUP_CHILDREN = [:container_nodes]
 
   def verify_hawkular_credentials
     client = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClient.new(self)

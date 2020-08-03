@@ -655,7 +655,9 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
         !!raw_connect(hostname, port, options)
       when 'hawkular'
         verify_hawkular_credentials(hostname, port, options)
-      when 'prometheus', 'prometheus_alerts'
+      when 'prometheus'
+        verify_prometheus_credentials(hostname, port, options)
+      when 'prometheus_alerts'
         # TODO: implement validation calls for these endpoint types
         return true
       else
@@ -745,6 +747,26 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
     def verify_hawkular_credentials(hostname, port, options)
       !!hawkular_connect(hostname, port, options)&.avail&.get_data('all', :limit => 1)&.kind_of?(Array)
+    end
+
+    def prometheus_connect(hostname, port, options)
+      require 'prometheus/api_client'
+
+      uri         = raw_api_endpoint(hostname, port).to_s
+      credentials = {:token => options[:bearer]}
+      ssl_options = options[:ssl_options] || {:verify_ssl => OpenSSL::SSL::VERIFY_NONE}
+
+      prometheus_options = {
+        :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri.to_s,
+        :verify_ssl     => ssl_options[:verify_ssl],
+        :ssl_cert_store => ssl_options[:ca_file],
+      }
+
+      Prometheus::ApiClient.client(:url => uri, :credentials => credentials, :options => prometheus_options)
+    end
+
+    def verify_prometheus_credentials(hostname, port, options)
+      !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
     end
   end
 

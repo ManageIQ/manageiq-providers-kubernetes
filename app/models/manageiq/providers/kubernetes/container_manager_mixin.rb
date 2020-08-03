@@ -658,8 +658,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       when 'prometheus'
         verify_prometheus_credentials(hostname, port, options)
       when 'prometheus_alerts'
-        # TODO: implement validation calls for these endpoint types
-        return true
+        verify_prometheus_alerts_credentials(hostname, port, options)
       else
         # TODO: maybe we need an error message here
         return false
@@ -767,6 +766,18 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
     def verify_prometheus_credentials(hostname, port, options)
       !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
+    end
+
+    def verify_prometheus_alerts_credentials(hostname, port, options)
+      !!parent::MonitoringManager.verify_credentials(
+        :url         => raw_api_endpoint(hostname, port),
+        :path        => options[:path] || "/topics/alerts",
+        :credentials => {:token => options[:bearer]},
+        :ssl         => {
+          :verify     => options.dig(:ssl_options, :verify_ssl) != OpenSSL::SSL::VERIFY_NONE,
+          :cert_store => options.dig(:ssl_options, :ca_file)
+        }
+      )
     end
   end
 

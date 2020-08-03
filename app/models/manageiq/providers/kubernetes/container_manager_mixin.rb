@@ -653,7 +653,9 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       case endpoint_name
       when 'default', 'kubevirt' # this also (partially) validates kubevirt
         !!raw_connect(hostname, port, options)
-      when 'prometheus', 'prometheus_alerts', 'hawkular'
+      when 'hawkular'
+        verify_hawkular_credentials(hostname, port, options)
+      when 'prometheus', 'prometheus_alerts'
         # TODO: implement validation calls for these endpoint types
         return true
       else
@@ -722,6 +724,27 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
 
     def service_catalog_api_version
       'v1beta1'
+    end
+
+    def hawkular_connect(hostname, port, options)
+      require "hawkular/hawkular_client"
+
+      uri = raw_api_endpoint(hostname, port, options[:path] || "/hawkular/metrics")
+      credentials = {:token => options[:bearer]}
+      ssl_options = options[:ssl_options] || {:verify_ssl => OpenSSL::SSL::VERIFY_NONE}
+
+      hawkular_options = {
+        :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri,
+        :tenant         => options[:tenant] || '_system',
+        :verify_ssl     => ssl_options[:verify_ssl],
+        :ssl_cert_store => ssl_options[:ca_file],
+      }
+
+      Hawkular::Metrics::Client.new(uri, credentials, hawkular_options)
+    end
+
+    def verify_hawkular_credentials(hostname, port, options)
+      !!hawkular_connect(hostname, port, options)&.avail&.get_data('all', :limit => 1)&.kind_of?(Array)
     end
   end
 

@@ -22,6 +22,18 @@ module ManageIQ::Providers::Kubernetes::MonitoringManagerMixin
   end
 
   module ClassMethods
+    def verify_credentials(options)
+      raw_connect(options)&.get&.key?('generationID')
+    rescue OpenSSL::X509::CertificateError => err
+      raise MiqException::MiqInvalidCredentialsError, "SSL Error: #{err.message}"
+    rescue Faraday::ParsingError
+      raise MiqException::MiqUnreachableError, 'Unexpected Response'
+    rescue Faraday::ClientError => err
+      raise MiqException::MiqUnreachableError, err.message
+    rescue => err
+      raise MiqException::MiqUnreachableError, err.message, err.backtrace
+    end
+
     def raw_connect(options)
       Prometheus::AlertBufferClient::Client.new(options)
     end

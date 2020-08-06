@@ -8,13 +8,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
   METRICS_ROLES = %w(prometheus hawkular).freeze
 
   included do
-    default_value_for :port do |provider|
-      # port is not a column on this table, it's delegated to endpoint.
-      # This may confuse `default_value_for` to apply when we do have a port;
-      # checking `provider.port` first prevents this from overriding it.
-      provider.port || provider.class::DEFAULT_PORT
-    end
-
     supports :streaming_refresh do
       unsupported_reason_add(:streaming_refresh, "Streaming refresh not enabled") unless streaming_refresh_enabled?
     end
@@ -38,77 +31,652 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     def params_for_create
       @params_for_create ||= begin
         {
-          :title  => "Configure #{description}",
           :fields => [
             {
-              :component  => "text-field",
-              :name       => "endpoints.default.hostname",
-              :label      => "Hostname",
-              :isRequired => true,
-              :validate   => [{:type => "required-validator"}]
-            },
-            {
-              :component    => "text-field",
-              :name         => "endpoints.default.port",
-              :type         => "number",
-              :isRequired   => true,
-              :initialValue => default_port,
-              :validate     => [
-                {:type => "required-validator"},
-                {:type => "validatorTypes.MIN_NUMBER_VALUE", :includeThreshold => true, :value => 1},
-                {:type => "validatorTypes.MAX_NUMBER_VALUE", :includeThreshold => true, :value => 65_535}
+              :component => 'sub-form',
+              :name      => 'endpoints-subform',
+              :title     => _('Endpoints'),
+              :fields    => [
+                :component => 'tabs',
+                :name      => 'tabs',
+                :fields    => [
+                  {
+                    :component => 'tab-item',
+                    :name      => 'default-tab',
+                    :title     => _('Default'),
+                    :fields    => [
+                      {
+                        :component              => 'validate-provider-credentials',
+                        :name                   => 'authentications.default.valid',
+                        :skipSubmit             => true,
+                        :validationDependencies => %w[type],
+                        :fields                 => [
+                          {
+                            :component  => "select-field",
+                            :name       => "endpoints.default.security_protocol",
+                            :label      => _("Security Protocol"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :options    => [
+                              {
+                                :label => _("SSL"),
+                                :value => "ssl-with-validation"
+                              },
+                              {
+                                :label => _("SSL trusting custom CA"),
+                                :value => "ssl-with-validation-custom-ca"
+                              },
+                              {
+                                :label => _("SSL without validation"),
+                                :value => "ssl-without-validation",
+                              },
+                            ]
+                          },
+                          {
+                            :component  => "text-field",
+                            :name       => "endpoints.default.hostname",
+                            :label      => _("Hostname (or IPv4 or IPv6 address)"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                          },
+                          {
+                            :component    => "text-field",
+                            :name         => "endpoints.default.port",
+                            :label        => _("API Port"),
+                            :type         => "number",
+                            :initialValue => default_port,
+                            :isRequired   => true,
+                            :validate     => [{:type => "required-validator"}],
+                          },
+                          {
+                            :component  => "textarea-field",
+                            :name       => "endpoints.default.certificate_authority",
+                            :label      => _("Trusted CA Certificates"),
+                            :rows       => 10,
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :condition  => {
+                              :when => 'endpoints.default.security_protocol',
+                              :is   => 'ssl-with-validation-custom-ca',
+                            },
+                          },
+                          {
+                            :component  => "password-field",
+                            :name       => "authentications.bearer.auth_key",
+                            :label      => "Token",
+                            :type       => "password",
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                          },
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    :component => 'tab-item',
+                    :name      => 'metrics-tab',
+                    :title     => _('Metrics'),
+                    :fields    => [
+                      {
+                        :component    => 'protocol-selector',
+                        :name         => 'metrics_selection',
+                        :skipSubmit   => true,
+                        :initialValue => 'none',
+                        :label        => _('Type'),
+                        :options      => [
+                          {
+                            :label => _('Disabled'),
+                            :value => 'none',
+                          },
+                          {
+                            :label => _('Hawkular'),
+                            :value => 'hawkular',
+                            :pivot => 'endpoints.hawkular.hostname',
+                          },
+                          {
+                            :label => _('Prometheus'),
+                            :value => 'prometheus',
+                            :pivot => 'endpoints.prometheus.hostname',
+                          },
+                        ],
+                      },
+                      {
+                        :component              => 'validate-provider-credentials',
+                        :name                   => "authentications.hawkular.valid",
+                        :skipSubmit             => true,
+                        :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
+                        :condition              => {
+                          :when => "metrics_selection",
+                          :is   => 'hawkular',
+                        },
+                        :fields                 => [
+                          {
+                            :component  => "select-field",
+                            :name       => "endpoints.hawkular.security_protocol",
+                            :label      => _("Security Protocol"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :options    => [
+                              {
+                                :label => _("SSL"),
+                                :value => "ssl-with-validation"
+                              },
+                              {
+                                :label => _("SSL trusting custom CA"),
+                                :value => "ssl-with-validation-custom-ca",
+                              },
+                              {
+                                :label => _("SSL without validation"),
+                                :value => "ssl-without-validation",
+                              },
+                            ]
+                          },
+                          {
+                            :component  => "text-field",
+                            :name       => "endpoints.hawkular.hostname",
+                            :label      => _("Hostname (or IPv4 or IPv6 address)"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :inputAddon => {
+                              :after => {
+                                :fields => [
+                                  {
+                                    :component => 'input-addon-button-group',
+                                    :name      => 'detect-hawkular-group',
+                                    :fields    => [
+                                      {
+                                        :component    => 'detect-button',
+                                        :name         => 'detect-hawkular-button',
+                                        :label        => _('Detect'),
+                                        :dependencies => [
+                                          'endpoints.default.hostname',
+                                          'endpoints.default.port',
+                                          'endpoints.default.security_protocol',
+                                          'endpoints.default.certificate_authority',
+                                          'authentications.bearer.auth_key',
+                                        ],
+                                        :target       => 'endpoints.hawkular',
+                                      },
+                                    ],
+                                  }
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            :component    => "text-field",
+                            :name         => "endpoints.hawkular.port",
+                            :label        => _("API Port"),
+                            :type         => "number",
+                            :initialValue => 443,
+                            :isRequired   => true,
+                            :validate     => [{:type => "required-validator"}],
+                          },
+                          {
+                            :component  => "textarea-field",
+                            :name       => "endpoints.hawkular.certificate_authority",
+                            :label      => _("Trusted CA Certificates"),
+                            :rows       => 10,
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :condition  => {
+                              :when => 'endpoints.hawkular.security_protocol',
+                              :is   => 'ssl-with-validation-custom-ca',
+                            },
+                          },
+                        ]
+                      },
+                      {
+                        :component              => 'validate-provider-credentials',
+                        :name                   => "authentications.prometheus.valid",
+                        :skipSubmit             => true,
+                        :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
+                        :condition              => {
+                          :when => "metrics_selection",
+                          :is   => 'prometheus',
+                        },
+                        :fields                 => [
+                          {
+                            :component  => "select-field",
+                            :name       => "endpoints.prometheus.security_protocol",
+                            :label      => _("Security Protocol"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :options    => [
+                              {
+                                :label => _("SSL"),
+                                :value => "ssl-with-validation"
+                              },
+                              {
+                                :label => _("SSL trusting custom CA"),
+                                :value => "ssl-with-validation-custom-ca"
+                              },
+                              {
+                                :label => _("SSL without validation"),
+                                :value => "ssl-without-validation"
+                              },
+                            ]
+                          },
+                          {
+                            :component  => "text-field",
+                            :name       => "endpoints.prometheus.hostname",
+                            :label      => _("Hostname (or IPv4 or IPv6 address)"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :inputAddon => {
+                              :after => {
+                                :fields => [
+                                  {
+                                    :component => 'input-addon-button-group',
+                                    :name      => 'detect-prometheus-group',
+                                    :fields    => [
+                                      {
+                                        :component    => 'detect-button',
+                                        :name         => 'detect-prometheus-button',
+                                        :label        => _('Detect'),
+                                        :dependencies => [
+                                          'endpoints.default.hostname',
+                                          'endpoints.default.port',
+                                          'endpoints.default.security_protocol',
+                                          'endpoints.default.certificate_authority',
+                                          'authentications.bearer.auth_key',
+                                        ],
+                                        :target       => 'endpoints.prometheus',
+                                      },
+                                    ],
+                                  }
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            :component    => "text-field",
+                            :name         => "endpoints.prometheus.port",
+                            :label        => _("API Port"),
+                            :type         => "number",
+                            :initialValue => 443,
+                            :isRequired   => true,
+                            :validate     => [{:type => "required-validator"}],
+                          },
+                          {
+                            :component  => "textarea-field",
+                            :name       => "endpoints.prometheus.certificate_authority",
+                            :label      => _("Trusted CA Certificates"),
+                            :rows       => 10,
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :condition  => {
+                              :when => 'endpoints.prometheus.security_protocol',
+                              :is   => 'ssl-with-validation-custom-ca',
+                            },
+                          },
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    :component => 'tab-item',
+                    :name      => 'alerts-tab',
+                    :title     => _('Alerts'),
+                    :fields    => [
+                      {
+                        :component    => 'protocol-selector',
+                        :name         => 'alerts_selection',
+                        :skipSubmit   => true,
+                        :initialValue => 'none',
+                        :label        => _('Type'),
+                        :options      => [
+                          {
+                            :label => _('Disabled'),
+                            :value => 'none',
+                          },
+                          {
+                            :label => _('Prometheus'),
+                            :value => 'prometheus_alerts',
+                            :pivot => 'endpoints.prometheus_alerts.hostname',
+                          },
+                        ],
+                      },
+                      {
+                        :component              => 'validate-provider-credentials',
+                        :name                   => "authentications.prometheus_alerts.valid",
+                        :skipSubmit             => true,
+                        :validationDependencies => ['type', "alerts_selection", "authentications.bearer.auth_key"],
+                        :condition              => {
+                          :when => "alerts_selection",
+                          :is   => 'prometheus_alerts',
+                        },
+                        :fields                 => [
+                          {
+                            :component  => "select-field",
+                            :name       => "endpoints.prometheus_alerts.security_protocol",
+                            :label      => _("Security Protocol"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :options    => [
+                              {
+                                :label => _("SSL"),
+                                :value => "ssl-with-validation"
+                              },
+                              {
+                                :label => _("SSL trusting custom CA"),
+                                :value => "ssl-with-validation-custom-ca"
+                              },
+                              {
+                                :label => _("SSL without validation"),
+                                :value => "ssl-without-validation"
+                              },
+                            ]
+                          },
+                          {
+                            :component  => "text-field",
+                            :name       => "endpoints.prometheus_alerts.hostname",
+                            :label      => _("Hostname (or IPv4 or IPv6 address)"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :inputAddon => {
+                              :after => {
+                                :fields => [
+                                  {
+                                    :component => 'input-addon-button-group',
+                                    :name      => 'detect-prometheus_alerts-group',
+                                    :fields    => [
+                                      {
+                                        :component    => 'detect-button',
+                                        :name         => 'detect-prometheus_alerts-button',
+                                        :label        => _('Detect'),
+                                        :dependencies => [
+                                          'endpoints.default.hostname',
+                                          'endpoints.default.port',
+                                          'endpoints.default.security_protocol',
+                                          'endpoints.default.certificate_authority',
+                                          'authentications.bearer.auth_key',
+                                        ],
+                                        :target       => 'endpoints.prometheus_alerts',
+                                      },
+                                    ],
+                                  }
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            :component    => "text-field",
+                            :name         => "endpoints.prometheus_alerts.port",
+                            :label        => _("API Port"),
+                            :type         => "number",
+                            :initialValue => 443,
+                            :isRequired   => true,
+                            :validate     => [{:type => "required-validator"}],
+                          },
+                          {
+                            :component  => "textarea-field",
+                            :name       => "endpoints.prometheus_alerts.certificate_authority",
+                            :label      => _("Trusted CA Certificates"),
+                            :rows       => 10,
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :condition  => {
+                              :when => 'endpoints.prometheus_alerts.security_protocol',
+                              :is   => 'ssl-with-validation-custom-ca',
+                            },
+                          },
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    :component => 'tab-item',
+                    :name      => 'virtualization-tab',
+                    :title     => _('Virtualization'),
+                    :fields    => [
+                      {
+                        :component    => 'protocol-selector',
+                        :name         => 'virtualization_selection',
+                        :skipSubmit   => true,
+                        :initialValue => 'none',
+                        :label        => _('Type'),
+                        :options      => [
+                          {
+                            :label => _('Disabled'),
+                            :value => 'none',
+                          },
+                          {
+                            :label => _('KubeVirt'),
+                            :value => 'kubevirt',
+                            :pivot => 'endpoints.kubevirt.hostname',
+                          },
+                        ],
+                      },
+                      {
+                        :component              => 'validate-provider-credentials',
+                        :name                   => 'endpoints.virtualization.valid',
+                        :skipSubmit             => true,
+                        :validationDependencies => %w[type virtualization_selection],
+                        :condition              => {
+                          :when => 'virtualization_selection',
+                          :is   => 'kubevirt',
+                        },
+                        :fields                 => [
+                          {
+                            :component  => "select-field",
+                            :name       => "endpoints.kubevirt.security_protocol",
+                            :label      => _("Security Protocol"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :options    => [
+                              {
+                                :label => _("SSL"),
+                                :value => "ssl-with-validation"
+                              },
+                              {
+                                :label => _("SSL trusting custom CA"),
+                                :value => "ssl-with-validation-custom-ca"
+                              },
+                              {
+                                :label => _("SSL without validation"),
+                                :value => "ssl-without-validation"
+                              },
+                            ]
+                          },
+                          {
+                            :component  => "text-field",
+                            :name       => "endpoints.kubevirt.hostname",
+                            :label      => _("Hostname (or IPv4 or IPv6 address)"),
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :inputAddon => {
+                              :after => {
+                                :fields => [
+                                  {
+                                    :component => 'input-addon-button-group',
+                                    :name      => 'detect-kubevirt-group',
+                                    :fields    => [
+                                      {
+                                        :component    => 'detect-button',
+                                        :name         => 'detect-kubevirt-button',
+                                        :label        => _('Detect'),
+                                        :dependencies => [
+                                          'endpoints.default.hostname',
+                                          'endpoints.default.port',
+                                          'endpoints.default.security_protocol',
+                                          'endpoints.default.certificate_authority',
+                                          'authentications.bearer.auth_key',
+                                        ],
+                                        :target       => 'endpoints.kubevirt',
+                                      },
+                                    ],
+                                  }
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            :component    => "text-field",
+                            :name         => "endpoints.kubevirt.port",
+                            :label        => _("API Port"),
+                            :type         => "number",
+                            :initialValue => default_port,
+                            :isRequired   => true,
+                            :validate     => [{:type => "required-validator"}],
+                          },
+                          {
+                            :component  => "textarea-field",
+                            :name       => "endpoints.kubevirt.certificate_authority",
+                            :label      => _("Trusted CA Certificates"),
+                            :rows       => 10,
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                            :condition  => {
+                              :when => 'endpoints.kubevirt.security_protocol',
+                              :is   => 'ssl-with-validation-custom-ca',
+                            },
+                          },
+                          {
+                            :component  => "password-field",
+                            :name       => "authentications.kubevirt.auth_key",
+                            :label      => "Token",
+                            :type       => "password",
+                            :isRequired => true,
+                            :validate   => [{:type => "required-validator"}],
+                          },
+                        ]
+                      }
+                    ]
+                  }
+                ]
               ]
             },
             {
-              :component    => "text-field",
-              :name         => "endpoints.default.path",
-              :label        => "API Path",
-              :type         => "hidden",
-              :initialValue => "/api"
+              :component => 'sub-form',
+              :name      => 'settings-subform',
+              :title     => _('Settings'),
+              :fields    => [
+                :component => 'tabs',
+                :name      => 'tabs',
+                :fields    => [
+                  {
+                    :component => 'tab-item',
+                    :name      => 'proxy-tab',
+                    :title     => _('Proxy'),
+                    :fields    => [
+                      {
+                        :component   => 'text-field',
+                        :name        => 'options.proxy_settings.http_proxy',
+                        :label       => _('HTTP Proxy'),
+                        :helperText  => _('HTTP Proxy to connect ManageIQ to the provider. example: http://user:password@my_http_proxy'),
+                        :placeholder => VMDB::Util.http_proxy_uri,
+                      }
+                    ],
+                  },
+                  {
+                    :component => 'tab-item',
+                    :name      => 'image-inspector-tab',
+                    :title     => _('Image-Inspector'),
+                    :fields    => [
+                      {
+                        :component  => 'text-field',
+                        :name       => 'options.image_inspector_options.http_proxy',
+                        :label      => _('HTTP Proxy'),
+                        :helperText => _('HTTP Proxy to connect image inspector pods to the internet. example: http://user:password@my_http_proxy')
+                      },
+                      {
+                        :component  => 'text-field',
+                        :name       => 'options.image_inspector_options.https_proxy',
+                        :label      => _('HTTPS Proxy'),
+                        :helperText => _('HTTPS Proxy to connect image inspector pods to the internet. example: https://user:password@my_https_proxy')
+                      },
+                      {
+                        :component  => 'text-field',
+                        :name       => 'options.image_inspector_options.no_proxy',
+                        :label      => _('No Proxy'),
+                        :helperText => _("No Proxy lists urls that should'nt be sent to any proxy. example: my_file_server.org")
+                      },
+                      {
+                        :component   => 'text-field',
+                        :name        => 'options.image_inspector_options.repository',
+                        :label       => _('Repository'),
+                        :helperText  => _('Image-Inspector Repository. example: openshift/image-inspector'),
+                        :placeholder => ::Settings.ems.ems_kubernetes.image_inspector_repository,
+                      },
+                      {
+                        :component   => 'text-field',
+                        :name        => 'options.image_inspector_options.registry',
+                        :label       => _('Registry'),
+                        :helperText  => _('Registry to provide the image inspector repository. example: docker.io'),
+                        :placeholder => ::Settings.ems.ems_kubernetes.image_inspector_registry,
+                      },
+                      {
+                        :component   => 'text-field',
+                        :name        => 'options.image_inspector_options.image_tag',
+                        :label       => _('Image Tag'),
+                        :helperText  => _('Image-Inspector image tag. example: 2.1'),
+                        :placeholder => ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job::INSPECTOR_IMAGE_TAG,
+                      },
+                      {
+                        :component   => 'text-field',
+                        :name        => 'options.image_inspector_options.cve_url',
+                        :label       => _('CVE Location'),
+                        :helperText  => _('Enables defining a URL path prefix for XCCDF file instead of accessing the default location.
+  example: http://my_file_server.org:3333/xccdf_files/
+  Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
+                        :placeholder => ::Settings.ems.ems_kubernetes.image_inspector_cve_url,
+                      },
+                    ],
+                  },
+                ],
+              ],
             },
-            {
-              :component  => "text-field",
-              :name       => "endpoints.default.bearer",
-              :label      => "Token",
-              :type       => "password",
-              :isRequired => true,
-              :validate   => [{:type => "required-validator"}]
-            },
-            {
-              :component => "text-field",
-              :name      => "endpoints.default.http_proxy",
-              :label     => "HTTP Proxy"
-            },
-            {
-              :component => "checkbox",
-              :name      => "endpoints.default.verify_ssl",
-              :label     => "Verify SSL"
-            },
-            {
-              :component => "text-field",
-              :name      => "endpoints.default.ca_file",
-              :label     => "Trusted CA Certificates",
-            },
-          ]
+          ],
         }.freeze
       end
     end
 
     def verify_credentials(args)
-      default_endpoint = args.dig("endpoints", "default")
-      hostname, port = default_endpoint&.values_at("hostname", "port")
+      endpoint_name = args.dig("endpoints").keys.first
+      endpoint = args.dig("endpoints", endpoint_name)
 
-      options = default_endpoint&.slice("path", "http_proxy")&.symbolize_keys || {}
+      token = args.dig("authentications", "bearer", "auth_key") || args.dig("authentications", "kubevirt", "auth_key")
+      token = MiqPassword.try_decrypt(token)
+      token ||= find(args["id"]).authentication_token(endpoint_name == 'kubevirt' ? 'kubevirt' : 'bearer') if args["id"]
 
-      bearer = default_endpoint&.dig("bearer")
-      options[:bearer] = MiqPassword.try_decrypt(bearer) if bearer
+      hostname, port = endpoint&.values_at("hostname", "port")
 
-      options[:ssl_options] = {
-        :verify_ssl => default_endpoint&.dig("verify_ssl") ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE,
-        :ca_file    => default_endpoint&.dig("ca_file")
+      options = {
+        :bearer      => token,
+        :ssl_options => {
+          :verify_ssl => endpoint&.dig("security_protocol") == 'ssl-without-validation' ? OpenSSL::SSL::VERIFY_NONE : OpenSSL::SSL::VERIFY_PEER,
+          :ca_file    => endpoint&.dig("certificate_authority")
+        }
       }
 
-      !!raw_connect(hostname, port, options)
+      case endpoint_name
+      when 'default'
+        !!raw_connect(hostname, port, options)
+      when 'kubevirt'
+        verify_kubevirt_credentials(hostname, port, options)
+      when 'hawkular'
+        verify_hawkular_credentials(hostname, port, options)
+      when 'prometheus'
+        verify_prometheus_credentials(hostname, port, options)
+      when 'prometheus_alerts'
+        verify_prometheus_alerts_credentials(hostname, port, options)
+      else
+        raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
+      end
+    end
+
+    def create_from_params(params, endpoints, authentications)
+      bearer = authentications.find { |authentication| authentication['authtype'] == 'bearer' }
+
+      # Replicate the bearer authentication for all endpoints, except for default and kubevirt
+      endpoints.each do |endpoint|
+        next if %w[default kubevirt].include?(endpoint['role'])
+
+        authentications << bearer.merge('authtype' => endpoint['role'])
+      end
+
+      super(params, endpoints, authentications)
     end
 
     def raw_api_endpoint(hostname, port, path = '')
@@ -159,9 +727,92 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
     def service_catalog_api_version
       'v1beta1'
     end
+
+    def hawkular_connect(hostname, port, options)
+      require "hawkular/hawkular_client"
+
+      uri = raw_api_endpoint(hostname, port, options[:path] || "/hawkular/metrics")
+      credentials = {:token => options[:bearer]}
+      ssl_options = options[:ssl_options] || {:verify_ssl => OpenSSL::SSL::VERIFY_NONE}
+
+      hawkular_options = {
+        :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri,
+        :tenant         => options[:tenant] || '_system',
+        :verify_ssl     => ssl_options[:verify_ssl],
+        :ssl_cert_store => ssl_options[:ca_file],
+      }
+
+      Hawkular::Metrics::Client.new(uri, credentials, hawkular_options)
+    end
+
+    def verify_hawkular_credentials(hostname, port, options)
+      !!hawkular_connect(hostname, port, options)&.avail&.get_data('all', :limit => 1)&.kind_of?(Array)
+    end
+
+    def prometheus_connect(hostname, port, options)
+      require 'prometheus/api_client'
+
+      uri         = raw_api_endpoint(hostname, port).to_s
+      credentials = {:token => options[:bearer]}
+      ssl_options = options[:ssl_options] || {:verify_ssl => OpenSSL::SSL::VERIFY_NONE}
+
+      prometheus_options = {
+        :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri.to_s,
+        :verify_ssl     => ssl_options[:verify_ssl],
+        :ssl_cert_store => ssl_options[:ca_file],
+      }
+
+      Prometheus::ApiClient.client(:url => uri, :credentials => credentials, :options => prometheus_options)
+    end
+
+    def verify_prometheus_credentials(hostname, port, options)
+      !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
+    end
+
+    def verify_prometheus_alerts_credentials(hostname, port, options)
+      !!parent::MonitoringManager.verify_credentials(
+        :url         => raw_api_endpoint(hostname, port),
+        :path        => options[:path] || "/topics/alerts",
+        :credentials => {:token => options[:bearer]},
+        :ssl         => {
+          :verify     => options.dig(:ssl_options, :verify_ssl) != OpenSSL::SSL::VERIFY_NONE,
+          :cert_store => options.dig(:ssl_options, :ca_file)
+        }
+      )
+    end
+
+    def kubevirt_connect(hostname, port, options)
+      opts = {:server => hostname, :port => port, :token => options[:bearer]}
+      ManageIQ::Providers::Kubevirt::InfraManager.raw_connect(opts)
+    end
+
+    def verify_kubevirt_credentials(hostname, port, options)
+      !!kubevirt_connect(hostname, port, options)&.virt_supported?
+    end
   end
 
   PERF_ROLLUP_CHILDREN = [:container_nodes]
+
+  def edit_with_params(params, endpoints, authentications)
+    bearer = authentications.find { |authentication| authentication['authtype'] == 'bearer' }
+    kubevirt = authentications.find { |authentication| authentication['authtype'] == 'kubevirt' }
+    # As the authentication is token-only, no data is being submitted if there's no change as we never send
+    # down the password to the client. This would cause the deletion of the untouched authentications in the
+    # super() below. In order to prevent this, the authentications are set to a dummy value if the related
+    # endpoint exists among the submitted data.
+    endpoints.each do |endpoint|
+      case endpoint['role']
+      when 'default' # The default endpoint is paired with the bearer authentication
+        authentications << {'authtype' => 'bearer'} unless bearer
+      when 'kubevirt' # Kubevirt has its own authentication, no need for replication
+        authentications << {'authtype' => 'kubevirt'} unless kubevirt
+      else # Replicate the bearer authentication for any other endpoints
+        authentications << {'authtype' => endpoint['role']}.reverse_merge(bearer || {:auth_key => authentication_token})
+      end
+    end
+
+    super(params, endpoints, authentications)
+  end
 
   def verify_hawkular_credentials
     client = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClient.new(self)

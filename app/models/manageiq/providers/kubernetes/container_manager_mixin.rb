@@ -651,8 +651,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       }
 
       case endpoint_name
-      when 'default', 'kubevirt' # this also (partially) validates kubevirt
+      when 'default'
         !!raw_connect(hostname, port, options)
+      when 'kubevirt'
+        verify_kubevirt_credentials(hostname, port, options)
       when 'hawkular'
         verify_hawkular_credentials(hostname, port, options)
       when 'prometheus'
@@ -660,8 +662,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
       when 'prometheus_alerts'
         verify_prometheus_alerts_credentials(hostname, port, options)
       else
-        # TODO: maybe we need an error message here
-        return false
+        raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
       end
     end
 
@@ -778,6 +779,15 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
           :cert_store => options.dig(:ssl_options, :ca_file)
         }
       )
+    end
+
+    def kubevirt_connect(hostname, port, options)
+      opts = {:server => hostname, :port => port, :token => options[:bearer]}
+      ManageIQ::Providers::Kubevirt::InfraManager.raw_connect(opts)
+    end
+
+    def verify_kubevirt_credentials(hostname, port, options)
+      !!kubevirt_connect(hostname, port, options)&.virt_supported?
     end
   end
 

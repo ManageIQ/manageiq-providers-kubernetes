@@ -52,11 +52,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                         :validationDependencies => %w[type],
                         :fields                 => [
                           {
-                            :component  => "select-field",
+                            :component  => "select",
                             :name       => "endpoints.default.security_protocol",
                             :label      => _("Security Protocol"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :options    => [
                               {
                                 :label => _("SSL"),
@@ -77,7 +77,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :name       => "endpoints.default.hostname",
                             :label      => _("Hostname (or IPv4 or IPv6 address)"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                           },
                           {
                             :component    => "text-field",
@@ -86,7 +86,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :type         => "number",
                             :initialValue => default_port,
                             :isRequired   => true,
-                            :validate     => [{:type => "required-validator"}],
+                            :validate     => [{:type => "required"}],
                           },
                           {
                             :component  => "textarea-field",
@@ -94,7 +94,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => _("Trusted CA Certificates"),
                             :rows       => 10,
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :condition  => {
                               :when => 'endpoints.default.security_protocol',
                               :is   => 'ssl-with-validation-custom-ca',
@@ -106,7 +106,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => "Token",
                             :type       => "password",
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                           },
                         ]
                       }
@@ -151,11 +151,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                         },
                         :fields                 => [
                           {
-                            :component  => "select-field",
+                            :component  => "select",
                             :name       => "endpoints.hawkular.security_protocol",
                             :label      => _("Security Protocol"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :options    => [
                               {
                                 :label => _("SSL"),
@@ -176,7 +176,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :name       => "endpoints.hawkular.hostname",
                             :label      => _("Hostname (or IPv4 or IPv6 address)"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :inputAddon => {
                               :after => {
                                 :fields => [
@@ -210,7 +210,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :type         => "number",
                             :initialValue => 443,
                             :isRequired   => true,
-                            :validate     => [{:type => "required-validator"}],
+                            :validate     => [{:type => "required"}],
                           },
                           {
                             :component  => "textarea-field",
@@ -218,7 +218,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => _("Trusted CA Certificates"),
                             :rows       => 10,
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :condition  => {
                               :when => 'endpoints.hawkular.security_protocol',
                               :is   => 'ssl-with-validation-custom-ca',
@@ -237,11 +237,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                         },
                         :fields                 => [
                           {
-                            :component  => "select-field",
+                            :component  => "select",
                             :name       => "endpoints.prometheus.security_protocol",
                             :label      => _("Security Protocol"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :options    => [
                               {
                                 :label => _("SSL"),
@@ -262,7 +262,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :name       => "endpoints.prometheus.hostname",
                             :label      => _("Hostname (or IPv4 or IPv6 address)"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :inputAddon => {
                               :after => {
                                 :fields => [
@@ -296,7 +296,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :type         => "number",
                             :initialValue => 443,
                             :isRequired   => true,
-                            :validate     => [{:type => "required-validator"}],
+                            :validate     => [{:type => "required"}],
                           },
                           {
                             :component  => "textarea-field",
@@ -304,7 +304,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => _("Trusted CA Certificates"),
                             :rows       => 10,
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :condition  => {
                               :when => 'endpoints.prometheus.security_protocol',
                               :is   => 'ssl-with-validation-custom-ca',
@@ -348,11 +348,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                         },
                         :fields                 => [
                           {
-                            :component  => "select-field",
+                            :component  => "select",
                             :name       => "endpoints.prometheus_alerts.security_protocol",
                             :label      => _("Security Protocol"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :options    => [
                               {
                                 :label => _("SSL"),
@@ -373,7 +373,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :name       => "endpoints.prometheus_alerts.hostname",
                             :label      => _("Hostname (or IPv4 or IPv6 address)"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :inputAddon => {
                               :after => {
                                 :fields => [
@@ -407,7 +407,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :type         => "number",
                             :initialValue => 443,
                             :isRequired   => true,
-                            :validate     => [{:type => "required-validator"}],
+                            :validate     => [{:type => "required"}],
                           },
                           {
                             :component  => "textarea-field",
@@ -415,7 +415,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => _("Trusted CA Certificates"),
                             :rows       => 10,
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :condition  => {
                               :when => 'endpoints.prometheus_alerts.security_protocol',
                               :is   => 'ssl-with-validation-custom-ca',
@@ -459,11 +459,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                         },
                         :fields                 => [
                           {
-                            :component  => "select-field",
+                            :component  => "select",
                             :name       => "endpoints.kubevirt.security_protocol",
                             :label      => _("Security Protocol"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :options    => [
                               {
                                 :label => _("SSL"),
@@ -484,7 +484,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :name       => "endpoints.kubevirt.hostname",
                             :label      => _("Hostname (or IPv4 or IPv6 address)"),
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :inputAddon => {
                               :after => {
                                 :fields => [
@@ -518,7 +518,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :type         => "number",
                             :initialValue => default_port,
                             :isRequired   => true,
-                            :validate     => [{:type => "required-validator"}],
+                            :validate     => [{:type => "required"}],
                           },
                           {
                             :component  => "textarea-field",
@@ -526,7 +526,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => _("Trusted CA Certificates"),
                             :rows       => 10,
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                             :condition  => {
                               :when => 'endpoints.kubevirt.security_protocol',
                               :is   => 'ssl-with-validation-custom-ca',
@@ -538,7 +538,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                             :label      => "Token",
                             :type       => "password",
                             :isRequired => true,
-                            :validate   => [{:type => "required-validator"}],
+                            :validate   => [{:type => "required"}],
                           },
                         ]
                       }

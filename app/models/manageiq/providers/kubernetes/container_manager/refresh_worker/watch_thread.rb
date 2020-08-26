@@ -43,10 +43,12 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
       self.watch ||= connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
 
       watch.each do |notice|
-        # If we get a 410 gone with this resource version break out and restart
-        # the watch
-        if notice.kind == "Status" && notice.code == 410
-          _log.warn("Caught 410 Gone, restarting watch")
+        if notice.type == "ERROR"
+          message = notice.object&.message
+          code    = notice.object&.code
+          reason  = notice.object&.reason
+
+          _log.warn("Received an error watching #{entity_type}: [#{code} #{reason}], [#{message}]")
           break
         end
 

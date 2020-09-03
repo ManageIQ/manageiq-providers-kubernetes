@@ -45,9 +45,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
-    http_version: 
+      string: '{"MetricsService":"STARTED","Implementation-Version":"0.28.4.Final-redhat-1","Built-From-Git-SHA1":"9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472","Cassandra":"up"}'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:47 GMT
 - request:
     method: get
@@ -94,9 +93,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAI2VQWrDMBBF7+J1KLI0Go2z7ylKF4a4JRCHEDuhpfTuFU1rWX9k0HaeBHpfX/bLVzPN/XVu9q0ny956a40xu2Y4H9KMHrPxeG728tS5OBLfBbGhc88t7Zr+/r5BxuFw7Le2jf3HBplu4xbpx8tpmOLh4iHHy/zZ7N/60zR875QKFVQYVZz5HQbjW1BBkqkouKggSSqK1KtwQUX+Zo+d8/VW2ih6IxuVgRPvyRtHKgMgeQYIUwZAVhkgqc7g/9iZilUqEpdxG+dKBUiugjCpAFmpIKlXKTwyporr5EKlWVU6LhJrSQLh60SSZaDgkgGSlIEi9RkUKs2iVOLc+i6uJlQBkqsgTCpAVipI6lUKjyyYiusMhUoHVWkSE1zHJK3KAEieAcKUAZBVBkiqMwiFSgf13/BtZySW2OLjBJCJIFs8ACQNBPUWhfcVuOYmC20Oqs2enbDrnCGL/kDyABCmBICsIkBSn0GhzaJ+GWwkmBC/48yggiRTUXBRQZJUFKlWkcL7EltxnVJos6g2x4jFkGFq8TqR5BkgTBkAWWWAZCuD1x9FELzY0gkAAA==
-    http_version: 
+      string: '[{"start":1542652522000,"end":1542652542000,"min":8.93525859782793E14,"avg":8.93525859782793E14,"median":8.93525859782793E14,"max":8.93525859782793E14,"sum":8.93525859782793E14,"samples":1,"empty":false},{"start":1542652542000,"end":1542652562000,"min":8.93530256207051E14,"avg":8.93530256207051E14,"median":8.93530256207051E14,"max":8.93530256207051E14,"sum":8.93530256207051E14,"samples":1,"empty":false},{"start":1542652562000,"end":1542652582000,"empty":true},{"start":1542652582000,"end":1542652602000,"min":8.93533855450341E14,"avg":8.93533855450341E14,"median":8.93533855450341E14,"max":8.93533855450341E14,"sum":8.93533855450341E14,"samples":1,"empty":false},{"start":1542652602000,"end":1542652622000,"min":8.93538020612201E14,"avg":8.93538020612201E14,"median":8.93538020612201E14,"max":8.93538020612201E14,"sum":8.93538020612201E14,"samples":1,"empty":false},{"start":1542652622000,"end":1542652642000,"empty":true},{"start":1542652642000,"end":1542652662000,"min":8.93542082248743E14,"avg":8.93542082248743E14,"median":8.93542082248743E14,"max":8.93542082248743E14,"sum":8.93542082248743E14,"samples":1,"empty":false},{"start":1542652662000,"end":1542652682000,"min":8.93544262592664E14,"avg":8.93544262592664E14,"median":8.93544262592664E14,"max":8.93544262592664E14,"sum":8.93544262592664E14,"samples":1,"empty":false},{"start":1542652682000,"end":1542652702000,"empty":true},{"start":1542652702000,"end":1542652722000,"min":8.93548073964814E14,"avg":8.93548073964814E14,"median":8.93548073964814E14,"max":8.93548073964814E14,"sum":8.93548073964814E14,"samples":1,"empty":false},{"start":1542652722000,"end":1542652742000,"min":8.9355190864221E14,"avg":8.9355190864221E14,"median":8.9355190864221E14,"max":8.9355190864221E14,"sum":8.9355190864221E14,"samples":1,"empty":false},{"start":1542652742000,"end":1542652762000,"empty":true},{"start":1542652762000,"end":1542652782000,"min":8.93556386393042E14,"avg":8.93556386393042E14,"median":8.93556386393042E14,"max":8.93556386393042E14,"sum":8.93556386393042E14,"samples":1,"empty":false},{"start":1542652782000,"end":1542652802000,"min":8.93560870750366E14,"avg":8.93560870750366E14,"median":8.93560870750366E14,"max":8.93560870750366E14,"sum":8.93560870750366E14,"samples":1,"empty":false},{"start":1542652802000,"end":1542652822000,"empty":true},{"start":1542652822000,"end":1542652842000,"min":8.93563880406412E14,"avg":8.93563880406412E14,"median":8.93563880406412E14,"max":8.93563880406412E14,"sum":8.93563880406412E14,"samples":1,"empty":false}]'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:47 GMT
 - request:
     method: get
@@ -143,9 +141,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
-    http_version: 
+      string: '{"MetricsService":"STARTED","Implementation-Version":"0.28.4.Final-redhat-1","Built-From-Git-SHA1":"9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472","Cassandra":"up"}'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:47 GMT
 - request:
     method: get
@@ -192,9 +189,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAI2VQWrDMBBF7+K1KbIsjcbe9xSlC0PcEohDiJ3QUnr3ChJrZqQpaJPFIybvMR/n7adZt+m6NWPnnQVv46cxpm3m84EYPNhyPDejfzE+gIWus69D20z3z4It8+E4lV9dpq+CrbelZNNyOc1r/PmosVy272b8mE7r/NsWsqDI4pM9ntyuN+1BLB8Ek1eisdbJyIREI9GUmBAVEqoO3J2Ep808oXPBeRCijHFTjndVxpIrZ/WyVpF1FdcAZXOQbw4RA6CIJMQbGd0TCaVChuoDlbkB5p6Ddd7J2TAmTBlOqsTIlbF6WWXiwVRcIyibC+Xm+iHeLdtcYnJzhGlzibHNEauuDMrmgpOy0IW4TSO2wxmTFfgpy9kuK1i9rLLzADUnUYYXMK8EHHo5PM5EJcOpkhhVMlZfqQwPs3dr7Ol7l52EMS7L8S7LWJLlrFoWlbGjrTgJKsPDfHg2/p36wcpKYqKS4VRJjCoZ+6/y/Q/iiuSK1gcAAA==
-    http_version: 
+      string: '[{"start":1542652542000,"end":1542652562000,"min":5.057626112E9,"avg":5.057626112E9,"median":5.057626112E9,"max":5.057626112E9,"sum":5.057626112E9,"samples":1,"empty":false},{"start":1542652562000,"end":1542652582000,"empty":true},{"start":1542652582000,"end":1542652602000,"min":5.05780224E9,"avg":5.05780224E9,"median":5.05780224E9,"max":5.05780224E9,"sum":5.05780224E9,"samples":1,"empty":false},{"start":1542652602000,"end":1542652622000,"min":5.056147456E9,"avg":5.056147456E9,"median":5.056147456E9,"max":5.056147456E9,"sum":5.056147456E9,"samples":1,"empty":false},{"start":1542652622000,"end":1542652642000,"empty":true},{"start":1542652642000,"end":1542652662000,"min":5.05888768E9,"avg":5.05888768E9,"median":5.05888768E9,"max":5.05888768E9,"sum":5.05888768E9,"samples":1,"empty":false},{"start":1542652662000,"end":1542652682000,"min":5.058924544E9,"avg":5.058924544E9,"median":5.058924544E9,"max":5.058924544E9,"sum":5.058924544E9,"samples":1,"empty":false},{"start":1542652682000,"end":1542652702000,"empty":true},{"start":1542652702000,"end":1542652722000,"min":5.056139264E9,"avg":5.056139264E9,"median":5.056139264E9,"max":5.056139264E9,"sum":5.056139264E9,"samples":1,"empty":false},{"start":1542652722000,"end":1542652742000,"min":5.061726208E9,"avg":5.061726208E9,"median":5.061726208E9,"max":5.061726208E9,"sum":5.061726208E9,"samples":1,"empty":false},{"start":1542652742000,"end":1542652762000,"empty":true},{"start":1542652762000,"end":1542652782000,"min":5.061689344E9,"avg":5.061689344E9,"median":5.061689344E9,"max":5.061689344E9,"sum":5.061689344E9,"samples":1,"empty":false},{"start":1542652782000,"end":1542652802000,"min":5.062033408E9,"avg":5.062033408E9,"median":5.062033408E9,"max":5.062033408E9,"sum":5.062033408E9,"samples":1,"empty":false},{"start":1542652802000,"end":1542652822000,"empty":true},{"start":1542652822000,"end":1542652842000,"min":5.062254592E9,"avg":5.062254592E9,"median":5.062254592E9,"max":5.062254592E9,"sum":5.062254592E9,"samples":1,"empty":false}]'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:48 GMT
 - request:
     method: get
@@ -241,9 +237,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
-    http_version: 
+      string: '{"MetricsService":"STARTED","Implementation-Version":"0.28.4.Final-redhat-1","Built-From-Git-SHA1":"9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472","Cassandra":"up"}'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:48 GMT
 - request:
     method: get
@@ -290,9 +285,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAI2WQWrDMBBF7+J1KLI0mpGz7ylKF4a4JRCHEDulpfTuTUkb/ZGmoO2bGN5DI5Gnz25Zx/PabftInqOP3jvnNt103GVGNzbvj91WHkic9z4y82N/pePbq0HnabcfrZ/P47tBl8ts0XE+HablKnIVmk/rR7d9GQ/L9LWptMnQ5kqbWYYhltpAtTYOsjZQ0Ebars2Gdvplty/X88X6MNUfsit7gxMniYpepKpXDe69SHOvos29f4pK21faFHpxqdQGqrVxkLWBgjbSdm3jUjA1HBMba8nVWoZEgd1Q9gLVvTjIvUChF2l7r7GWnEptci76EAptpEpbDe7aSLO2ou3axqUQ13BMYqylVGtJ1Cfi8vVAqntxkHuBQi/S5l4x1lKqt5rkh5e3CanWxkHWBgraSNu1jUsh3HJMxlpKtZbRDd4NUvQiVb1qcO9FmnsVbe811jJVb3WkQfryqQaopYFn5wxBGWCzcTLuQ/INJ5SMjUzVRkYJIqn894BUx+Ig1wKFXKT/9T5/A5+VZZP2CAAA
-    http_version: 
+      string: '[{"start":1542652522000,"end":1542652542000,"min":7.4702225666E10,"avg":7.4702225666E10,"median":7.4702225666E10,"max":7.4702225666E10,"sum":7.4702225666E10,"samples":1,"empty":false},{"start":1542652542000,"end":1542652562000,"min":7.4702667995E10,"avg":7.4702667995E10,"median":7.4702667995E10,"max":7.4702667995E10,"sum":7.4702667995E10,"samples":1,"empty":false},{"start":1542652562000,"end":1542652582000,"empty":true},{"start":1542652582000,"end":1542652602000,"min":7.4703070784E10,"avg":7.4703070784E10,"median":7.4703070784E10,"max":7.4703070784E10,"sum":7.4703070784E10,"samples":1,"empty":false},{"start":1542652602000,"end":1542652622000,"min":7.4703431708E10,"avg":7.4703431708E10,"median":7.4703431708E10,"max":7.4703431708E10,"sum":7.4703431708E10,"samples":1,"empty":false},{"start":1542652622000,"end":1542652642000,"empty":true},{"start":1542652642000,"end":1542652662000,"min":7.4703843609E10,"avg":7.4703843609E10,"median":7.4703843609E10,"max":7.4703843609E10,"sum":7.4703843609E10,"samples":1,"empty":false},{"start":1542652662000,"end":1542652682000,"min":7.4704005233E10,"avg":7.4704005233E10,"median":7.4704005233E10,"max":7.4704005233E10,"sum":7.4704005233E10,"samples":1,"empty":false},{"start":1542652682000,"end":1542652702000,"empty":true},{"start":1542652702000,"end":1542652722000,"min":7.4704418465E10,"avg":7.4704418465E10,"median":7.4704418465E10,"max":7.4704418465E10,"sum":7.4704418465E10,"samples":1,"empty":false},{"start":1542652722000,"end":1542652742000,"min":7.4704726528E10,"avg":7.4704726528E10,"median":7.4704726528E10,"max":7.4704726528E10,"sum":7.4704726528E10,"samples":1,"empty":false},{"start":1542652742000,"end":1542652762000,"empty":true},{"start":1542652762000,"end":1542652782000,"min":7.4705092097E10,"avg":7.4705092097E10,"median":7.4705092097E10,"max":7.4705092097E10,"sum":7.4705092097E10,"samples":1,"empty":false},{"start":1542652782000,"end":1542652802000,"min":7.470549714E10,"avg":7.470549714E10,"median":7.470549714E10,"max":7.470549714E10,"sum":7.470549714E10,"samples":1,"empty":false},{"start":1542652802000,"end":1542652822000,"empty":true},{"start":1542652822000,"end":1542652842000,"min":7.4705737786E10,"avg":7.4705737786E10,"median":7.4705737786E10,"max":7.4705737786E10,"sum":7.4705737786E10,"samples":1,"empty":false}]'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:48 GMT
 - request:
     method: get
@@ -339,9 +333,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
-    http_version: 
+      string: '{"MetricsService":"STARTED","Implementation-Version":"0.28.4.Final-redhat-1","Built-From-Git-SHA1":"9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472","Cassandra":"up"}'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:48 GMT
 - request:
     method: get
@@ -388,8 +381,7 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAI2VQWrDMBBF7+J1KLIsjcbZ9xSlC0PcEohDiJ3SUnr3CtJ2vjRT0PZ9C95Ho/HTZ7du03Xr9n0MnqKP3jvndt18PggLd7Ycz5k9jDS6mIaR42Of6fT2atBlPhwn6/NlejfoelssOi2X07zmJAstl+2j279Mp3X+2intYGhTrd07conHShtpoV0Ef9pIRbug7dpkaPMPu5/crjfrIOuD5FTfwfWeU90XaNkXA+kLFPoibe77q1hoe61NlDwrbaGVNgSgLRS1gbZrG4+CQsM1kTGWpMcyhOh7qvsCLftiIH2BQl+k7X2NsSTW2hwcDUpbaKUNAWgLRW2g7drGo0iu4ZqSMZZJj2WkmFhdE9CyLwbSFyj0RdrcNxljmdSu7inE4NQSAFpqYyDaQEEbabu28SgStVyTMZZJj2Xq8zKu/01Iy74YSF+g0Bdpe19jLFnv6vxZ3hdKW2ilDQFoC0VtoM3abDwK9g3XxMZYsh5LDmlw6l8MtOyLgfQFCn2R/tf3+RsTXeuk+wgAAA==
-    http_version: 
+      string: '[{"start":1542652522000,"end":1542652542000,"min":1.9690573985E10,"avg":1.9690573985E10,"median":1.9690573985E10,"max":1.9690573985E10,"sum":1.9690573985E10,"samples":1,"empty":false},{"start":1542652542000,"end":1542652562000,"min":1.9691060789E10,"avg":1.9691060789E10,"median":1.9691060789E10,"max":1.9691060789E10,"sum":1.9691060789E10,"samples":1,"empty":false},{"start":1542652562000,"end":1542652582000,"empty":true},{"start":1542652582000,"end":1542652602000,"min":1.9691301287E10,"avg":1.9691301287E10,"median":1.9691301287E10,"max":1.9691301287E10,"sum":1.9691301287E10,"samples":1,"empty":false},{"start":1542652602000,"end":1542652622000,"min":1.9691366728E10,"avg":1.9691366728E10,"median":1.9691366728E10,"max":1.9691366728E10,"sum":1.9691366728E10,"samples":1,"empty":false},{"start":1542652622000,"end":1542652642000,"empty":true},{"start":1542652642000,"end":1542652662000,"min":1.9691445216E10,"avg":1.9691445216E10,"median":1.9691445216E10,"max":1.9691445216E10,"sum":1.9691445216E10,"samples":1,"empty":false},{"start":1542652662000,"end":1542652682000,"min":1.9691484063E10,"avg":1.9691484063E10,"median":1.9691484063E10,"max":1.9691484063E10,"sum":1.9691484063E10,"samples":1,"empty":false},{"start":1542652682000,"end":1542652702000,"empty":true},{"start":1542652702000,"end":1542652722000,"min":1.9691565786E10,"avg":1.9691565786E10,"median":1.9691565786E10,"max":1.9691565786E10,"sum":1.9691565786E10,"samples":1,"empty":false},{"start":1542652722000,"end":1542652742000,"min":1.9691645407E10,"avg":1.9691645407E10,"median":1.9691645407E10,"max":1.9691645407E10,"sum":1.9691645407E10,"samples":1,"empty":false},{"start":1542652742000,"end":1542652762000,"empty":true},{"start":1542652762000,"end":1542652782000,"min":1.9691711065E10,"avg":1.9691711065E10,"median":1.9691711065E10,"max":1.9691711065E10,"sum":1.9691711065E10,"samples":1,"empty":false},{"start":1542652782000,"end":1542652802000,"min":1.9691782264E10,"avg":1.9691782264E10,"median":1.9691782264E10,"max":1.9691782264E10,"sum":1.9691782264E10,"samples":1,"empty":false},{"start":1542652802000,"end":1542652822000,"empty":true},{"start":1542652822000,"end":1542652842000,"min":1.9691847309E10,"avg":1.9691847309E10,"median":1.9691847309E10,"max":1.9691847309E10,"sum":1.9691847309E10,"samples":1,"empty":false}]'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:48 GMT
 recorded_with: VCR 3.0.3

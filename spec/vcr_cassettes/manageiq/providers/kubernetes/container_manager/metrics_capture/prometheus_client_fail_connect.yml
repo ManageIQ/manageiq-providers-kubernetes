@@ -21,8 +21,8 @@ http_interactions:
       message: Forbidden
     headers:
       Set-Cookie:
-      - _oauth_proxy=; Path=/; Domain=prometheus.example.com; Expires=Tue,
-        29 Aug 2017 06:27:50 GMT; HttpOnly; Secure
+      - _oauth_proxy=; Path=/; Domain=prometheus.example.com; Expires=Tue, 29 Aug
+        2017 06:27:50 GMT; HttpOnly; Secure
       - bd337c9bdedd23361d6a22bfc4876b73=5a1c127a070a4ed5f092c7a5867ad054; path=/;
         HttpOnly; Secure
       Date:
@@ -64,6 +64,6 @@ http_interactions:
         (var i = 0; i < inputs.length; i++) {\n\t\t\t\t\tinputs[i].value += window.location.hash;\n\t\t\t\t}\n\t\t\t})();\n\t\t}\n\t</script>\n\t<footer>\n\t\n\tSecured
         with <a href=\"https://github.com/openshift/oauth-proxy#oauth2_proxy\">OAuth2
         Proxy</a> version 2.2.1-alpha\n\t\n\t</footer>\n</body>\n</html>\n"
-    http_version: 
+    http_version:
   recorded_at: Tue, 29 Aug 2017 07:27:50 GMT
 recorded_with: VCR 3.0.3

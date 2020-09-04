@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,lib}/**/*"]
 
-  s.add_runtime_dependency("hawkular-client",                 "~> 4.1")
+  s.add_runtime_dependency("hawkular-client",                 "~> 5.0")
   s.add_runtime_dependency("image-inspector-client",          "~> 2.0")
   s.add_runtime_dependency("kubeclient",                      "~> 4.6")
   s.add_runtime_dependency("more_core_extensions",            ">= 3.6", "< 5")

@@ -1,6 +1,6 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClientMixin
   def hawkular_client(tenant = nil)
-    require 'hawkular/hawkular_client'
+    require 'hawkularclient'
 
     @hawkular_uri ||= hawkular_uri
     @hawkular_credentials ||= hawkular_credentials

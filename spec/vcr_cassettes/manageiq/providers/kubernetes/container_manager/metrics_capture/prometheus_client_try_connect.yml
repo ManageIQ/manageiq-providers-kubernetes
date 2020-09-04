@@ -46,6 +46,6 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '{"status":"success","data":{"resultType":"vector","result":[]}}'
-    http_version: 
+    http_version:
   recorded_at: Tue, 29 Aug 2017 07:16:16 GMT
 recorded_with: VCR 3.0.3

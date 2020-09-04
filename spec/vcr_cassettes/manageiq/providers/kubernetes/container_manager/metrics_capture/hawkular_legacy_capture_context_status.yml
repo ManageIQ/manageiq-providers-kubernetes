@@ -45,9 +45,8 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
-    http_version: 
+      string: '{"MetricsService":"STARTED","Implementation-Version":"0.28.4.Final-redhat-1","Built-From-Git-SHA1":"9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472","Cassandra":"up"}'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:50 GMT
 - request:
     method: get
@@ -94,8 +93,7 @@ http_interactions:
         HttpOnly; Secure
     body:
       encoding: ASCII-8BIT
-      string: !binary |-
-        H4sIAAAAAAAAAA2MsQ7CIBQA/4VZCBC0rVurVh1cbOP+gNdIUmgD1MX47zLdcndf8sAcnUkDxo8zSI5kGNvneDmTHbn7dUaPIUN2S6AvjKmwKJzJminWuwAzjWjfkKkoQbe5OdM+Lp5eXabDrRXFbqYJamsPqtbAtVTamr00ohIVNJobDigmoSpZBidICYKNULJtJb8/6aNhB58AAAA=
-    http_version: 
+      string: '{"MetricsService":"STARTED","Implementation-Version":"0.28.4.Final-redhat-1","Built-From-Git-SHA1":"9ffa8dd648ba0b24bdc52c1717a9b0c0ae1f1472","Cassandra":"up"}'
+    http_version:
   recorded_at: Tue, 20 Nov 2018 09:11:50 GMT
 recorded_with: VCR 3.0.3

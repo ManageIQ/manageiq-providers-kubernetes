@@ -9,6 +9,48 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     expect(described_class.raw_api_endpoint("::1", 123).to_s).to eq "https://[::1]:123"
   end
 
+  describe ".params_for_create" do
+    before do
+      stub_settings(:http_proxy => {:default => {}}, :ems => {:ems_kubernetes => {}})
+    end
+
+    it "dynamically adjusts to new http_proxy value" do
+      options = DDF.find_field(described_class.params_for_create, 'options.proxy_settings.http_proxy')
+      expect(options[:placeholder]).to be_blank
+
+      stub_settings_merge(:http_proxy => {:default => {:host => "example.com", :port => 1234}})
+      options = DDF.find_field(described_class.params_for_create, 'options.proxy_settings.http_proxy')
+      expect(options[:placeholder]).to eq "http://example.com:1234"
+    end
+
+    it "dynamically adjusts to new image_inspector_repository value" do
+      options = DDF.find_field(described_class.params_for_create, 'options.image_inspector_options.repository')
+      expect(options[:placeholder]).to be_blank
+
+      stub_settings_merge(:ems => {:ems_kubernetes => {:image_inspector_repository => "http://example.com/repository"}})
+      options = DDF.find_field(described_class.params_for_create, 'options.image_inspector_options.repository')
+      expect(options[:placeholder]).to eq "http://example.com/repository"
+    end
+
+    it "dynamically adjusts to new image_inspector_registry value" do
+      options = DDF.find_field(described_class.params_for_create, 'options.image_inspector_options.registry')
+      expect(options[:placeholder]).to be_blank
+
+      stub_settings_merge(:ems => {:ems_kubernetes => {:image_inspector_registry => "http://example.com/registry"}})
+      options = DDF.find_field(described_class.params_for_create, 'options.image_inspector_options.registry')
+      expect(options[:placeholder]).to eq "http://example.com/registry"
+    end
+
+    it "dynamically adjusts to new image_inspector_cve_url value" do
+      options = DDF.find_field(described_class.params_for_create, 'options.image_inspector_options.cve_url')
+      expect(options[:placeholder]).to be_blank
+
+      stub_settings_merge(:ems => {:ems_kubernetes => {:image_inspector_cve_url => "http://example.com/cve_url"}})
+      options = DDF.find_field(described_class.params_for_create, 'options.image_inspector_options.cve_url')
+      expect(options[:placeholder]).to eq "http://example.com/cve_url"
+    end
+  end
+
   context "#supports_metrics?" do
     before(:each) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)

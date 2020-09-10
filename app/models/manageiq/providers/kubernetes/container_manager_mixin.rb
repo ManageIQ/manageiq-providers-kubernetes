@@ -94,7 +94,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                           :validate     => [{:type => "required"}],
                         },
                         {
-                          :component  => "textarea-field",
+                          :component  => "textarea",
                           :id         => "endpoints.default.certificate_authority",
                           :name       => "endpoints.default.certificate_authority",
                           :label      => _("Trusted CA Certificates"),
@@ -228,7 +228,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                           :validate     => [{:type => "required"}],
                         },
                         {
-                          :component  => "textarea-field",
+                          :component  => "textarea",
                           :id         => "endpoints.hawkular.certificate_authority",
                           :name       => "endpoints.hawkular.certificate_authority",
                           :label      => _("Trusted CA Certificates"),
@@ -321,7 +321,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                           :validate     => [{:type => "required"}],
                         },
                         {
-                          :component  => "textarea-field",
+                          :component  => "textarea",
                           :id         => "endpoints.prometheus.certificate_authority",
                           :name       => "endpoints.prometheus.certificate_authority",
                           :label      => _("Trusted CA Certificates"),
@@ -441,7 +441,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                           :validate     => [{:type => "required"}],
                         },
                         {
-                          :component  => "textarea-field",
+                          :component  => "textarea",
                           :id         => "endpoints.prometheus_alerts.certificate_authority",
                           :name       => "endpoints.prometheus_alerts.certificate_authority",
                           :label      => _("Trusted CA Certificates"),
@@ -561,7 +561,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                           :validate     => [{:type => "required"}],
                         },
                         {
-                          :component  => "textarea-field",
+                          :component  => "textarea",
                           :id         => "endpoints.kubevirt.certificate_authority",
                           :name       => "endpoints.kubevirt.certificate_authority",
                           :label      => _("Trusted CA Certificates"),

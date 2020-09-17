@@ -5,8 +5,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager < 
 
   def initialize_inventory_collections
     initialize_container_inventory_collections
-
-    @tag_mapper = ContainerLabelTagMapping.mapper
-    add_collection_directly(@tag_mapper.tags_to_resolve_collection)
+    initialize_tag_mapper
   end
 end

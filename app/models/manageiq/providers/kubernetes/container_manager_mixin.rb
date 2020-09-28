@@ -51,6 +51,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                       :id                     => 'authentications.default.valid',
                       :name                   => 'authentications.default.valid',
                       :skipSubmit             => true,
+                      :isRequired             => true,
                       :validationDependencies => %w[type],
                       :fields                 => [
                         {
@@ -154,6 +155,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                       :id                     => "authentications.hawkular.valid",
                       :name                   => "authentications.hawkular.valid",
                       :skipSubmit             => true,
+                      :isRequired             => true,
                       :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
                       :condition              => {
                         :when => "metrics_selection",
@@ -247,6 +249,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                       :id                     => "authentications.prometheus.valid",
                       :name                   => "authentications.prometheus.valid",
                       :skipSubmit             => true,
+                      :isRequired             => true,
                       :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
                       :condition              => {
                         :when => "metrics_selection",
@@ -367,6 +370,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                       :id                     => "authentications.prometheus_alerts.valid",
                       :name                   => "authentications.prometheus_alerts.valid",
                       :skipSubmit             => true,
+                      :isRequired             => true,
                       :validationDependencies => ['type', "alerts_selection", "authentications.bearer.auth_key"],
                       :condition              => {
                         :when => "alerts_selection",
@@ -487,6 +491,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManagerMixin
                       :id                     => 'endpoints.virtualization.valid',
                       :name                   => 'endpoints.virtualization.valid',
                       :skipSubmit             => true,
+                      :isRequired             => true,
                       :validationDependencies => %w[type virtualization_selection],
                       :condition              => {
                         :when => 'virtualization_selection',

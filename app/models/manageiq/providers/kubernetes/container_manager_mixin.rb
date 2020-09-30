@@ -694,7 +694,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
       endpoint = args.dig("endpoints", endpoint_name)
 
       token = args.dig("authentications", "bearer", "auth_key") || args.dig("authentications", "kubevirt", "auth_key")
-      token = MiqPassword.try_decrypt(token)
+      token = ManageIQ::Password.try_decrypt(token)
       token ||= find(args["id"]).authentication_token(endpoint_name == 'kubevirt' ? 'kubevirt' : 'bearer') if args["id"]
 
       hostname, port = endpoint&.values_at("hostname", "port")

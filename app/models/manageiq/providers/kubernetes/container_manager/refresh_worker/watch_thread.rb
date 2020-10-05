@@ -31,10 +31,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
     thread&.join(join_limit)
   end
 
+  protected
+
+  attr_accessor :resource_version, :thread, :watch
+
   private
 
   attr_reader :connect_options, :ems_klass, :entity_type, :finish, :queue
-  attr_accessor :resource_version, :thread, :watch
 
   def collector_thread
     _log.debug { "Starting watch thread for #{entity_type}" }

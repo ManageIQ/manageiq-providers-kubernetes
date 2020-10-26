@@ -1,4 +1,4 @@
-GlobalVars:
+Style/GlobalVars:
   AllowedVariables:
   - $kube_log
   - $cn_monitoring_log

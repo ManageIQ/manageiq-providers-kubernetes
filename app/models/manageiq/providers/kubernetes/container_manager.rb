@@ -1,4 +1,6 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::ContainerManager
+  include ActsAsStiLeafClass
+
   require_nested :Container
   require_nested :ContainerGroup
   require_nested :ContainerNode

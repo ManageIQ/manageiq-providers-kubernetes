@@ -31,6 +31,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   # our specific code in ManageIQ.
   delegate :api_version, :to => :class
 
+  supports :label_mapping
+
   def api_version=(_value)
     raise 'Kubernetes api_version cannot be modified'
   end
@@ -61,5 +63,23 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
 
   def self.default_port
     DEFAULT_PORT
+  end
+
+  LABEL_MAPPING_MODELS = %w[
+    ContainerGroup
+    ContainerProject
+    ContainerNode
+    ContainerReplicator
+    ContainerRoute
+    ContainerService
+    ContainerBuild
+  ].freeze
+
+  def self.entities_for_label_mapping
+    LABEL_MAPPING_MODELS.each_with_object({}) { |target_model, entity| entity[target_model] = target_model }
+  end
+
+  def self.label_mapping_prefix
+    ems_type
   end
 end

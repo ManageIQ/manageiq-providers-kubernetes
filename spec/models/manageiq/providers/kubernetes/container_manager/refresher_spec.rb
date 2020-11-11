@@ -100,6 +100,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       def assert_specific_container
         @container = Container.find_by(:name => "heapster")
         expect(@container).to have_attributes(
+          :type          => "ManageIQ::Providers::Kubernetes::ContainerManager::Container",
           # :ems_ref     => "a7566742-e73f-11e4-b613-001a4a5f4a02_heapster_kubernetes/heapster:v0.9",
           :name          => "heapster",
           :restart_count => 2,
@@ -146,6 +147,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       def assert_specific_container_group(expected_extra_tags: [])
         @containergroup = ContainerGroup.find_by(:name => "monitoring-heapster-controller-4j5zu")
         expect(@containergroup).to have_attributes(
+          :type           => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup",
           # :ems_ref        => "49984e80-e1b7-11e4-b7dc-001a4a5f4a02",
           :name           => "monitoring-heapster-controller-4j5zu",
           :restart_policy => "Always",
@@ -196,6 +198,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       def assert_specific_container_node
         @containernode = ContainerNode.where(:name => "10.35.0.169").first
         expect(@containernode).to have_attributes(
+          :type                       => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode",
           # :ems_ref       => "a3d2a008-e73f-11e4-b613-001a4a5f4a02",
           :lives_on_type              => openstack_vm.type,
           :lives_on_id                => openstack_vm.id,
@@ -425,7 +428,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           end
 
           # fake node that should get archived on later refresh
-          FactoryBot.create(:container_node, :name => "node", :ems_id => ems.id)
+          FactoryBot.create(:kubernetes_node, :name => "node", :ems_id => ems.id)
         end
 
         let(:container_volumes_count) { 68 }

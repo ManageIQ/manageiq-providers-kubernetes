@@ -323,7 +323,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     tags   = map_labels('ContainerNode', labels)
 
     new_result.merge!(
-      :type           => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode',
       :identity_infra => node.spec.providerID,
       :lives_on_id    => nil,
       :lives_on_type  => nil
@@ -445,7 +444,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     new_result = parse_base_item(pod)
 
     new_result.merge!(
-      :type              => 'ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup',
       :container_project => lazy_find_project(:name => new_result[:namespace]),
       :restart_policy    => pod.spec.restartPolicy,
       :dns_policy        => pod.spec.dnsPolicy,
@@ -785,7 +783,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_container_spec(container_spec, pod_id)
     new_result = {
-      :type                 => 'ManageIQ::Providers::Kubernetes::ContainerManager::Container',
       :ems_ref              => "#{pod_id}_#{container_spec.name}_#{container_spec.image}",
       :name                 => container_spec.name,
       :image                => container_spec.image,

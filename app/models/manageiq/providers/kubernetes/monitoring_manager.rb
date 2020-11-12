@@ -22,7 +22,7 @@ module ManageIQ::Providers
             :allow_nil => true
 
     def self.hostname_required?
-     false
+      false
     end
 
     def self.ems_type

@@ -27,8 +27,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::Options
               :help_text => N_('HTTPS Proxy to connect image inspector pods to the internet. example: https://user:password@my_https_proxy'),
             },
             :no_proxy    => {
-              :label     => N_('NO Proxy'),
-              :help_text => N_('NO Proxy lists urls that should\'nt be sent to any proxy. example: my_file_server.org'),
+              :label     => N_('No Proxy'),
+              :help_text => N_('No Proxy lists urls that should\'nt be sent to any proxy. example: my_file_server.org'),
             },
             :repository  => {
               :label          => N_('Image-Inspector Repository'),

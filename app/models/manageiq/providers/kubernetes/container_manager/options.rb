@@ -46,7 +46,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::Options
               :global_default => ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job::INSPECTOR_IMAGE_TAG,
             },
             :cve_url     => {
-              :label          => N_('CVE location'),
+              :label          => N_('CVE Location'),
               :help_text      => N_('Enables defining a URL path prefix for XCCDF file instead of accessing the default location.
   example: http://my_file_server.org:3333/xccdf_files/
   Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),

@@ -471,7 +471,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     unless pod.status.nil? || pod.status.containerStatuses.nil?
       pod.status.containerStatuses.each do |cn|
-        container_status = parse_container_status(cn, pod.metadata.uid)
+        container_status = parse_container_status(cn)
         if container_status.nil?
           _log.error("Invalid container status: pod - [#{pod.metadata.uid}] container - [#{cn}] [#{containers_index[cn.name]}]")
           next
@@ -840,7 +840,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def parse_container_status(container, pod_id)
+  def parse_container_status(container)
     container_image = parse_container_image(container.image, container.imageID)
     return if container_image.nil?
 

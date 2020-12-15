@@ -971,7 +971,6 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     if image_ref.start_with?(ContainerImage::DOCKER_PULLABLE_PREFIX)
       hostname = image_ref_parts[:host] || image_ref_parts[:host2]
-      port = image_ref_parts[:port]
       digest = image_ref_parts[:digest]
     else
       hostname = image_parts[:host] || image_parts[:host2] || image_parts[:localhost]

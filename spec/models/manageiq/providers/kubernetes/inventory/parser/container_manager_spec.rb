@@ -457,16 +457,15 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
   describe "parse_container_status" do
     let(:image)   { "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" }
     let(:imageID) { "docker://#{image}" }
-    let(:pod_id)  { "af3d1a10-23d3-11e5-44c0-0af3d1a10370e" }
 
     it "handles invalid image" do
       container = array_recursive_ostruct(:image => nil, :imageID => imageID)
-      expect(parser.send(:parse_container_status, container, pod_id)).to be_nil
+      expect(parser.send(:parse_container_status, container)).to be_nil
     end
 
     it "handles invalid imageID" do
       container = array_recursive_ostruct(:image => image, :imageID => nil)
-      expect(parser.send(:parse_container_status, container, pod_id)).to be_nil
+      expect(parser.send(:parse_container_status, container)).to be_nil
     end
   end
 

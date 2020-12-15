@@ -803,7 +803,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     end
 
     def verify_hawkular_credentials(hostname, port, options)
-      !!hawkular_connect(hostname, port, options)&.avail&.get_data('all', :limit => 1)&.kind_of?(Array)
+      !!hawkular_connect(hostname, port, options)&.avail&.get_data('all', :limit => 1).kind_of?(Array)
     end
 
     def prometheus_connect(hostname, port, options)
@@ -823,7 +823,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     end
 
     def verify_prometheus_credentials(hostname, port, options)
-      !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
+      !!prometheus_connect(hostname, port, options)&.query(:query => "ALL").kind_of?(Hash)
     end
 
     def verify_prometheus_alerts_credentials(hostname, port, options)

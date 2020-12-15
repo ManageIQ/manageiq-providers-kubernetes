@@ -840,7 +840,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def parse_container_status(container, pod_id)
+  def parse_container_status(container, _pod_id)
     container_image = parse_container_image(container.image, container.imageID)
     return if container_image.nil?
 

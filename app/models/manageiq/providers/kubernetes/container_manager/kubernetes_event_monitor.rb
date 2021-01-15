@@ -1,4 +1,6 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager::KubernetesEventMonitor
+  include Vmdb::Logging
+
   def initialize(ems)
     @ems = ems
   end
@@ -33,6 +35,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::KubernetesEventMonitor
       yield notice
     end
   rescue EOFError => err
-    $kube_log.info("Monitoring connection closed #{err}")
+    _log.info("Monitoring connection closed #{err}")
   end
 end

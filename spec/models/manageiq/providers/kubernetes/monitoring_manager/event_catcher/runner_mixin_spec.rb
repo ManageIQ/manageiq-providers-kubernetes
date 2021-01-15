@@ -112,19 +112,19 @@ describe ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Runne
       )
     end
 
-    it "logs warn and fallsback to the ems if the node does not exist" do
+    it "logs warn and falls back to the ems if the node does not exist" do
       subject.instance_variable_set(:@target_ems_id, 8)
       labels = { "instance" => "testing" }
-      expect($cn_monitoring_log).to receive(:warn)
+      expect($log).to receive(:warn)
       expect(subject.find_target(node_annotations, labels).compact).to eq(
         :target_type => "ExtManagementSystem",
         :target_id   => 8,
       )
     end
 
-    it "logs warn and fallsback to the ems if there is no instance annotation" do
+    it "logs warn and falls back to the ems if there is no instance annotation" do
       subject.instance_variable_set(:@target_ems_id, 8)
-      expect($cn_monitoring_log).to receive(:warn)
+      expect($log).to receive(:warn)
       expect(subject.find_target(node_annotations, {}).compact).to eq(
         :target_type => "ExtManagementSystem",
         :target_id   => 8,

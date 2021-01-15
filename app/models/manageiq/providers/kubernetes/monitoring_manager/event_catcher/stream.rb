@@ -1,4 +1,6 @@
 class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
+  include Vmdb::Logging
+
   def initialize(ems)
     @ems = ems
   end
@@ -16,14 +18,14 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
       yield(fetch)
     end
   rescue EOFError => err
-    $cn_monitoring_log.info("Monitoring connection closed #{err}")
+    _log.info("Monitoring connection closed #{err}")
   end
 
   def fetch
     unless @current_generation
       @current_generation, @current_index = last_position
     end
-    $cn_monitoring_log.info("Fetching alerts. Generation: [#{@current_generation}/#{@current_index}]")
+    _log.info("Fetching alerts. Generation: [#{@current_generation}/#{@current_index}]")
 
     # {
     #   "generationID":"323e0863-f501-4896-b7dc-353cf863597d",
@@ -48,13 +50,13 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
         if alert_for_miq?(alert)
           alerts << process_alert!(alert, @current_generation, @current_index)
         else
-          $cn_monitoring_log.info("Skipping alert due to missing annotation or unexpected target")
+          _log.info("Skipping alert due to missing annotation or unexpected target")
         end
       end
       @current_index += 1
     end
-    $cn_monitoring_log.info("[#{alerts.size}] new alerts. New generation: [#{@current_generation}/#{@current_index}]")
-    $cn_monitoring_log.debug(alerts)
+    _log.info("[#{alerts.size}] new alerts. New generation: [#{@current_generation}/#{@current_index}]")
+    _log.debug(alerts)
     alerts
   end
 

@@ -1,5 +1,6 @@
 module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerMixin
   extend ActiveSupport::Concern
+  include Vmdb::Logging
 
   # This module is shared between:
   # - Kubernetes::MonitoringManager::EventCatcher
@@ -16,15 +17,15 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
   def stop_event_monitor
     @event_monitor_handle.stop unless @event_monitor_handle.nil?
   rescue => err
-    $cn_monitoring_log.error("Event Monitor error [#{err.message}]")
-    $cn_monitoring_log.error("Error details: [#{err.details}]")
-    $cn_monitoring_log.log_backtrace(err)
+    _log.error("Event Monitor error [#{err.message}]")
+    _log.error("Error details: [#{err.details}]")
+    _log.log_backtrace(err)
   ensure
     reset_event_monitor_handle
   end
 
   def monitor_events
-    $cn_monitoring_log.info("[#{self.class.name}] Event Monitor started")
+    _log.info("[#{self.class.name}] Event Monitor started")
     @target_ems_id = @ems.parent_manager.id
     event_monitor_handle.start
     event_monitor_running
@@ -39,7 +40,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
   def queue_event(event)
     event_hash = extract_event_data(event)
     if event_hash
-      $cn_monitoring_log.info("Queuing event [#{event_hash}]")
+      _log.info("Queuing event [#{event_hash}]")
       EmsEvent.add_queue("add", @target_ems_id, event_hash)
     end
   end
@@ -110,7 +111,7 @@ module ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::RunnerM
           :target_id           => node.try(:id),
         }
       else
-        $cn_monitoring_log.warn("Could not find node from labels: [#{labels}] defaulting to ems")
+        _log.warn("Could not find node from labels: [#{labels}] defaulting to ems")
       end
     end
     {

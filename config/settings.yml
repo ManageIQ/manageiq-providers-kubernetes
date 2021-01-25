@@ -61,19 +61,18 @@
     :inventory_collections:
       :saver_strategy: batch
 :workers:
-  :worker_base:
-    :event_catcher:
-      :event_catcher_kubernetes:
-        :poll: 1.seconds
-      :event_catcher_prometheus:
-        :poll: 20.seconds
-    :queue_worker_base:
-        :ems_metrics_collector_worker:
-          :ems_metrics_collector_worker_kubernetes:
-            :metrics_port: 5000
-            :metrics_path: "/hawkular/metrics"
-            :prometheus_open_timeout: 5
-            :prometheus_request_timeout: 30
-            :hawkular_force_legacy: true
-        :ems_refresh_worker:
-          :ems_refresh_worker_kubernetes: {}
+  :ems_metrics_collector_worker_kubernetes:
+    :hawkular_force_legacy: true
+    :inherits_from: ems_metrics_collector_worker
+    :metrics_path: "/hawkular/metrics"
+    :metrics_port: 5000
+    :prometheus_open_timeout: 5
+    :prometheus_request_timeout: 30
+  :ems_refresh_worker_kubernetes:
+    :inherits_from: ems_refresh_worker
+  :event_catcher_prometheus:
+    :inherits_from: event_catcher
+    :poll: 20.seconds
+  :event_catcher_kubernetes:
+    :inherits_from: event_catcher
+    :poll: 1.seconds

@@ -1,11 +1,11 @@
 [Unit]
-PartOf=kubernetes_container_manager_refresh.target
+PartOf=manageiq-providers-kubernetes_container_manager_refresh.target
 [Install]
-WantedBy=kubernetes_container_manager_refresh.target
+WantedBy=manageiq-providers-kubernetes_container_manager_refresh.target
 [Service]
 WorkingDirectory=/var/www/miq/vmdb
 Environment=BUNDLER_GROUPS=manageiq_default,ui_dependencies
 ExecStart=/bin/bash -lc 'exec ruby lib/workers/bin/run_single_worker.rb ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker --heartbeat --guid=%i'
 Restart=no
 Type=notify
-Slice=miq-kubernetes_container_manager_refresh.slice
+Slice=manageiq-providers-kubernetes_container_manager_refresh.slice

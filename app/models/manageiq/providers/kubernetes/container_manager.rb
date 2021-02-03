@@ -999,8 +999,8 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     options.merge(
       :hostname    => options[:hostname] || address,
       :port        => options[:port] || port,
-      :user        => options[:user] || authentication_userid(options[:auth_type]),
-      :pass        => options[:pass] || authentication_password(options[:auth_type]),
+      :username    => options[:username] || authentication_userid(options[:auth_type]),
+      :password    => options[:password] || authentication_password(options[:auth_type]),
       :bearer      => options[:bearer] || authentication_token(options[:auth_type] || 'bearer'),
       :http_proxy  => self.options ? self.options.fetch_path(:proxy_settings, :http_proxy) : nil,
       :ssl_options => options[:ssl_options] || {

@@ -83,9 +83,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
 
   def partial_refresh(notices)
     refresh_block do
-      collector = inventory_klass::Collector::WatchNotice.new(ems, notices)
-      persister = inventory_klass::Persister::WatchNotice.new(ems, nil)
-      parser    = inventory_klass::Parser::WatchNotice.new
+      collector = inventory_klass::Collector::ContainerManager::WatchNotice.new(ems, notices)
+      persister = inventory_klass::Persister::ContainerManager::WatchNotice.new(ems, nil)
+      parser    = inventory_klass::Parser::ContainerManager::WatchNotice.new
 
       parser.collector = collector
       parser.persister = persister

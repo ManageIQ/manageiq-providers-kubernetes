@@ -1,4 +1,4 @@
-class ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Collector
+class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Collector
   attr_reader :additional_attributes, :pods, :replication_controllers,
               :namespaces, :nodes, :notices, :resource_quotas, :limit_ranges,
               :persistent_volumes, :persistent_volume_claims

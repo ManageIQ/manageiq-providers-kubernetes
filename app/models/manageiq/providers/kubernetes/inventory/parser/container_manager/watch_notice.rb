@@ -1,4 +1,4 @@
-class ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager
+class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager::WatchNotice < ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager
   def parse
     parse_notices
 

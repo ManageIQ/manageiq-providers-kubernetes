@@ -895,9 +895,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       allow(kube).to receive(:get_service).and_return(service)
       allow(ems).to receive(:connect).and_return(kube)
 
-      collector = ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice.new(ems, notices)
-      persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::WatchNotice.new(ems, nil)
-      parser    = ManageIQ::Providers::Kubernetes::Inventory::Parser::WatchNotice.new
+      collector = ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager::WatchNotice.new(ems, notices)
+      persister = ManageIQ::Providers::Kubernetes::Inventory::Persister::ContainerManager::WatchNotice.new(ems, nil)
+      parser    = ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager::WatchNotice.new
 
       parser.collector = collector
       parser.persister = persister

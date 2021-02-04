@@ -2,6 +2,8 @@ require 'bigdecimal'
 require 'shellwords'
 
 class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Parser
+  require_nested :WatchNotice
+
   include Vmdb::Logging
   include ManageIQ::Providers::Kubernetes::ContainerManager::EntitiesMapping
 

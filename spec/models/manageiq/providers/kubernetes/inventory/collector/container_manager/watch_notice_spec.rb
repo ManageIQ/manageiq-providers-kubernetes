@@ -1,8 +1,8 @@
 autoload(:Kubeclient, 'kubeclient')
 
-describe ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice do
+describe ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager::WatchNotice do
   let(:ems)       { FactoryBot.create(:ems_kubernetes) }
-  let(:collector) { ManageIQ::Providers::Kubernetes::Inventory::Collector::WatchNotice.new(ems, notices) }
+  let(:collector) { described_class.new(ems, notices) }
   let(:service1)  { Kubeclient::Resource.new(:kind => "Service", :metadata => {:name => "app1", :namespace => "default"}) }
   let(:service2)  { Kubeclient::Resource.new(:kind => "Service", :metadata => {:name => "app2", :namespace => "default"}) }
   let(:endpoint1) { Kubeclient::Resource.new(:kind => "Endpoint", :metadata => {:name => "app1", :namespace => "default"}) }

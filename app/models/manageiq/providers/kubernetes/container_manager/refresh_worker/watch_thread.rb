@@ -55,6 +55,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
           break
         end
 
+        next if noop?(notice)
+
         queue.push(notice)
       end
 
@@ -68,6 +70,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   rescue => err
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)
+  end
+
+  def noop?(_notice)
+    # Allow sub-classes to filter notices
+    false
   end
 
   def connection(_entity_type = nil)

@@ -21,9 +21,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options
 
   supports :streaming_refresh do
-    unsupported_reason_add(:streaming_refresh, "Streaming refresh not enabled") unless streaming_refresh_enabled?
+    unsupported_reason_add(:streaming_refresh, _("Streaming refresh not enabled")) unless streaming_refresh_enabled?
   end
 
+  supports :label_mapping
   def streaming_refresh_enabled?
     Settings.ems_refresh[emstype.to_sym]&.streaming_refresh
   end
@@ -44,8 +45,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
           :class_name  => "ManageIQ::Providers::Kubernetes::MonitoringManager",
           :autosave    => true,
           :dependent   => :destroy
-
-  supports :label_mapping
 
   def self.ems_type
     @ems_type ||= "kubernetes".freeze

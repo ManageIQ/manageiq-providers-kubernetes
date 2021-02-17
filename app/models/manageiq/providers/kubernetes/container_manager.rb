@@ -115,13 +115,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :validationDependencies => %w[type],
                     :fields                 => [
                       {
-                        :component  => "select",
-                        :id         => "endpoints.default.security_protocol",
-                        :name       => "endpoints.default.security_protocol",
-                        :label      => _("Security Protocol"),
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :options    => [
+                        :component    => "select",
+                        :id           => "endpoints.default.security_protocol",
+                        :name         => "endpoints.default.security_protocol",
+                        :label        => _("Security Protocol"),
+                        :isRequired   => true,
+                        :validate     => [{:type => "required"}],
+                        :initialValue => 'ssl-with-validation',
+                        :options      => [
                           {
                             :label => _("SSL"),
                             :value => "ssl-with-validation"
@@ -223,13 +224,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     },
                     :fields                 => [
                       {
-                        :component  => "select",
-                        :id         => "endpoints.hawkular.security_protocol",
-                        :name       => "endpoints.hawkular.security_protocol",
-                        :label      => _("Security Protocol"),
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :options    => [
+                        :component    => "select",
+                        :id           => "endpoints.hawkular.security_protocol",
+                        :name         => "endpoints.hawkular.security_protocol",
+                        :label        => _("Security Protocol"),
+                        :isRequired   => true,
+                        :initialValue => 'ssl-with-validation',
+                        :validate     => [{:type => "required"}],
+                        :options      => [
                           {
                             :label => _("SSL"),
                             :value => "ssl-with-validation"
@@ -317,13 +319,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     },
                     :fields                 => [
                       {
-                        :component  => "select",
-                        :id         => "endpoints.prometheus.security_protocol",
-                        :name       => "endpoints.prometheus.security_protocol",
-                        :label      => _("Security Protocol"),
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :options    => [
+                        :component    => "select",
+                        :id           => "endpoints.prometheus.security_protocol",
+                        :name         => "endpoints.prometheus.security_protocol",
+                        :label        => _("Security Protocol"),
+                        :isRequired   => true,
+                        :initialValue => 'ssl-with-validation',
+                        :validate     => [{:type => "required"}],
+                        :options      => [
                           {
                             :label => _("SSL"),
                             :value => "ssl-with-validation"
@@ -438,13 +441,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     },
                     :fields                 => [
                       {
-                        :component  => "select",
-                        :id         => "endpoints.prometheus_alerts.security_protocol",
-                        :name       => "endpoints.prometheus_alerts.security_protocol",
-                        :label      => _("Security Protocol"),
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :options    => [
+                        :component    => "select",
+                        :id           => "endpoints.prometheus_alerts.security_protocol",
+                        :name         => "endpoints.prometheus_alerts.security_protocol",
+                        :label        => _("Security Protocol"),
+                        :isRequired   => true,
+                        :initialValue => 'ssl-with-validation',
+                        :validate     => [{:type => "required"}],
+                        :options      => [
                           {
                             :label => _("SSL"),
                             :value => "ssl-with-validation"
@@ -559,13 +563,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     },
                     :fields                 => [
                       {
-                        :component  => "select",
-                        :id         => "endpoints.kubevirt.security_protocol",
-                        :name       => "endpoints.kubevirt.security_protocol",
-                        :label      => _("Security Protocol"),
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :options    => [
+                        :component    => "select",
+                        :id           => "endpoints.kubevirt.security_protocol",
+                        :name         => "endpoints.kubevirt.security_protocol",
+                        :label        => _("Security Protocol"),
+                        :isRequired   => true,
+                        :validate     => [{:type => "required"}],
+                        :initialValue => 'ssl-with-validation',
+                        :options      => [
                           {
                             :label => _("SSL"),
                             :value => "ssl-with-validation"

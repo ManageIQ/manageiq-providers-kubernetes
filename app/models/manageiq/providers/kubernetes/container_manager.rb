@@ -851,7 +851,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def self.hawkular_connect(hostname, port, options)
-    require "hawkular/hawkular_client"
+    require "hawkular/metrics/metrics_client"
 
     uri = raw_api_endpoint(hostname, port, options[:path] || "/hawkular/metrics")
     credentials = {:token => options[:bearer]}

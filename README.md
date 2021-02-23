@@ -1,9 +1,9 @@
 # ManageIQ::Providers::Kubernetes
 
-[![Build Status](https://travis-ci.com/ManageIQ/manageiq-providers-kubernetes.svg?branch=master)](https://travis-ci.com/ManageIQ/manageiq-providers-kubernetes)
+[![Build Status](https://travis-ci.com/ManageIQ/manageiq-providers-kubernetes.svg?branch=lasker)](https://travis-ci.com/ManageIQ/manageiq-providers-kubernetes)
 [![Maintainability](https://api.codeclimate.com/v1/badges/68c125f5d4f62af02a16/maintainability)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/68c125f5d4f62af02a16/test_coverage)](https://codeclimate.com/github/ManageIQ/manageiq-providers-kubernetes/test_coverage)
-[![Security](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/master.svg)](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/master)
+[![Security](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/lasker.svg)](https://hakiri.io/github/ManageIQ/manageiq-providers-kubernetes/lasker)
 
 [![Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ManageIQ/manageiq-providers-kubernetes?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 

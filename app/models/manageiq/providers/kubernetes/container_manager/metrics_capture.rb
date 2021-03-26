@@ -73,6 +73,10 @@ module ManageIQ::Providers
       end
     end
 
+    def metrics_connection(ems)
+      ems.connection_configurations.prometheus || ems.connection_configurations.hawkular
+    end
+
     def capture_context(ems, target, start_time, end_time)
       # make start_time align to minutes
       start_time = start_time.beginning_of_minute
@@ -97,6 +101,11 @@ module ManageIQ::Providers
 
       begin
         raise TargetValidationError, "no provider for #{target_name}" if ems.nil?
+
+        connection = metrics_connection(ems)
+        raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if connection.nil?
+        raise TargetValidationWarning, "metrics authentication isn't valid for #{target_name}" unless connection.authentication&.status == "Valid"
+
         context = capture_context(ems, target, start_time, end_time)
 
         raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if context.nil?

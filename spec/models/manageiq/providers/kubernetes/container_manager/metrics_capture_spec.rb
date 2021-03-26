@@ -20,13 +20,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
       :ems_kubernetes,
       :connection_configurations => [{:endpoint       => {:role => :hawkular},
                                       :authentication => {:role => :hawkular}}],
-    )
+    ).tap { |ems| ems.authentications.each { |auth| auth.update!(:status => "Valid") } }
 
     @ems_kubernetes_prometheus = FactoryBot.create(
       :ems_kubernetes,
       :connection_configurations => [{:endpoint       => {:role => :prometheus},
                                       :authentication => {:role => :prometheus}}],
-    )
+    ).tap { |ems| ems.authentications.each { |auth| auth.update!(:status => "Valid") } }
 
     @node = FactoryBot.create(
       :kubernetes_node,

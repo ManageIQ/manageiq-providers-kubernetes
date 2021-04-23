@@ -4,7 +4,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/pods
+    uri: https://host.example.com:6443/api/v1/pods
     body:
       encoding: US-ASCII
       string: ''
@@ -30,12 +30,12 @@ http_interactions:
       - chunked
     body:
       encoding: UTF-8
-      string: '{"kind":"PodList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/pods","resourceVersion":"5302"},"items":[{"metadata":{"name":"monitoring-heapster-controller-4j5zu","generateName":"monitoring-heapster-controller-","namespace":"default","selfLink":"/api/v1/namespaces/default/pods/monitoring-heapster-controller-4j5zu","uid":"1f60bc7c-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"5253","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"name":"heapster"},"annotations":{"kubernetes.io/created-by":"{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicationController\",\"namespace\":\"default\",\"name\":\"monitoring-heapster-controller\",\"uid\":\"1f2d2157-35f2-11e5-8917-001a4a5f4a00\",\"apiVersion\":\"v1\",\"resourceVersion\":\"100\"}}"}},"spec":{"volumes":[{"name":"default-token-a2ui3","secret":{"secretName":"default-token-a2ui3"}}],"containers":[{"name":"heapster","image":"example.com:1234/kubernetes/heapster:v0.16.0","command":["/heapster","--source=kubernetes:https://kubernetes","--sink=influxdb:http://monitoring-influxdb:80"],"resources":{},"volumeMounts":[{"name":"default-token-a2ui3","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"IfNotPresent"}],"restartPolicy":"Always","dnsPolicy":"ClusterFirst","serviceAccountName":"default","nodeName":"10.35.0.169"},"status":{"phase":"Running","conditions":[{"type":"Ready","status":"True"}],"hostIP":"10.35.0.169","podIP":"172.17.0.3","startTime":"2015-07-29T13:02:53Z","containerStatuses":[{"name":"heapster","state":{"running":{"startedAt":"2015-07-29T15:49:04Z"}},"lastState":{"terminated":{"exitCode":1,"startedAt":"2015-07-29T15:48:42Z","finishedAt":"2015-07-29T15:48:42Z","containerID":"docker://7780ef155c1d87a3f8a36a6ad5a6a3e25cdc4f9c90693276c32c924ca603382d"}},"ready":true,"restartCount":2,"image":"example.com:1234/kubernetes/heapster:v0.16.0","imageID":"docker://f79cf2701046bea8d5f1384f7efe79dd4d20620b3594fff5be39142fa862259d","containerID":"docker://2baa337fef20ab18c5cae16937fca0b4a59ccbb5ecac1f89ad7898a02d74e3c9"}]}},{"metadata":{"name":"monitoring-influx-grafana-controller-22icy","generateName":"monitoring-influx-grafana-controller-","namespace":"default","selfLink":"/api/v1/namespaces/default/pods/monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"name":"influxGrafana"},"annotations":{"kubernetes.io/created-by":"{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicationController\",\"namespace\":\"default\",\"name\":\"monitoring-influx-grafana-controller\",\"uid\":\"1f39496b-35f2-11e5-8917-001a4a5f4a00\",\"apiVersion\":\"v1\",\"resourceVersion\":\"105\"}}"}},"spec":{"volumes":[{"name":"default-token-a2ui3","secret":{"secretName":"default-token-a2ui3"}}],"containers":[{"name":"influxdb","image":"kubernetes/heapster_influxdb:v0.3","ports":[{"hostPort":8083,"containerPort":8083,"protocol":"TCP"},{"hostPort":8086,"containerPort":8086,"protocol":"TCP"}],"resources":{},"volumeMounts":[{"name":"default-token-a2ui3","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"IfNotPresent"},{"name":"grafana","image":"kubernetes/heapster_grafana:v0.7","env":[{"name":"INFLUXDB_EXTERNAL_URL","value":"/api/v1/proxy/namespaces/default/services/monitoring-grafana/db/"},{"name":"INFLUXDB_HOST","value":"monitoring-influxdb"},{"name":"INFLUXDB_PORT","value":"80"}],"resources":{},"volumeMounts":[{"name":"default-token-a2ui3","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"IfNotPresent"}],"restartPolicy":"Always","dnsPolicy":"ClusterFirst","serviceAccountName":"default","nodeName":"10.35.0.169"},"status":{"phase":"Running","conditions":[{"type":"Ready","status":"True"}],"hostIP":"10.35.0.169","podIP":"172.17.0.2","startTime":"2015-07-29T13:02:53Z","containerStatuses":[{"name":"grafana","state":{"running":{"startedAt":"2015-07-29T13:08:30Z"}},"lastState":{},"ready":true,"restartCount":0,"image":"kubernetes/heapster_grafana:v0.7","imageID":"docker://22182f122d461ef2e96af4c2ac1ebfbccf127894da9e9ceb56f7d74496583b30","containerID":"docker://86d8f09e311bf5b66e0632cc2bec921bff34584fc6c805c735868d77cb38c53f"},{"name":"influxdb","state":{"running":{"startedAt":"2015-07-29T13:06:47Z"}},"lastState":{},"ready":true,"restartCount":0,"image":"kubernetes/heapster_influxdb:v0.3","imageID":"docker://514b330600afe3ed9f948f65fab7593b374075d194c65263fe3bafc43820fdad","containerID":"docker://c7e4441cffb5c693ef4036b058d73749445495bece25237cb7c4c45ed6efd817"}]}}]}'
+      string: '{"kind":"PodList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/pods","resourceVersion":"5302"},"items":[{"metadata":{"name":"monitoring-heapster-controller-4j5zu","generateName":"monitoring-heapster-controller-","namespace":"default","selfLink":"/api/v1/namespaces/default/pods/monitoring-heapster-controller-4j5zu","uid":"1f60bc7c-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"5253","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"name":"heapster"},"annotations":{"kubernetes.io/created-by":"{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicationController\",\"namespace\":\"default\",\"name\":\"monitoring-heapster-controller\",\"uid\":\"1f2d2157-35f2-11e5-8917-001a4a5f4a00\",\"apiVersion\":\"v1\",\"resourceVersion\":\"100\"}}"}},"spec":{"volumes":[{"name":"default-token-a2ui3","secret":{"secretName":"default-token-a2ui3"}}],"containers":[{"name":"heapster","image":"example.com:1234/kubernetes/heapster:v0.16.0","command":["/heapster","--source=kubernetes:https://kubernetes","--sink=influxdb:http://monitoring-influxdb:80"],"resources":{},"volumeMounts":[{"name":"default-token-a2ui3","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"IfNotPresent"}],"restartPolicy":"Always","dnsPolicy":"ClusterFirst","serviceAccountName":"default","nodeName":"host.example.com"},"status":{"phase":"Running","conditions":[{"type":"Ready","status":"True"}],"hostIP":"host.example.com","podIP":"172.17.0.3","startTime":"2015-07-29T13:02:53Z","containerStatuses":[{"name":"heapster","state":{"running":{"startedAt":"2015-07-29T15:49:04Z"}},"lastState":{"terminated":{"exitCode":1,"startedAt":"2015-07-29T15:48:42Z","finishedAt":"2015-07-29T15:48:42Z","containerID":"docker://7780ef155c1d87a3f8a36a6ad5a6a3e25cdc4f9c90693276c32c924ca603382d"}},"ready":true,"restartCount":2,"image":"example.com:1234/kubernetes/heapster:v0.16.0","imageID":"docker://f79cf2701046bea8d5f1384f7efe79dd4d20620b3594fff5be39142fa862259d","containerID":"docker://2baa337fef20ab18c5cae16937fca0b4a59ccbb5ecac1f89ad7898a02d74e3c9"}]}},{"metadata":{"name":"monitoring-influx-grafana-controller-22icy","generateName":"monitoring-influx-grafana-controller-","namespace":"default","selfLink":"/api/v1/namespaces/default/pods/monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"name":"influxGrafana"},"annotations":{"kubernetes.io/created-by":"{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicationController\",\"namespace\":\"default\",\"name\":\"monitoring-influx-grafana-controller\",\"uid\":\"1f39496b-35f2-11e5-8917-001a4a5f4a00\",\"apiVersion\":\"v1\",\"resourceVersion\":\"105\"}}"}},"spec":{"volumes":[{"name":"default-token-a2ui3","secret":{"secretName":"default-token-a2ui3"}}],"containers":[{"name":"influxdb","image":"kubernetes/heapster_influxdb:v0.3","ports":[{"hostPort":8083,"containerPort":8083,"protocol":"TCP"},{"hostPort":8086,"containerPort":8086,"protocol":"TCP"}],"resources":{},"volumeMounts":[{"name":"default-token-a2ui3","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"IfNotPresent"},{"name":"grafana","image":"kubernetes/heapster_grafana:v0.7","env":[{"name":"INFLUXDB_EXTERNAL_URL","value":"/api/v1/proxy/namespaces/default/services/monitoring-grafana/db/"},{"name":"INFLUXDB_HOST","value":"monitoring-influxdb"},{"name":"INFLUXDB_PORT","value":"80"}],"resources":{},"volumeMounts":[{"name":"default-token-a2ui3","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"IfNotPresent"}],"restartPolicy":"Always","dnsPolicy":"ClusterFirst","serviceAccountName":"default","nodeName":"host.example.com"},"status":{"phase":"Running","conditions":[{"type":"Ready","status":"True"}],"hostIP":"host.example.com","podIP":"172.17.0.2","startTime":"2015-07-29T13:02:53Z","containerStatuses":[{"name":"grafana","state":{"running":{"startedAt":"2015-07-29T13:08:30Z"}},"lastState":{},"ready":true,"restartCount":0,"image":"kubernetes/heapster_grafana:v0.7","imageID":"docker://22182f122d461ef2e96af4c2ac1ebfbccf127894da9e9ceb56f7d74496583b30","containerID":"docker://86d8f09e311bf5b66e0632cc2bec921bff34584fc6c805c735868d77cb38c53f"},{"name":"influxdb","state":{"running":{"startedAt":"2015-07-29T13:06:47Z"}},"lastState":{},"ready":true,"restartCount":0,"image":"kubernetes/heapster_influxdb:v0.3","imageID":"docker://514b330600afe3ed9f948f65fab7593b374075d194c65263fe3bafc43820fdad","containerID":"docker://c7e4441cffb5c693ef4036b058d73749445495bece25237cb7c4c45ed6efd817"}]}}]}'
     http_version: 
   recorded_at: Wed, 29 Jul 2015 15:53:27 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1
+    uri: https://host.example.com:6443/api/v1
     body:
       encoding: US-ASCII
       string: ''
@@ -246,7 +246,7 @@ http_interactions:
   recorded_at: Wed, 29 Jul 2015 15:53:27 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/services
+    uri: https://host.example.com:6443/api/v1/services
     body:
       encoding: US-ASCII
       string: ''
@@ -277,7 +277,7 @@ http_interactions:
   recorded_at: Wed, 29 Jul 2015 15:53:27 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/replicationcontrollers
+    uri: https://host.example.com:6443/api/v1/replicationcontrollers
     body:
       encoding: US-ASCII
       string: ''
@@ -308,7 +308,7 @@ http_interactions:
   recorded_at: Wed, 29 Jul 2015 15:53:27 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/nodes
+    uri: https://host.example.com:6443/api/v1/nodes
     body:
       encoding: US-ASCII
       string: ''
@@ -334,8 +334,8 @@ http_interactions:
       - '1037'
     body:
       encoding: UTF-8
-      string: '{"kind":"NodeList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/nodes","resourceVersion":"5302"},"items":[{"metadata":{"name":"10.35.0.169","selfLink":"/api/v1/nodes/10.35.0.169","uid":"6de77025-35f0-11e5-8917-001a4a5f4a00","resourceVersion":"5302","creationTimestamp":"2015-07-29T12:50:45Z","labels":{"kubernetes.io/hostname":"10.35.0.169"}},"spec":{"externalID":"10.35.0.169"},"status":{"capacity":{"cpu":"2","memory":"2048080Ki","pods":"40"},"conditions":[{"type":"Ready","status":"True","lastHeartbeatTime":"2015-07-29T15:53:23Z","lastTransitionTime":"2015-07-29T12:50:45Z","reason":"kubelet
-        is posting ready status"}],"addresses":[{"type":"LegacyHostIP","address":"10.35.0.169"}],"nodeInfo":{"machineID":"8b6c70709abd41aca950e4cfac665673","systemUUID":"8B6C7070-9ABD-41AC-A950-E4CFAC665673","bootID":"da9a3173-328f-4bd6-a422-17189d74e3a4","kernelVersion":"3.18.9-100.fc20.x86_64","osImage":"Fedora
+      string: '{"kind":"NodeList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/nodes","resourceVersion":"5302"},"items":[{"metadata":{"name":"host.example.com","selfLink":"/api/v1/nodes/host.example.com","uid":"6de77025-35f0-11e5-8917-001a4a5f4a00","resourceVersion":"5302","creationTimestamp":"2015-07-29T12:50:45Z","labels":{"kubernetes.io/hostname":"host.example.com"}},"spec":{"externalID":"host.example.com"},"status":{"capacity":{"cpu":"2","memory":"2048080Ki","pods":"40"},"conditions":[{"type":"Ready","status":"True","lastHeartbeatTime":"2015-07-29T15:53:23Z","lastTransitionTime":"2015-07-29T12:50:45Z","reason":"kubelet
+        is posting ready status"}],"addresses":[{"type":"LegacyHostIP","address":"host.example.com"}],"nodeInfo":{"machineID":"8b6c70709abd41aca950e4cfac665673","systemUUID":"8B6C7070-9ABD-41AC-A950-E4CFAC665673","bootID":"da9a3173-328f-4bd6-a422-17189d74e3a4","kernelVersion":"3.18.9-100.fc20.x86_64","osImage":"Fedora
         20 (Heisenbug)","containerRuntimeVersion":"docker://1.5.0","kubeletVersion":"v1.0.0-dirty","kubeProxyVersion":"v1.0.0-dirty"}}},
             {
               "metadata": {
@@ -390,7 +390,7 @@ http_interactions:
   recorded_at: Wed, 29 Jul 2015 15:53:28 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/endpoints
+    uri: https://host.example.com:6443/api/v1/endpoints
     body:
       encoding: US-ASCII
       string: ''
@@ -416,12 +416,12 @@ http_interactions:
       - chunked
     body:
       encoding: UTF-8
-      string: '{"kind":"EndpointsList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/endpoints","resourceVersion":"5302"},"items":[{"metadata":{"name":"kubernetes","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/kubernetes","uid":"6668dc12-35f0-11e5-8917-001a4a5f4a00","resourceVersion":"8","creationTimestamp":"2015-07-29T12:50:33Z"},"subsets":[{"addresses":[{"ip":"10.35.0.169"}],"ports":[{"port":6443,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-grafana","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-grafana","uid":"1f3049d8-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"197","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"kubernetes.io/cluster-service":"true","kubernetes.io/name":"monitoring-grafana"}},"subsets":[{"addresses":[{"ip":"172.17.0.2","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194"}}],"ports":[{"port":8080,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-heapster","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-heapster","uid":"1f38f11c-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"5254","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"kubernetes.io/cluster-service":"true","name":"monitoring-heapster"}},"subsets":[{"addresses":[{"ip":"172.17.0.3","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-heapster-controller-4j5zu","uid":"1f60bc7c-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"5253"}}],"ports":[{"port":8082,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-influxdb","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-influxdb","uid":"1f60dcc0-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"195","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"name":"monitoring-influxdb"}},"subsets":[{"addresses":[{"ip":"172.17.0.2","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194"}}],"ports":[{"port":8086,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-influxdb-ui","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-influxdb-ui","uid":"1f6169e0-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"196","creationTimestamp":"2015-07-29T13:02:52Z"},"subsets":[{"addresses":[{"ip":"172.17.0.2","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194"}}],"ports":[{"name":"http","port":8083,"protocol":"TCP"},{"name":"api","port":8086,"protocol":"TCP"}]}]}]}'
+      string: '{"kind":"EndpointsList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/endpoints","resourceVersion":"5302"},"items":[{"metadata":{"name":"kubernetes","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/kubernetes","uid":"6668dc12-35f0-11e5-8917-001a4a5f4a00","resourceVersion":"8","creationTimestamp":"2015-07-29T12:50:33Z"},"subsets":[{"addresses":[{"ip":"host.example.com"}],"ports":[{"port":6443,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-grafana","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-grafana","uid":"1f3049d8-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"197","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"kubernetes.io/cluster-service":"true","kubernetes.io/name":"monitoring-grafana"}},"subsets":[{"addresses":[{"ip":"172.17.0.2","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194"}}],"ports":[{"port":8080,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-heapster","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-heapster","uid":"1f38f11c-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"5254","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"kubernetes.io/cluster-service":"true","name":"monitoring-heapster"}},"subsets":[{"addresses":[{"ip":"172.17.0.3","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-heapster-controller-4j5zu","uid":"1f60bc7c-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"5253"}}],"ports":[{"port":8082,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-influxdb","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-influxdb","uid":"1f60dcc0-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"195","creationTimestamp":"2015-07-29T13:02:52Z","labels":{"name":"monitoring-influxdb"}},"subsets":[{"addresses":[{"ip":"172.17.0.2","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194"}}],"ports":[{"port":8086,"protocol":"TCP"}]}]},{"metadata":{"name":"monitoring-influxdb-ui","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/monitoring-influxdb-ui","uid":"1f6169e0-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"196","creationTimestamp":"2015-07-29T13:02:52Z"},"subsets":[{"addresses":[{"ip":"172.17.0.2","targetRef":{"kind":"Pod","namespace":"default","name":"monitoring-influx-grafana-controller-22icy","uid":"1f60be5d-35f2-11e5-8917-001a4a5f4a00","resourceVersion":"194"}}],"ports":[{"name":"http","port":8083,"protocol":"TCP"},{"name":"api","port":8086,"protocol":"TCP"}]}]}]}'
     http_version: 
   recorded_at: Wed, 29 Jul 2015 15:53:28 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/namespaces
+    uri: https://host.example.com:6443/api/v1/namespaces
     body:
       encoding: US-ASCII
       string: ''
@@ -452,7 +452,7 @@ http_interactions:
   recorded_at: Wed, 29 Jul 2015 15:53:28 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/resourcequotas
+    uri: https://host.example.com:6443/api/v1/resourcequotas
     body:
       encoding: US-ASCII
       string: ''
@@ -483,7 +483,7 @@ http_interactions:
   recorded_at: Mon, 07 Sep 2015 12:04:51 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/limitranges
+    uri: https://host.example.com:6443/api/v1/limitranges
     body:
       encoding: US-ASCII
       string: ''
@@ -514,7 +514,7 @@ http_interactions:
   recorded_at: Mon, 07 Sep 2015 12:04:51 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/persistentvolumes
+    uri: https://host.example.com:6443/api/v1/persistentvolumes
     body:
       encoding: US-ASCII
       string: ''
@@ -545,7 +545,7 @@ http_interactions:
   recorded_at: Mon, 07 Sep 2015 12:04:51 GMT
 - request:
     method: get
-    uri: https://10.35.0.169:6443/api/v1/persistentvolumeclaims
+    uri: https://host.example.com:6443/api/v1/persistentvolumeclaims
     body:
       encoding: US-ASCII
       string: ''

@@ -6,11 +6,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   let!(:ems) do
     FactoryBot.create(
       :ems_kubernetes_with_zone,
-      :hostname        => "10.35.0.169",
-      :ipaddress       => "10.35.0.169",
+      :hostname        => Rails.application.secrets.kubernetes[:hostname],
       :port            => 6443,
       :authentications => [
-        AuthToken.new(:name => "test", :auth_key => "valid-token")
+        AuthToken.new(:name => "test", :auth_key => Rails.application.secrets.kubernetes[:auth_key])
       ]
     )
   end
@@ -140,7 +139,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         expect(@container2.ext_management_system).to eq(ems)
 
         expect(@container.container_node).to have_attributes(
-          :name => "10.35.0.169"
+          :name => "host.example.com"
         )
       end
 
@@ -196,7 +195,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       end
 
       def assert_specific_container_node
-        @containernode = ContainerNode.where(:name => "10.35.0.169").first
+        @containernode = ContainerNode.where(:name => "host.example.com").first
         expect(@containernode).to have_attributes(
           :type                       => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerNode",
           # :ems_ref       => "a3d2a008-e73f-11e4-b613-001a4a5f4a02",
@@ -216,7 +215,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         )
 
         expect(@containernode.labels).to contain_exactly(
-          label_with_name_value("kubernetes.io/hostname", "10.35.0.169")
+          label_with_name_value("kubernetes.io/hostname", "host.example.com")
         )
 
         expect(@containernode.computer_system.operating_system).to have_attributes(
@@ -309,7 +308,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
 
         expect(@replicator.container_nodes.count).to eq(1)
         expect(@replicator.container_nodes.first).to have_attributes(
-          :name => "10.35.0.169"
+          :name => "host.example.com"
         )
       end
 

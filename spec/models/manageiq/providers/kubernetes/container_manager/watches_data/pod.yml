@@ -33,13 +33,13 @@
   :restartPolicy: Always
   :dnsPolicy: ClusterFirst
   :serviceAccountName: default
-  :nodeName: 10.35.0.169
+  :nodeName: host.example.com
 :status:
   :phase: Running
   :conditions:
   - :type: Ready
     :status: 'True'
-  :hostIP: 10.35.0.169
+  :hostIP: host.example.com
   :podIP: 172.17.0.3
   :startTime: '2015-07-29T13:02:53Z'
   :containerStatuses:

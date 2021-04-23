@@ -1323,16 +1323,16 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
       let(:node_spec) do
         array_recursive_ostruct(
           :metadata => {
-            :name              => "10.35.0.169",
+            :name              => "host.example.com",
             :uid               => "6de77025-35f0-11e5-8917-001a4a5f4a00",
             :resourceVersion   => "5302",
             :creationTimestamp => "2015-07-29T12:50:45Z",
             :labels            => {
-              :"kubernetes.io/hostname" => "10.35.0.169"
+              :"kubernetes.io/hostname" => "host.example.com"
             }
           },
           :spec     => {
-            :externalID => "10.35.0.169"
+            :externalID => "host.example.com"
           },
           :status   => {
             :capacity => {

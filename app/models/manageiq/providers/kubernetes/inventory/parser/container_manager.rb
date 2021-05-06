@@ -278,10 +278,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     end
   end
 
-  def find_host_by_bios_uuid(new_result)
-    identity_system = new_result[:identity_system].try(:downcase)
-    Vm.find_by(:uid_ems => identity_system,
-               :type    => uuid_provider_types) if identity_system
+  def find_host_by_bios_uuid(bios_uuid)
+    Vm.find_by(:uid_ems => bios_uuid, :type => uuid_provider_types)
   end
 
   def uuid_provider_types
@@ -294,13 +292,11 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def cross_link_node(new_result)
     # Establish a relationship between this node and the vm it is on (if it is in the system)
-    host_instance = nil
-    unless new_result[:identity_infra].blank?
-      host_instance = find_host_by_provider_id(new_result[:identity_infra])
-    end
-    unless host_instance
-      host_instance = find_host_by_bios_uuid(new_result)
-    end
+    provider_id = new_result[:identity_infra]
+    bios_uuid   = new_result[:identity_system]&.gsub("\u0000", "")&.downcase
+
+    host_instance   = find_host_by_provider_id(provider_id) if provider_id.present?
+    host_instance ||= find_host_by_bios_uuid(bios_uuid) if bios_uuid.present?
 
     new_result[:lives_on_id] = host_instance.try(:id)
     new_result[:lives_on_type] = host_instance.try(:type)

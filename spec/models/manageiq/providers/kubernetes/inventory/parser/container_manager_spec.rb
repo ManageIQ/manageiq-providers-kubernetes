@@ -724,6 +724,10 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
                                  :ext_management_system => @ems,
                                  :name                  => "instance_id")
       end
+
+      it "fails when there is a NULL byte in the providerID" do
+        @node[:identity_system] = "UUID\u0000"
+      end
     end
 
     context "succesful attempts" do

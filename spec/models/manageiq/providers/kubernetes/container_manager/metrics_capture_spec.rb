@@ -4,14 +4,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     @miq_server = EvmSpecHelper.local_miq_server(:is_master => true)
     @hawkular_force_legacy_settings_false = {
       :workers => {
-        :worker_base => {
-          :queue_worker_base => {
-            :ems_metrics_collector_worker => {
-              :ems_metrics_collector_worker_kubernetes => {
-                :hawkular_force_legacy => false
-              }
-            }
-          }
+        :ems_metrics_collector_worker_kubernetes => {
+          :hawkular_force_legacy => false
         }
       }
     }

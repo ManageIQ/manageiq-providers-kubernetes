@@ -33,6 +33,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     )
   end
 
+  supports :metrics do
+    unsupported_reason_add(:metrics, _("No metrics endpoint has been added")) unless supports_metrics?
+  end
+
   def supports_metrics?
     endpoints.where(:role => METRICS_ROLES).exists?
   end

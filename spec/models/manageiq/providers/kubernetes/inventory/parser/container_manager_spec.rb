@@ -703,30 +703,22 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
 
   describe "cross_link_node" do
     context "expected failures" do
-      before :each do
-        @node = OpenStruct.new(
-          :identity_system => "f0c1fe7e-9c09-11e5-bb22-28d2447dcefe",
-        )
-      end
-
-      after :each do
-        parser.send(:cross_link_node, @node)
-        expect(@node[:lives_on_id]).to eq(nil)
-        expect(@node[:lives_on_type]).to eq(nil)
-      end
+      let(:systemUUID) { "f0c1fe7e-9c09-11e5-bb22-28d2447dcefe" }
+      let(:node) { OpenStruct.new(:identity_system => systemUUID) }
 
       it "fails when provider type is wrong" do
-        @node[:identity_infra] = "aws://aws_project/europe-west1/instance_id/"
+        node[:identity_infra] = "aws://aws_project/europe-west1/instance_id/"
         @ems = FactoryBot.create(:ems_google,
-                                  :provider_region => "europe-west1",
-                                  :project         => "aws_project")
+                                 :provider_region => "europe-west1",
+                                 :project         => "aws_project")
         @vm = FactoryBot.create(:vm_google,
-                                 :ext_management_system => @ems,
-                                 :name                  => "instance_id")
-      end
+                                :ext_management_system => @ems,
+                                :name                  => "instance_id")
 
-      it "fails when there is a NULL byte in the providerID" do
-        @node[:identity_system] = "UUID\u0000"
+        parser.send(:cross_link_node, node)
+
+        expect(node[:lives_on_id]).to eq(nil)
+        expect(node[:lives_on_type]).to eq(nil)
       end
     end
 
@@ -904,6 +896,43 @@ describe ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager do
           :max_container_groups => nil,
           :resource_version      => '369104'
         })
+    end
+
+    it "handles node with NULL byte in systemUUID" do
+      expect(parser.send(
+        :parse_node,
+        array_recursive_ostruct(
+          :metadata => {
+            :name              => 'test-node',
+            :uid               => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
+            :resourceVersion   => '369104',
+            :creationTimestamp => '2015-12-06T11:10:21Z'
+          },
+          :spec     => {
+            :providerID => 'aws:///zone/aws-id'
+          },
+          :status   => {
+            :nodeInfo => {
+              :machineID  => 'id',
+              :systemUUID => "VENDOR,0123AB45C\u0000"
+            }
+          }
+        )
+      ).data).to include({
+        :name                       => 'test-node',
+        :ems_ref                    => 'f0c1fe7e-9c09-11e5-bb22-28d2447dcefe',
+        :ems_created_on             => '2015-12-06T11:10:21Z',
+        :container_runtime_version  => nil,
+        :identity_infra             => 'aws:///zone/aws-id',
+        :identity_machine           => 'id',
+        :identity_system            => 'VENDOR,0123AB45C',
+        :kubernetes_kubelet_version => nil,
+        :kubernetes_proxy_version   => nil,
+        :lives_on_id                => nil,
+        :lives_on_type              => nil,
+        :max_container_groups       => nil,
+        :resource_version           => '369104'
+      })
     end
   end
 

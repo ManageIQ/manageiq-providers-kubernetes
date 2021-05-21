@@ -293,7 +293,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def cross_link_node(new_result)
     # Establish a relationship between this node and the vm it is on (if it is in the system)
     provider_id = new_result[:identity_infra]
-    bios_uuid   = new_result[:identity_system]&.gsub("\u0000", "")&.downcase
+    bios_uuid   = new_result[:identity_system]&.downcase
 
     host_instance   = find_host_by_provider_id(provider_id) if provider_id.present?
     host_instance ||= find_host_by_bios_uuid(bios_uuid) if bios_uuid.present?
@@ -330,7 +330,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     if node_info
       new_result.merge!(
         :identity_machine           => node_info.machineID,
-        :identity_system            => node_info.systemUUID,
+        :identity_system            => node_info.systemUUID&.gsub("\u0000", ""),
         :container_runtime_version  => node_info.containerRuntimeVersion,
         :kubernetes_proxy_version   => node_info.kubeProxyVersion,
         :kubernetes_kubelet_version => node_info.kubeletVersion

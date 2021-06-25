@@ -300,7 +300,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(ems.monitoring_manager.parent_manager).to eq(ems)
 
       ems.endpoints = [FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host3')]
-      queue_item = MiqQueue.find_by(:method_name => 'destroy')
+      queue_item = MiqQueue.find_by(:method_name => 'orchestrate_destroy')
       expect(queue_item).not_to be_nil
       expect(queue_item.instance_id).to eq(ems.monitoring_manager.id)
     end
@@ -371,7 +371,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(ems.infra_manager.parent_manager).to eq(ems)
 
       ems.endpoints = [FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host')]
-      queue_item = MiqQueue.find_by(:method_name => 'destroy')
+      queue_item = MiqQueue.find_by(:method_name => 'orchestrate_destroy')
       expect(queue_item).not_to be_nil
       expect(queue_item.instance_id).to eq(ems.infra_manager.id)
     end

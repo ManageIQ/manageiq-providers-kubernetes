@@ -98,6 +98,21 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     ems_type
   end
 
+  def hostname_uniqueness_valid?
+    return unless hostname_required?
+    return unless hostname.present? # Presence is checked elsewhere
+    # check uniqueness per provider type
+
+    existing_providers = self.class.all - [self]
+    existing_endpoints = existing_providers.map do |ems|
+      next if ems.hostname.nil?
+
+      "#{ems.hostname.downcase}:#{ems.port}"
+    end
+
+    errors.add(:hostname, N_("has to be unique per provider type")) if existing_endpoints.include?("#{hostname.downcase}:#{port}")
+  end
+
   def self.params_for_create
     {
       :fields => [

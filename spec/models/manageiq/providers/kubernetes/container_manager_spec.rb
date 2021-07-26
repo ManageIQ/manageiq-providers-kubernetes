@@ -51,6 +51,18 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
+  describe "hostname_uniqueness_valid?" do
+    it "allows duplicate hostname with different ports" do
+      FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443)
+      expect { FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 443) }.not_to raise_error
+    end
+
+    it "rejects a second provider with duplicate hostname and port" do
+      FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443)
+      expect { FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443) }.to raise_error(ActiveRecord::RecordInvalid, /Hostname has to be unique per provider type/)
+    end
+  end
+
   context "#supports_metrics?" do
     before(:each) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)

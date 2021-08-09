@@ -3,6 +3,8 @@ autoload(:Kubeclient, 'kubeclient')
 autoload(:KubeException, 'kubeclient')
 
 class ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job < Job
+  require_nested :Dispatcher
+
   PROVIDER_CLASS = ManageIQ::Providers::Kubernetes::ContainerManager
   INSPECTOR_IMAGE_TAG = '2.1'.freeze
   INSPECTOR_PORT = 8080

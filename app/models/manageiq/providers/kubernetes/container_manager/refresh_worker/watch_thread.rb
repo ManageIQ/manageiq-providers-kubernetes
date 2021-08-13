@@ -73,8 +73,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   end
 
   def noop?(_notice)
-    # Allow sub-classes to filter notices
-    false
+    notice.object&.kind == "Endpoints" && filter_endpoint?(notice.object)
   end
 
   def connection(_entity_type = nil)
@@ -82,5 +81,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
     connect_options[:service] ||= "kubernetes"
 
     ems_klass.raw_connect(hostname, port, connect_options)
+  end
+
+  def filter_endpoint?(endpoint)
+    # The base kubernetes parser uses the endpoint subset addresses and targetRefs
+    # to build "container_groups_refs" in order to link pods to container_services
+    #
+    # If an endpoint doesn't have any subsets then it is a pointless update
+    endpoint.subsets.blank?
   end
 end

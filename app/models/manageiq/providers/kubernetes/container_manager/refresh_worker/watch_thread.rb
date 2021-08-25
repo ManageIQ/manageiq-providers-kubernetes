@@ -72,7 +72,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
     _log.log_backtrace(err)
   end
 
-  def noop?(_notice)
+  def noop?(notice)
     notice.object&.kind == "Endpoints" && filter_endpoint?(notice.object)
   end
 

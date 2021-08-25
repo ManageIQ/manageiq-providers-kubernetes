@@ -262,8 +262,14 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def find_host_by_provider_id(provider_id)
     scheme, instance_uri = provider_id.split("://", 2)
-    prov, name_field = scheme_to_provider_mapping[scheme]
-    instance_id = instance_uri.split('/').last
+    if instance_uri.present?
+      prov, name_field = scheme_to_provider_mapping[scheme]
+      instance_id = instance_uri.split('/').last
+    elsif provider_id.start_with?("ocid1.instance")
+      prov = "ManageIQ::Providers::OracleCloud::CloudManager".safe_constantize
+      name_field = :uid_ems
+      instance_id = provider_id
+    end
 
     prov::Vm.find_by(name_field => instance_id) if !prov.nil? && !instance_id.blank?
   end

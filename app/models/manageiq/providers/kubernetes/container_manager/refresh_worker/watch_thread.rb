@@ -42,8 +42,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   def collector_thread
     _log.debug { "Starting watch thread for #{entity_type}" }
 
-    until finish.true?
-      self.watch ||= connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
+    retries ||= 0
+
+    while running?
+      self.watch = connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
 
       watch.each do |notice|
         if notice.type == "ERROR"
@@ -55,6 +57,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
           break
         end
 
+        current_resource_version = notice.object&.metadata&.resourceVersion
+        self.resource_version    = current_resource_version if current_resource_version.present?
+
         next if noop?(notice)
 
         queue.push(notice)
@@ -62,19 +67,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
       # If the watch terminated for any reason (410 Gone or just interrupted) then
       # restart with a resourceVersion of nil to start over from the current state
-      self.watch = nil
       self.resource_version = nil
     end
 
     _log.debug { "Exiting watch thread #{entity_type}" }
   rescue Kubeclient::HttpError => err
     # If our authentication token has expired then restart the watch at the current
-    # resource version
-    if err.error_code == 401
-      _log.info("Restarting watch for #{entity_type}")
-      self.watch = nil
-      retry
-    end
+    # resource version.
+    retry if err.error_code == 401 && (retries += 1) < 2
 
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)
@@ -100,5 +100,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
     #
     # If an endpoint doesn't have any subsets then it is a pointless update
     endpoint.subsets.blank?
+  end
+
+  def running?
+    finish.false?
   end
 end

@@ -67,6 +67,17 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
     end
 
     _log.debug { "Exiting watch thread #{entity_type}" }
+  rescue Kubeclient::HttpError => err
+    # If our authentication token has expired then restart the watch at the current
+    # resource version
+    if err.error_code == 401
+      _log.info("Restarting watch for #{entity_type}")
+      self.watch = nil
+      retry
+    end
+
+    _log.error("Watch thread for #{entity_type} failed: #{err}")
+    _log.log_backtrace(err)
   rescue => err
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)

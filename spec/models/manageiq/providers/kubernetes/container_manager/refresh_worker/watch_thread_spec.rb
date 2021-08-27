@@ -35,7 +35,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Watch
 
     it "updates the last resource_version" do
       expect(watch_thread).to receive(:resource_version=).with("2")
-      expect(watch_thread).to receive(:resource_version=).with(nil) # This is set when the watch loop breaks
 
       watch_thread.send(:collector_thread)
     end

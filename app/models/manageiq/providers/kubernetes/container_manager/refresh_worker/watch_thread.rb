@@ -59,6 +59,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
             code    = notice.object&.code
             reason  = notice.object&.reason
 
+            # If we get a 410 Gone then restart with a resourceVersion of nil
+            # to start over from the current state
+            self.resource_version = nil if code == HTTP_GONE
+
             _log.warn("Received an error watching #{entity_type}: [#{code} #{reason}], [#{message}]")
             break
           end
@@ -70,10 +74,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
           queue.push(notice)
         end
-
-        # If the watch terminated for any reason (410 Gone or just interrupted) then
-        # restart with a resourceVersion of nil to start over from the current state
-        self.resource_version = nil
       rescue Kubeclient::HttpError => err
         # If our authentication token has expired then restart the watch at the current
         # resource version.

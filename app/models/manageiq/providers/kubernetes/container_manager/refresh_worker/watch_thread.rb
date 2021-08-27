@@ -45,10 +45,12 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   def collector_thread
     _log.debug { "Starting watch thread for #{entity_type}" }
 
-    retries ||= 0
+    connection_retries ||= 0
 
     while running?
       self.watch = connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
+
+      connection_retries = 0
 
       watch.each do |notice|
         if notice.type == "ERROR"
@@ -77,7 +79,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   rescue Kubeclient::HttpError => err
     # If our authentication token has expired then restart the watch at the current
     # resource version.
-    retry if err.error_code == HTTP_UNAUTHORIZED && (retries += 1) < 2
+    retry if err.error_code == HTTP_UNAUTHORIZED && (connection_retries += 1) < 2
 
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)

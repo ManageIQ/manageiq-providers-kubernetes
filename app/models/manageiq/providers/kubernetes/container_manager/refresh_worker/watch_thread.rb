@@ -43,46 +43,50 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   attr_reader :connect_options, :ems_klass, :entity_type, :finish, :queue
 
   def collector_thread
-    _log.debug { "Starting watch thread for #{entity_type}" }
-
-    connection_retries ||= 0
+    retry_connection = true
 
     while running?
-      self.watch = connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
+      begin
+        _log.debug { "Starting watch thread for #{entity_type} from version [#{resource_version}]" }
+        self.watch = connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
 
-      connection_retries = 0
+        # reset the connection retry flag after a successful connection
+        retry_connection = true
 
-      watch.each do |notice|
-        if notice.type == "ERROR"
-          message = notice.object&.message
-          code    = notice.object&.code
-          reason  = notice.object&.reason
+        watch.each do |notice|
+          if notice.type == "ERROR"
+            message = notice.object&.message
+            code    = notice.object&.code
+            reason  = notice.object&.reason
 
-          _log.warn("Received an error watching #{entity_type}: [#{code} #{reason}], [#{message}]")
-          break
+            _log.warn("Received an error watching #{entity_type}: [#{code} #{reason}], [#{message}]")
+            break
+          end
+
+          current_resource_version = notice.object&.metadata&.resourceVersion
+          self.resource_version    = current_resource_version if current_resource_version.present?
+
+          next if noop?(notice)
+
+          queue.push(notice)
         end
 
-        current_resource_version = notice.object&.metadata&.resourceVersion
-        self.resource_version    = current_resource_version if current_resource_version.present?
+        # If the watch terminated for any reason (410 Gone or just interrupted) then
+        # restart with a resourceVersion of nil to start over from the current state
+        self.resource_version = nil
+      rescue Kubeclient::HttpError => err
+        # If our authentication token has expired then restart the watch at the current
+        # resource version.
+        raise unless err.error_code == HTTP_UNAUTHORIZED && retry_connection
 
-        next if noop?(notice)
+        _log.debug { "Restarting watch #{entity_type} after #{err.error_code} #{err.reason}" }
 
-        queue.push(notice)
+        retry_connection = false
+        retry
       end
-
-      # If the watch terminated for any reason (410 Gone or just interrupted) then
-      # restart with a resourceVersion of nil to start over from the current state
-      self.resource_version = nil
     end
 
     _log.debug { "Exiting watch thread #{entity_type}" }
-  rescue Kubeclient::HttpError => err
-    # If our authentication token has expired then restart the watch at the current
-    # resource version.
-    retry if err.error_code == HTTP_UNAUTHORIZED && (connection_retries += 1) < 2
-
-    _log.error("Watch thread for #{entity_type} failed: #{err}")
-    _log.log_backtrace(err)
   rescue => err
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)

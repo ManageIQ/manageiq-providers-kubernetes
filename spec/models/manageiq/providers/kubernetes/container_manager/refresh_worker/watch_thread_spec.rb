@@ -53,7 +53,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Watch
 
     context "401 Unauthorized" do
       before do
-        allow(watch_thread).to receive(:running?).and_return(true, true, false)
         expect(watch).to receive(:each).and_raise(Kubeclient::HttpError.new(401, "Unauthorized", "Unauthorized"))
       end
 

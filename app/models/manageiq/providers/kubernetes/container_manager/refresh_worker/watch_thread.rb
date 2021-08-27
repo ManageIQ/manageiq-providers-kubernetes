@@ -1,6 +1,9 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThread
   include Vmdb::Logging
 
+  HTTP_UNAUTHORIZED = 401
+  HTTP_GONE         = 410
+
   def self.start!(ems, queue, entity_type, resource_version)
     new(ems.connect_options, ems.class, queue, entity_type, resource_version).tap(&:start!)
   end
@@ -74,7 +77,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   rescue Kubeclient::HttpError => err
     # If our authentication token has expired then restart the watch at the current
     # resource version.
-    retry if err.error_code == 401 && (retries += 1) < 2
+    retry if err.error_code == HTTP_UNAUTHORIZED && (retries += 1) < 2
 
     _log.error("Watch thread for #{entity_type} failed: #{err}")
     _log.log_backtrace(err)

@@ -79,7 +79,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
         # resource version.
         raise unless err.error_code == HTTP_UNAUTHORIZED && retry_connection
 
-        _log.debug { "Restarting watch #{entity_type} after #{err.error_code} #{err.reason}" }
+        _log.debug { "Restarting watch #{entity_type} after #{err.error_code} #{err.message}" }
 
         retry_connection = false
         retry

@@ -1025,18 +1025,28 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def connect_options(options = {})
-    options.merge(
-      :hostname    => options[:hostname] || address,
-      :port        => options[:port] || port,
-      :username    => options[:username] || authentication_userid(options[:auth_type]),
-      :password    => options[:password] || authentication_password(options[:auth_type]),
-      :bearer      => options[:bearer] || authentication_token(options[:auth_type] || 'bearer'),
-      :http_proxy  => self.options ? self.options.fetch_path(:proxy_settings, :http_proxy) : nil,
+    options.merge!(endpoint_options(options))
+    options.merge!(authentication_options(options))
+  end
+
+  def endpoint_options(options = {})
+    {
+      :hostname   => options[:hostname] || address,
+      :port       => options[:port] || port,
+      :http_proxy => self.options ? self.options.fetch_path(:proxy_settings, :http_proxy) : nil,
       :ssl_options => options[:ssl_options] || {
         :verify_ssl => verify_ssl_mode,
         :cert_store => ssl_cert_store
       }
-    )
+    }
+  end
+
+  def authentication_options(options = {})
+    {
+      :username    => options[:username] || authentication_userid(options[:auth_type]),
+      :password    => options[:password] || authentication_password(options[:auth_type]),
+      :bearer      => options[:bearer] || authentication_token(options[:auth_type] || 'bearer'),
+    }
   end
 
   def authentications_to_validate

@@ -41,6 +41,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     unsupported_reason_add(:metrics, _("No metrics endpoint has been added")) unless metrics_endpoint_exists?
   end
 
+  supports :port
+
   def metrics_endpoint_exists?
     endpoints.where(:role => METRICS_ROLES).exists?
   end
@@ -985,10 +987,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   # UI methods for determining availability of fields
-  def supports_port?
-    true
-  end
-
   def supports_security_protocol?
     true
   end

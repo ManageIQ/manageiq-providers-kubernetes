@@ -984,15 +984,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     infra_manager.verify_virt_supported(options)
   end
 
-  # UI methods for determining availability of fields
-  def supports_port?
-    true
-  end
-
-  def supports_security_protocol?
-    true
-  end
-
   def api_endpoint
     self.class.raw_api_endpoint(hostname, port)
   end

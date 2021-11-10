@@ -14,7 +14,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   require_nested :Options
 
   DEFAULT_PORT = 6443
-  METRICS_ROLES = %w(prometheus hawkular).freeze
+  METRICS_ROLES = %w[prometheus].freeze
 
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options
 
@@ -225,111 +225,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                         :value => 'none',
                       },
                       {
-                        :label => _('Hawkular'),
-                        :value => 'hawkular',
-                        :pivot => 'endpoints.hawkular.hostname',
-                      },
-                      {
                         :label => _('Prometheus'),
                         :value => 'prometheus',
                         :pivot => 'endpoints.prometheus.hostname',
                       },
                     ],
-                  },
-                  {
-                    :component              => 'validate-provider-credentials',
-                    :id                     => "authentications.hawkular.valid",
-                    :name                   => "authentications.hawkular.valid",
-                    :skipSubmit             => true,
-                    :isRequired             => true,
-                    :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
-                    :condition              => {
-                      :when => "metrics_selection",
-                      :is   => 'hawkular',
-                    },
-                    :fields                 => [
-                      {
-                        :component    => "select",
-                        :id           => "endpoints.hawkular.security_protocol",
-                        :name         => "endpoints.hawkular.security_protocol",
-                        :label        => _("Security Protocol"),
-                        :isRequired   => true,
-                        :initialValue => 'ssl-with-validation',
-                        :validate     => [{:type => "required"}],
-                        :options      => [
-                          {
-                            :label => _("SSL"),
-                            :value => "ssl-with-validation"
-                          },
-                          {
-                            :label => _("SSL trusting custom CA"),
-                            :value => "ssl-with-validation-custom-ca",
-                          },
-                          {
-                            :label => _("SSL without validation"),
-                            :value => "ssl-without-validation",
-                          },
-                        ]
-                      },
-                      {
-                        :component  => "text-field",
-                        :id         => "endpoints.hawkular.hostname",
-                        :name       => "endpoints.hawkular.hostname",
-                        :label      => _("Hostname (or IPv4 or IPv6 address)"),
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :inputAddon => {
-                          :after => {
-                            :fields => [
-                              {
-                                :component => 'input-addon-button-group',
-                                :id        => 'detect-hawkular-group',
-                                :name      => 'detect-hawkular-group',
-                                :fields    => [
-                                  {
-                                    :component    => 'detect-button',
-                                    :id           => 'detect-hawkular-button',
-                                    :name         => 'detect-hawkular-button',
-                                    :label        => _('Detect'),
-                                    :dependencies => [
-                                      'endpoints.default.hostname',
-                                      'endpoints.default.port',
-                                      'endpoints.default.security_protocol',
-                                      'endpoints.default.certificate_authority',
-                                      'authentications.bearer.auth_key',
-                                    ],
-                                    :target       => 'endpoints.hawkular',
-                                  },
-                                ],
-                              }
-                            ],
-                          },
-                        },
-                      },
-                      {
-                        :component    => "text-field",
-                        :id           => "endpoints.hawkular.port",
-                        :name         => "endpoints.hawkular.port",
-                        :label        => _("API Port"),
-                        :type         => "number",
-                        :initialValue => 443,
-                        :isRequired   => true,
-                        :validate     => [{:type => "required"}],
-                      },
-                      {
-                        :component  => "textarea",
-                        :id         => "endpoints.hawkular.certificate_authority",
-                        :name       => "endpoints.hawkular.certificate_authority",
-                        :label      => _("Trusted CA Certificates"),
-                        :rows       => 10,
-                        :isRequired => true,
-                        :validate   => [{:type => "required"}],
-                        :condition  => {
-                          :when => 'endpoints.hawkular.security_protocol',
-                          :is   => 'ssl-with-validation-custom-ca',
-                        },
-                      },
-                    ]
                   },
                   {
                     :component              => 'validate-provider-credentials',
@@ -875,27 +775,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     'v1beta1'
   end
 
-  def self.hawkular_connect(hostname, port, options)
-    require "hawkular/metrics/metrics_client"
-
-    uri = raw_api_endpoint(hostname, port, options[:path] || "/hawkular/metrics")
-    credentials = {:token => options[:bearer]}
-    ssl_options = options[:ssl_options] || {:verify_ssl => OpenSSL::SSL::VERIFY_NONE}
-
-    hawkular_options = {
-      :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri,
-      :tenant         => options[:tenant] || '_system',
-      :verify_ssl     => ssl_options[:verify_ssl],
-      :ssl_cert_store => ssl_options[:ca_file],
-    }
-
-    Hawkular::Metrics::Client.new(uri, credentials, hawkular_options)
-  end
-
-  def self.verify_hawkular_credentials(hostname, port, options)
-    !!hawkular_connect(hostname, port, options)&.avail&.get_data('all', :limit => 1)&.kind_of?(Array)
-  end
-
   def self.prometheus_connect(hostname, port, options)
     require 'prometheus/api_client'
 
@@ -958,11 +837,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     end
 
     super(params, endpoints, authentications)
-  end
-
-  def verify_hawkular_credentials
-    client = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::HawkularClient.new(self)
-    client.hawkular_try_connect
   end
 
   def verify_prometheus_credentials
@@ -1032,7 +906,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
 
   def authentications_to_validate
     at = [:bearer]
-    at << :hawkular if has_authentication_type?(:hawkular)
     at << :prometheus if has_authentication_type?(:prometheus)
     at << :prometheus_alerts if has_authentication_type?(:prometheus_alerts)
     at << :kubevirt if has_authentication_type?(:kubevirt)
@@ -1049,13 +922,12 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
 
   def verify_credentials(auth_type = nil, options = {})
     options = options.merge(:auth_type => auth_type)
-    if options[:auth_type].to_s == "hawkular"
-      verify_hawkular_credentials
-    elsif options[:auth_type].to_s == "prometheus"
+    case options[:auth_type].to_s
+    when "prometheus"
       verify_prometheus_credentials
-    elsif options[:auth_type].to_s == "prometheus_alerts"
+    when "prometheus_alerts"
       verify_prometheus_alerts_credentials
-    elsif options[:auth_type].to_s == "kubevirt"
+    when "kubevirt"
       verify_kubevirt_credentials
     else
       with_provider_connection(options, &:api_valid?)
@@ -1080,7 +952,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def supported_auth_types
-    %w(default password bearer hawkular prometheus prometheus_alerts kubevirt)
+    %w[default password bearer prometheus prometheus_alerts kubevirt]
   end
 
   def supports_authentication?(authtype)

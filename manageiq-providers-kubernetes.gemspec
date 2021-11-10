@@ -18,7 +18,6 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "hawkular-client",                 "~> 5.0"
   spec.add_dependency "image-inspector-client",          "~> 2.0"
   spec.add_dependency "kubeclient",                      "~> 4.6"
   spec.add_dependency "more_core_extensions",            ">= 3.6", "< 5"

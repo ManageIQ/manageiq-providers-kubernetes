@@ -15,8 +15,6 @@ module ManageIQ::Providers
       end
     end
 
-    require_nested :HawkularLegacyCaptureContext
-    require_nested :HawkularCaptureContext
     require_nested :PrometheusCaptureContext
 
     INTERVAL = 60.seconds
@@ -51,44 +49,19 @@ module ManageIQ::Providers
       }
     }
 
-    def hawkular_force_legacy?
-      worker_class = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCollectorWorker
-
-      worker_class.worker_settings[:hawkular_force_legacy] || false
-    end
-
     def prometheus_capture_context(target, start_time, end_time)
       PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
     end
 
-    def hawkular_capture_context(target, start_time, end_time)
-      # if we have new version of hawkular endpoints (/m endpoint)
-      # use the new collector
-      context = HawkularCaptureContext.new(target, start_time, end_time, INTERVAL)
-      if hawkular_force_legacy? || !context.m_endpoint?
-        _log.info("Using Hawkular legacy metrics collector")
-        HawkularLegacyCaptureContext.new(target, start_time, end_time, INTERVAL)
-      else
-        context
-      end
-    end
-
     def metrics_connection(ems)
-      ems.connection_configurations.prometheus || ems.connection_configurations.hawkular
+      ems.connection_configurations.prometheus
     end
 
-    def capture_context(ems, target, start_time, end_time)
+    def capture_context(_ems, target, start_time, end_time)
       # make start_time align to minutes
       start_time = start_time.beginning_of_minute
 
-      # check for prometheus/hawkular endpoints, ems must be set
-      if ems.connection_configurations.prometheus.try(:endpoint)
-        return prometheus_capture_context(target, start_time, end_time)
-      end
-
-      if ems.connection_configurations.hawkular.try(:endpoint)
-        return hawkular_capture_context(target, start_time, end_time)
-      end
+      prometheus_capture_context(target, start_time, end_time)
     end
 
     def perf_collect_metrics(interval_name, start_time = nil, end_time = nil)

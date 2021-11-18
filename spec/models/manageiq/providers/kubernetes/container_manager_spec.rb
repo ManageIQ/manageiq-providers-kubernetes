@@ -79,18 +79,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       expect(ems.supports_metrics?).to be_falsey
     end
 
-    it "provider with hawkular endpoint has metrics support" do
-      ems = FactoryBot.create(
-        :ems_kubernetes,
-        :endpoints => [
-          Endpoint.new(:role => 'default', :hostname => 'hostname'),
-          Endpoint.new(:role => 'hawkular')
-        ]
-      )
-
-      expect(ems.supports_metrics?).to be_truthy
-    end
-
     it "provider with prometheus endpoint has metrics support" do
       ems = FactoryBot.create(
         :ems_kubernetes,
@@ -167,7 +155,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         :hostname        => 'hostname',
         :authentications => [
           FactoryBot.build(:authentication, :authtype => 'bearer', :auth_key => 'valid-token'),
-          FactoryBot.build(:authentication, :authtype => 'hawkular')
+          FactoryBot.build(:authentication, :authtype => 'prometheus')
         ]
       )
       allow(@ems).to receive_message_chain(:connect, :proxy_url => "Hello")
@@ -180,7 +168,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
 
     it "checks for missing_credentials" do
       expect(@ems.missing_credentials?(:bearer)).to be_falsey
-      expect(@ems.missing_credentials?(:hawkular)).to be_truthy
+      expect(@ems.missing_credentials?(:prometheus)).to be_truthy
     end
 
     it ".scan_entity_create" do
@@ -280,7 +268,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         :ems_kubernetes,
         :endpoints => [
           FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host2'),
-          FactoryBot.create(:endpoint, :role => 'hawkular', :hostname => 'host2'),
+          FactoryBot.create(:endpoint, :role => 'prometheus', :hostname => 'host2'),
         ]
       )
       expect(ems.monitoring_manager).to be_nil
@@ -296,7 +284,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
 
     it "Does not create a monitoring manager when added a non prometheus_alerts endpoint" do
       ems = FactoryBot.create(:ems_kubernetes)
-      ems.endpoints << FactoryBot.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
+      ems.endpoints << FactoryBot.create(:endpoint, :role => 'prometheus', :hostname => 'host2')
       expect(ems.monitoring_manager).to be_nil
     end
 
@@ -344,7 +332,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         :ems_kubernetes,
         :endpoints => [
           FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryBot.build(:endpoint, :role => 'hawkular', :hostname => 'host2'),
+          FactoryBot.build(:endpoint, :role => 'prometheus', :hostname => 'host2'),
         ]
       )
       expect(ems.infra_manager).to be_nil
@@ -367,7 +355,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
 
     it "Does not create a virtualization manager when added a non kubevirt endpoint" do
       ems = FactoryBot.create(:ems_kubernetes)
-      ems.endpoints << FactoryBot.create(:endpoint, :role => 'hawkular', :hostname => 'host2')
+      ems.endpoints << FactoryBot.create(:endpoint, :role => 'prometheus', :hostname => 'host2')
       expect(ems.infra_manager).to be_nil
     end
 

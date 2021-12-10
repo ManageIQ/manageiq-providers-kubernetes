@@ -21,6 +21,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   before_save :stop_event_monitor_queue_on_change, :stop_refresh_worker_queue_on_change
   before_destroy :stop_event_monitor, :stop_refresh_worker
 
+  supports :create
   supports :streaming_refresh do
     unsupported_reason_add(:streaming_refresh, _("Streaming refresh not enabled")) unless streaming_refresh_enabled?
   end

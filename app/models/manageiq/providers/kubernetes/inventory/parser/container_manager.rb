@@ -1007,10 +1007,8 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_volumes(pod)
     pod.spec.volumes.to_a.collect do |volume|
-      new_result = {
-        :type => 'ContainerVolume',
-        :name => volume.name,
-      }.merge!(parse_volume_source(volume))
+      new_result = {:name => volume.name}.merge!(parse_volume_source(volume))
+
       if volume.persistentVolumeClaim.try(:claimName)
         new_result[:persistent_volume_claim_ref] = {
           :namespace => pod.metadata.namespace,

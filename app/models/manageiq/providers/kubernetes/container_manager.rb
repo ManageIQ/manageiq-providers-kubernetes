@@ -809,12 +809,19 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def self.kubevirt_connect(hostname, port, options)
-    opts = {:server => hostname, :port => port, :token => options[:bearer]}
-    ManageIQ::Providers::Kubevirt::InfraManager.raw_connect(opts)
+    ManageIQ::Providers::Kubevirt::InfraManager.raw_connect(:server => hostname, :port => port, :token => options[:bearer])
   end
 
   def self.verify_kubevirt_credentials(hostname, port, options)
-    !!kubevirt_connect(hostname, port, options)&.virt_supported?
+    ManageIQ::Providers::Kubevirt::InfraManager.verify_credentials(
+      "endpoints" => {
+        "default" => {
+          "server" => hostname,
+          "port"   => port,
+          "token"  => options[:bearer]
+        }
+      }
+    )
   end
 
   PERF_ROLLUP_CHILDREN = [:container_nodes]

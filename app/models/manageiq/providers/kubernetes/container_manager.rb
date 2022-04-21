@@ -1,6 +1,7 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::ContainerManager
   require_nested :Container
   require_nested :ContainerGroup
+  require_nested :ContainerImage
   require_nested :ContainerNode
   require_nested :ContainerTemplate
   require_nested :EventCatcher
@@ -976,7 +977,8 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def raw_scan_job_create(target_class, target_id = nil, userid = nil, target_name = nil)
-    raise MiqException::Error, _("target_class must be a class not an instance") if target_class.kind_of?(ContainerImage)
+    raise MiqException::Error, _("target_class must be a class not an instance") if target_class.kind_of?(::ContainerImage)
+
     ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job.create_job(
       :userid          => userid,
       :name            => "Container Image Analysis: '#{target_name}'",

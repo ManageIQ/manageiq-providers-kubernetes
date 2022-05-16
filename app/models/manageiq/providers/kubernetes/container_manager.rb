@@ -963,10 +963,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     %w[default password bearer prometheus prometheus_alerts kubevirt]
   end
 
-  def supports_authentication?(authtype)
-    supported_auth_types.include?(authtype.to_s)
-  end
-
   def default_authentication_type
     :bearer
   end

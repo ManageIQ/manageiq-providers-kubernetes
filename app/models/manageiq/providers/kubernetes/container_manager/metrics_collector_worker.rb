@@ -11,7 +11,7 @@ module ManageIQ::Providers
     # Override PerEmsTypeWorkerMixin.emses_in_zone to limit metrics collection
     def self.emses_in_zone
       super.select do |ems|
-        ems.supports_metrics?.tap do |supported|
+        ems.supports?(:metrics).tap do |supported|
           _log.info("Skipping [#{ems.name}] since it has no metrics endpoint") unless supported
         end
       end

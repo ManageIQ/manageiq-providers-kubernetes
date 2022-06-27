@@ -76,7 +76,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         ]
       )
 
-      expect(ems.supports_metrics?).to be_falsey
+      expect(ems.supports?(:metrics)).to be_falsey
     end
 
     it "provider with prometheus endpoint has metrics support" do

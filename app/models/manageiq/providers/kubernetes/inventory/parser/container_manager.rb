@@ -1100,34 +1100,34 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
   def lazy_find_replicator(hash)
     return nil if hash.nil?
     search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
-    persister.container_replicators.lazy_find_by(search, :ref => :by_container_project_and_name)
+    persister.container_replicators.lazy_find(search, :ref => :by_container_project_and_name)
   end
 
   def lazy_find_container_group(hash)
     return nil if hash.nil?
     search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
-    persister.container_groups.lazy_find_by(search, :ref => :by_container_project_and_name)
+    persister.container_groups.lazy_find(search, :ref => :by_container_project_and_name)
   end
 
   def lazy_find_image(hash)
     return nil if hash.nil?
     hash = hash.merge(:container_image_registry => lazy_find_image_registry(hash[:container_image_registry]))
-    persister.container_images.lazy_find_by(hash)
+    persister.container_images.lazy_find(hash)
   end
 
   def lazy_find_image_registry(hash)
     return nil if hash.nil?
-    persister.container_image_registries.lazy_find_by(hash)
+    persister.container_image_registries.lazy_find(hash)
   end
 
   def lazy_find_build_pod(hash)
     return nil if hash.nil?
-    persister.container_build_pods.lazy_find_by(hash, :ref => :by_namespace_and_name)
+    persister.container_build_pods.lazy_find(hash, :ref => :by_namespace_and_name)
   end
 
   def lazy_find_persistent_volume_claim(hash)
     return nil if hash.nil?
     search = {:container_project => lazy_find_project(:name => hash[:namespace]), :name => hash[:name]}
-    persister.persistent_volume_claims.lazy_find_by(search, :ref => :by_container_project_and_name)
+    persister.persistent_volume_claims.lazy_find(search, :ref => :by_container_project_and_name)
   end
 end

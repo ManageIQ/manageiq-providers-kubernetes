@@ -32,6 +32,10 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     Settings.ems_refresh[emstype.to_sym]&.streaming_refresh
   end
 
+  def allow_targeted_refresh?
+    true
+  end
+
   def monitoring_manager_needed?
     connection_configurations.roles.include?(
       ManageIQ::Providers::Kubernetes::MonitoringManagerMixin::ENDPOINT_ROLE.to_s

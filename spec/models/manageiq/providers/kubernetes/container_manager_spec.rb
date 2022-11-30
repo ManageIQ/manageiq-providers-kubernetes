@@ -51,6 +51,101 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
+  describe ".create_from_params" do
+    let(:zone)   { EvmSpecHelper.create_guid_miq_server_zone.last }
+    let(:params) { {"name" => "k8s", "zone" => zone} }
+
+    context "with a single default endpoint" do
+      let(:endpoints) { [{"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => "ssl-with-validation"}] }
+      let(:authentications) { [{"authtype" => "bearer", "auth_key" => "super secret"}] }
+
+      it "creates the EMS" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.name).to eq(params["name"])
+        expect(ems.endpoints.count).to eq(1)
+        expect(ems.endpoints.find_by(:role => "default")).to have_attributes(
+          :hostname          => "kubernetes.local",
+          :port              => 6443,
+          :security_protocol => "ssl-with-validation"
+        )
+        expect(ems.authentications.count).to eq(1)
+        expect(ems.authentications.find_by(:authtype => "bearer")).to have_attributes(
+          "auth_key" => "super secret"
+        )
+      end
+    end
+
+    context "with a metrics endpoint" do
+      let(:endpoints) do
+        [
+          {"role" => "default",    "hostname" => "kubernetes.local",            "port" => 6443, "security_protocol" => "ssl-with-validation"},
+          {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
+        ]
+      end
+      let(:authentications) do
+        [
+          {"authtype" => "bearer", "auth_key" => "super secret"}
+        ]
+      end
+
+      it "copies the default auth_key to the prometheus endpoint" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.endpoints.count).to eq(2)
+        expect(ems.authentications.count).to eq(2)
+        expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+          "auth_key" => "super secret"
+        )
+      end
+    end
+
+    context "with an alerts endpoint" do
+      let(:endpoints) do
+        [
+          {"role" => "default",           "hostname" => "kubernetes.local",                   "port" => 6443, "security_protocol" => "ssl-with-validation"},
+          {"role" => "prometheus_alerts", "hostname" => "prometheus_alerts.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
+        ]
+      end
+      let(:authentications) do
+        [
+          {"authtype" => "bearer", "auth_key" => "super secret"}
+        ]
+      end
+
+      it "copies the default auth_key to the prometheus endpoint" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.endpoints.count).to eq(2)
+        expect(ems.authentications.count).to eq(2)
+        expect(ems.authentications.find_by(:authtype => "prometheus_alerts")).to have_attributes(
+          "auth_key" => "super secret"
+        )
+      end
+    end
+
+    context "with a virtualization endpoint" do
+      let(:endpoints) do
+        [
+          {"role" => "default",  "hostname" => "kubernetes.local",          "port" => 6443, "security_protocol" => "ssl-with-validation"},
+          {"role" => "kubevirt", "hostname" => "kubevirt.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
+        ]
+      end
+      let(:authentications) do
+        [
+          {"authtype" => "bearer",   "auth_key" => "super secret"},
+          {"authtype" => "kubevirt", "auth_key" => "also super secret"}
+        ]
+      end
+
+      it "has a different token from the default auth_key" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.endpoints.count).to eq(2)
+        expect(ems.authentications.count).to eq(2)
+        expect(ems.authentications.find_by(:authtype => "kubevirt")).to have_attributes(
+          "auth_key" => "also super secret"
+        )
+      end
+    end
+  end
+
   describe "hostname_uniqueness_valid?" do
     it "allows duplicate hostname with different ports" do
       FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443)

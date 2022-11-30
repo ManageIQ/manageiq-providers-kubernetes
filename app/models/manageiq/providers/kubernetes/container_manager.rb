@@ -844,7 +844,8 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
       when 'kubevirt' # Kubevirt has its own authentication, no need for replication
         authentications << {'authtype' => 'kubevirt'} unless kubevirt
       else # Replicate the bearer authentication for any other endpoints
-        authentications << {'authtype' => endpoint['role']}.reverse_merge(bearer || {:auth_key => authentication_token})
+        auth_key = bearer&.fetch('auth_key', authentication_token)
+        authentications << {'authtype' => endpoint['role']}.reverse_merge(:auth_key => auth_key)
       end
     end
 

@@ -51,6 +51,232 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
+  describe ".create_from_params" do
+    let(:zone)   { EvmSpecHelper.create_guid_miq_server_zone.last }
+    let(:params) { {"name" => "k8s", "zone" => zone} }
+
+    context "with a single default endpoint" do
+      let(:endpoints) { [{"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => "ssl-with-validation"}] }
+      let(:authentications) { [{"authtype" => "bearer", "auth_key" => "super secret"}] }
+
+      it "creates the EMS" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.name).to eq(params["name"])
+        expect(ems.endpoints.count).to eq(1)
+        expect(ems.endpoints.find_by(:role => "default")).to have_attributes(
+          :hostname          => "kubernetes.local",
+          :port              => 6443,
+          :security_protocol => "ssl-with-validation"
+        )
+        expect(ems.authentications.count).to eq(1)
+        expect(ems.authentications.find_by(:authtype => "bearer")).to have_attributes(
+          "auth_key" => "super secret"
+        )
+      end
+    end
+
+    context "with a metrics endpoint" do
+      let(:endpoints) do
+        [
+          {"role" => "default",    "hostname" => "kubernetes.local",            "port" => 6443, "security_protocol" => "ssl-with-validation"},
+          {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
+        ]
+      end
+      let(:authentications) do
+        [
+          {"authtype" => "bearer", "auth_key" => "super secret"}
+        ]
+      end
+
+      it "copies the default auth_key to the prometheus endpoint" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.endpoints.count).to eq(2)
+        expect(ems.authentications.count).to eq(2)
+        expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+          "auth_key" => "super secret"
+        )
+      end
+    end
+
+    context "with an alerts endpoint" do
+      let(:endpoints) do
+        [
+          {"role" => "default",           "hostname" => "kubernetes.local",                   "port" => 6443, "security_protocol" => "ssl-with-validation"},
+          {"role" => "prometheus_alerts", "hostname" => "prometheus_alerts.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
+        ]
+      end
+      let(:authentications) do
+        [
+          {"authtype" => "bearer", "auth_key" => "super secret"}
+        ]
+      end
+
+      it "copies the default auth_key to the prometheus endpoint" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.endpoints.count).to eq(2)
+        expect(ems.authentications.count).to eq(2)
+        expect(ems.authentications.find_by(:authtype => "prometheus_alerts")).to have_attributes(
+          "auth_key" => "super secret"
+        )
+      end
+    end
+
+    context "with a virtualization endpoint" do
+      let(:endpoints) do
+        [
+          {"role" => "default",  "hostname" => "kubernetes.local",          "port" => 6443, "security_protocol" => "ssl-with-validation"},
+          {"role" => "kubevirt", "hostname" => "kubevirt.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
+        ]
+      end
+      let(:authentications) do
+        [
+          {"authtype" => "bearer",   "auth_key" => "super secret"},
+          {"authtype" => "kubevirt", "auth_key" => "also super secret"}
+        ]
+      end
+
+      it "has a different token from the default auth_key" do
+        ems = described_class.create_from_params(params, endpoints, authentications)
+        expect(ems.endpoints.count).to eq(2)
+        expect(ems.authentications.count).to eq(2)
+        expect(ems.authentications.find_by(:authtype => "kubevirt")).to have_attributes(
+          "auth_key" => "also super secret"
+        )
+      end
+    end
+  end
+
+  describe "#edit_with_params" do
+    let!(:ems) do
+      FactoryBot.create(:ems_kubernetes_with_zone).tap do |ems|
+        ems.authentications << FactoryBot.create(:authentication, "authtype" => "bearer", "auth_key" => "super secret")
+      end
+    end
+    let(:params) { {"name" => ems.name, "zone" => ems.zone} }
+
+    context "without changing the default token" do
+      let(:authentications) { [{"authtype" => "bearer"}] }
+
+      context "adding a metrics endpoint" do
+        let(:endpoints) { [{"role" => "default", "hostname" => ems.hostname, "port" => ems.port}, {"role" => "prometheus", "hostname" => "prometheus.#{ems.hostname}"}] }
+
+        it "copies the auth_key from the default authentication" do
+          ems.edit_with_params(params, endpoints, authentications)
+          ems.reload
+
+          expect(ems.authentications.count).to eq(2)
+          expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+            "auth_key" => ems.default_authentication.auth_key
+          )
+        end
+      end
+
+      context "with a metrics endpoint" do
+        before do
+          ems.endpoints       << FactoryBot.create(:endpoint, :hostname => "prometheus")
+          ems.authentications << FactoryBot.create(:authentication, :auth_key => "super secret")
+        end
+
+        context "modifying a metrics endpoint" do
+          let(:endpoints) { [{"role" => "default", "hostname" => ems.hostname, "port" => ems.port}, {"role" => "prometheus", "hostname" => "prometheus-new"}] }
+
+          it "updates the prometheus hostname" do
+            ems.edit_with_params(params, endpoints, authentications)
+            ems.reload
+
+            expect(ems.endpoints.find_by(:role => "prometheus")).to have_attributes(
+              :hostname => "prometheus-new"
+            )
+          end
+
+          it "copies the auth_key from the default authentication" do
+            ems.edit_with_params(params, endpoints, authentications)
+            ems.reload
+
+            expect(ems.authentications.count).to eq(2)
+            expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+              "auth_key" => ems.default_authentication.auth_key
+            )
+          end
+        end
+
+        context "deleting a metrics endpoint" do
+          let(:endpoints) { [{"role" => "default", "hostname" => ems.hostname, "port" => ems.port}] }
+
+          it "deletes the metrics endpoint and authention" do
+            ems.edit_with_params(params, endpoints, authentications)
+            ems.reload
+
+            expect(ems.endpoints.count).to       eq(1)
+            expect(ems.authentications.count).to eq(1)
+          end
+        end
+      end
+    end
+
+    context "changing the default token" do
+      let(:authentications) { [{"authtype" => "bearer", "auth_key" => "more super secret"}] }
+
+      context "adding a metrics endpoint" do
+        let(:endpoints) { [{"role" => "default", "hostname" => ems.hostname, "port" => ems.port}, {"role" => "prometheus", "hostname" => "prometheus.#{ems.hostname}"}] }
+
+        it "copies the new auth_key from the params" do
+          ems.edit_with_params(params, endpoints, authentications)
+          ems.reload
+
+          expect(ems.authentications.count).to eq(2)
+          expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+            "auth_key" => "more super secret"
+          )
+        end
+      end
+
+      context "with a metrics endpoint" do
+        before do
+          ems.endpoints       << FactoryBot.create(:endpoint, :hostname => "prometheus")
+          ems.authentications << FactoryBot.create(:authentication, :auth_key => "super secret")
+        end
+
+        context "modifying a metrics endpoint" do
+          let(:endpoints) { [{"role" => "default", "hostname" => ems.hostname, "port" => ems.port}, {"role" => "prometheus", "hostname" => "prometheus-new"}] }
+
+          it "updates the prometheus hostname" do
+            ems.edit_with_params(params, endpoints, authentications)
+            ems.reload
+
+            expect(ems.endpoints.find_by(:role => "prometheus")).to have_attributes(
+              :hostname => "prometheus-new"
+            )
+          end
+
+          it "copies the new auth_key from the params" do
+            ems.edit_with_params(params, endpoints, authentications)
+            ems.reload
+
+            expect(ems.authentications.count).to eq(2)
+            expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+              "auth_key" => "more super secret"
+            )
+          end
+        end
+
+        context "deleting a metrics endpoint" do
+          let(:endpoints) { [{"role" => "default", "hostname" => ems.hostname, "port" => ems.port}, {"role" => "prometheus", "hostname" => "prometheus.#{ems.hostname}"}] }
+
+          it "copies the new auth_key from the params" do
+            ems.edit_with_params(params, endpoints, authentications)
+            ems.reload
+
+            expect(ems.authentications.count).to eq(2)
+            expect(ems.authentications.find_by(:authtype => "prometheus")).to have_attributes(
+              "auth_key" => "more super secret"
+            )
+          end
+        end
+      end
+    end
+  end
+
   describe "hostname_uniqueness_valid?" do
     it "allows duplicate hostname with different ports" do
       FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443)

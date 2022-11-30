@@ -704,7 +704,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
 
     case endpoint_name
     when 'default'
-      !!raw_connect(hostname, port, options)
+      verify_default_credentials(hostname, port, options)
     when 'kubevirt'
       verify_kubevirt_credentials(hostname, port, options)
     when 'hawkular'
@@ -796,6 +796,11 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     Prometheus::ApiClient.client(:url => uri, :credentials => credentials, :options => prometheus_options)
   end
 
+  def self.verify_default_credentials(hostname, port, options)
+    kube = raw_connect(hostname, port, options)
+    kube && kube.api_valid?
+  end
+
   def self.verify_prometheus_credentials(hostname, port, options)
     !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
   end
@@ -849,6 +854,10 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     end
 
     super(params, endpoints, authentications)
+  end
+
+  def verify_default_credentials(options)
+    with_provider_connection(options, &:api_valid?)
   end
 
   def verify_prometheus_credentials
@@ -942,7 +951,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     when "kubevirt"
       verify_kubevirt_credentials
     else
-      with_provider_connection(options, &:api_valid?)
+      verify_default_credentials(options)
     end
   rescue SocketError,
          Errno::ECONNREFUSED,

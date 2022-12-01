@@ -702,20 +702,33 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
       }
     }
 
-    case endpoint_name
-    when 'default'
-      verify_default_credentials(hostname, port, options)
-    when 'kubevirt'
-      verify_kubevirt_credentials(hostname, port, options)
-    when 'hawkular'
-      verify_hawkular_credentials(hostname, port, options)
-    when 'prometheus'
-      verify_prometheus_credentials(hostname, port, options)
-    when 'prometheus_alerts'
-      verify_prometheus_alerts_credentials(hostname, port, options)
-    else
-      raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
+    connection_rescue_block do
+      case endpoint_name
+      when 'default'
+        verify_default_credentials(hostname, port, options)
+      when 'kubevirt'
+        verify_kubevirt_credentials(hostname, port, options)
+      when 'hawkular'
+        verify_hawkular_credentials(hostname, port, options)
+      when 'prometheus'
+        verify_prometheus_credentials(hostname, port, options)
+      when 'prometheus_alerts'
+        verify_prometheus_alerts_credentials(hostname, port, options)
+      else
+        raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
+      end
     end
+  end
+
+  def self.connection_rescue_block
+    yield
+  rescue SocketError,
+         Errno::ECONNREFUSED,
+         RestClient::ResourceNotFound,
+         RestClient::InternalServerError => err
+    raise MiqException::MiqUnreachableError, err.message, err.backtrace
+  rescue RestClient::Unauthorized, Kubeclient::HttpError => err
+    raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
   end
 
   def self.create_from_params(params, endpoints, authentications)
@@ -947,23 +960,19 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
 
   def verify_credentials(auth_type = nil, options = {})
     options = options.merge(:auth_type => auth_type)
-    case options[:auth_type].to_s
-    when "prometheus"
-      verify_prometheus_credentials
-    when "prometheus_alerts"
-      verify_prometheus_alerts_credentials
-    when "kubevirt"
-      verify_kubevirt_credentials
-    else
-      verify_default_credentials(options)
+
+    self.class.connection_rescue_block do
+      case options[:auth_type].to_s
+      when "prometheus"
+        verify_prometheus_credentials
+      when "prometheus_alerts"
+        verify_prometheus_alerts_credentials
+      when "kubevirt"
+        verify_kubevirt_credentials
+      else
+        verify_default_credentials(options)
+      end
     end
-  rescue SocketError,
-         Errno::ECONNREFUSED,
-         RestClient::ResourceNotFound,
-         RestClient::InternalServerError => err
-    raise MiqException::MiqUnreachableError, err.message, err.backtrace
-  rescue RestClient::Unauthorized, Kubeclient::HttpError => err
-    raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
   end
 
   def after_update_authentication

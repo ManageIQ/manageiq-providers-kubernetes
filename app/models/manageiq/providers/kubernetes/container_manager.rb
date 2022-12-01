@@ -726,9 +726,9 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
          Errno::ECONNREFUSED,
          RestClient::ResourceNotFound,
          RestClient::InternalServerError => err
-    raise MiqException::MiqUnreachableError, err.message, err.backtrace
+    raise MiqException::MiqUnreachableError, err.message
   rescue RestClient::Unauthorized, Kubeclient::HttpError => err
-    raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
+    raise MiqException::MiqInvalidCredentialsError, err.message
   end
 
   def self.create_from_params(params, endpoints, authentications)

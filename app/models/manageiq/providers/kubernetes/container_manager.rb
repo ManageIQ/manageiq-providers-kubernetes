@@ -796,9 +796,12 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     Prometheus::ApiClient.client(:url => uri, :credentials => credentials, :options => prometheus_options)
   end
 
-  def self.verify_default_credentials(hostname, port, options)
-    kube = kubernetes_connect(hostname, port, options)
+  def self.verify_k8s_credentials(kube)
     !!kube&.api_valid? && !kube.get_namespaces(:limit => 1).nil?
+  end
+
+  def self.verify_default_credentials(hostname, port, options)
+    verify_k8s_credentials(kubernetes_connect(hostname, port, options))
   end
 
   def self.verify_prometheus_credentials(hostname, port, options)
@@ -858,9 +861,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
 
   def verify_default_credentials(options)
     options[:service] ||= "kubernetes"
-    with_provider_connection(options) do |kube|
-      kube.api_valid? && !kube.get_namespaces(:limit => 1).nil?
-    end
+    with_provider_connection(options) { |kube| self.class.verify_k8s_credentials(kube) }
   end
 
   def verify_prometheus_credentials

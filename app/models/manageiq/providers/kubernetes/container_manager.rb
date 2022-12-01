@@ -962,7 +962,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
          RestClient::ResourceNotFound,
          RestClient::InternalServerError => err
     raise MiqException::MiqUnreachableError, err.message, err.backtrace
-  rescue RestClient::Unauthorized   => err
+  rescue RestClient::Unauthorized, Kubeclient::HttpError => err
     raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
   end
 

@@ -702,20 +702,33 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
       }
     }
 
-    case endpoint_name
-    when 'default'
-      !!raw_connect(hostname, port, options)
-    when 'kubevirt'
-      verify_kubevirt_credentials(hostname, port, options)
-    when 'hawkular'
-      verify_hawkular_credentials(hostname, port, options)
-    when 'prometheus'
-      verify_prometheus_credentials(hostname, port, options)
-    when 'prometheus_alerts'
-      verify_prometheus_alerts_credentials(hostname, port, options)
-    else
-      raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
+    connection_rescue_block do
+      case endpoint_name
+      when 'default'
+        verify_default_credentials(hostname, port, options)
+      when 'kubevirt'
+        verify_kubevirt_credentials(hostname, port, options)
+      when 'hawkular'
+        verify_hawkular_credentials(hostname, port, options)
+      when 'prometheus'
+        verify_prometheus_credentials(hostname, port, options)
+      when 'prometheus_alerts'
+        verify_prometheus_alerts_credentials(hostname, port, options)
+      else
+        raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
+      end
     end
+  end
+
+  def self.connection_rescue_block
+    yield
+  rescue SocketError,
+         Errno::ECONNREFUSED,
+         RestClient::ResourceNotFound,
+         RestClient::InternalServerError => err
+    raise MiqException::MiqUnreachableError, err.message
+  rescue RestClient::Unauthorized, Kubeclient::HttpError => err
+    raise MiqException::MiqInvalidCredentialsError, err.message
   end
 
   def self.create_from_params(params, endpoints, authentications)
@@ -796,6 +809,14 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     Prometheus::ApiClient.client(:url => uri, :credentials => credentials, :options => prometheus_options)
   end
 
+  def self.verify_k8s_credentials(kube)
+    !!kube&.api_valid? && !kube.get_namespaces(:limit => 1).nil?
+  end
+
+  def self.verify_default_credentials(hostname, port, options)
+    verify_k8s_credentials(kubernetes_connect(hostname, port, options))
+  end
+
   def self.verify_prometheus_credentials(hostname, port, options)
     !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
   end
@@ -850,6 +871,11 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     end
 
     super(params, endpoints, authentications)
+  end
+
+  def verify_default_credentials(options)
+    options[:service] ||= "kubernetes"
+    with_provider_connection(options) { |kube| self.class.verify_k8s_credentials(kube) }
   end
 
   def verify_prometheus_credentials
@@ -935,23 +961,19 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
 
   def verify_credentials(auth_type = nil, options = {})
     options = options.merge(:auth_type => auth_type)
-    case options[:auth_type].to_s
-    when "prometheus"
-      verify_prometheus_credentials
-    when "prometheus_alerts"
-      verify_prometheus_alerts_credentials
-    when "kubevirt"
-      verify_kubevirt_credentials
-    else
-      with_provider_connection(options, &:api_valid?)
+
+    self.class.connection_rescue_block do
+      case options[:auth_type].to_s
+      when "prometheus"
+        verify_prometheus_credentials
+      when "prometheus_alerts"
+        verify_prometheus_alerts_credentials
+      when "kubevirt"
+        verify_kubevirt_credentials
+      else
+        verify_default_credentials(options)
+      end
     end
-  rescue SocketError,
-         Errno::ECONNREFUSED,
-         RestClient::ResourceNotFound,
-         RestClient::InternalServerError => err
-    raise MiqException::MiqUnreachableError, err.message, err.backtrace
-  rescue RestClient::Unauthorized   => err
-    raise MiqException::MiqInvalidCredentialsError, err.message, err.backtrace
   end
 
   def after_update_authentication

@@ -35,7 +35,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       # Filtering out entries that are not containing all the metrics.
       # This generally happens because metrics are collected at slightly
       # different times and could produce entries that are incomplete.
-      @ts_values.select { |_, v| @metrics.all? { |k| v.key?(k) } }
+      #
+      # However, if a requested metric is missing from all timestamps
+      #  don't exclude all other values.
+      collected_metrics = @ts_values.values.flat_map(&:keys).uniq
+      @ts_values.select { |_, v| collected_metrics.all? { |k| v.key?(k) } }
     end
 
     def validate_target

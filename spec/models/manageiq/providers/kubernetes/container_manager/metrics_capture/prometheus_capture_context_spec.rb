@@ -79,4 +79,47 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Prom
       end
     end
   end
+
+  describe "#ts_values" do
+    let(:start_time) { Time.parse("2020-06-04 20:00:00 UTC").utc }
+    let(:end_time)   { Time.parse("2020-06-04 20:10:00 UTC").utc }
+    let(:interval)   { 60 }
+    let!(:context) { ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusCaptureContext.new(@node, start_time, end_time, interval) }
+
+    context "with no missing metrics" do
+      before do
+        ts_values = context.instance_variable_get(:@ts_values)
+        ts_values[start_time] = {"cpu_usage_rate_average" => [1], "container_memory_usage_bytes" => [1], "net_usage_rate_average" => [1]}
+        ts_values[end_time] = {"cpu_usage_rate_average" => [1], "container_memory_usage_bytes" => [1], "net_usage_rate_average" => [1]}
+      end
+
+      it "returns all timestamps" do
+        expect(context.ts_values.keys).to include(start_time, end_time)
+      end
+    end
+
+    context "with some timestamps missing metrics" do
+      before do
+        ts_values = context.instance_variable_get(:@ts_values)
+        ts_values[start_time] = {"cpu_usage_rate_average" => [1], "container_memory_usage_bytes" => [1], "net_usage_rate_average" => [1]}
+        ts_values[end_time] = {"cpu_usage_rate_average" => [1], "net_usage_rate_average" => [1]}
+      end
+
+      it "only returns timestamps with all metrics" do
+        expect(context.ts_values.keys).not_to include(end_time)
+      end
+    end
+
+    context "with some missing metrics from all timestamps" do
+      before do
+        ts_values = context.instance_variable_get(:@ts_values)
+        ts_values[start_time] = {"cpu_usage_rate_average" => [1], "net_usage_rate_average" => [1]}
+        ts_values[end_time] = {"cpu_usage_rate_average" => [1], "net_usage_rate_average" => [1]}
+      end
+
+      it "returns all timestamps" do
+        expect(context.ts_values.keys).to include(start_time, end_time)
+      end
+    end
+  end
 end

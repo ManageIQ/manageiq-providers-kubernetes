@@ -822,7 +822,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def self.verify_prometheus_alerts_credentials(hostname, port, options)
-    !!parent::MonitoringManager.verify_credentials(
+    !!module_parent::MonitoringManager.verify_credentials(
       :url         => raw_api_endpoint(hostname, port),
       :path        => options[:path] || "/topics/alerts",
       :credentials => {:token => options[:bearer]},

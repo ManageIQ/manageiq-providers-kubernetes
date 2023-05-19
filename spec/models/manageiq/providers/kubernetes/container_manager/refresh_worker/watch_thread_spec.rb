@@ -1,12 +1,13 @@
 describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThread do
   require "kubeclient"
 
-  let(:ems)              { FactoryBot.create(:ems_kubernetes) }
-  let(:queue)            { Queue.new }
-  let(:resource_version) { "1" }
-  let(:entity_type)      { nil }
-  let(:notice)           { Kubeclient::Resource.new(:type => "MODIFIED", :object => object) }
-  let(:watch_thread)     { described_class.new({}, ems.class, queue, entity_type, resource_version) }
+  let(:ems)               { FactoryBot.create(:ems_kubernetes) }
+  let(:queue)             { Queue.new }
+  let(:resource_version)  { "1" }
+  let(:resource_versions) { {entity_type => resource_version} }
+  let(:entity_type)       { nil }
+  let(:notice)            { Kubeclient::Resource.new(:type => "MODIFIED", :object => object) }
+  let(:watch_thread)      { described_class.new({}, ems.class, queue, entity_type, resource_versions) }
 
   describe "#collector_thread (private)" do
     let(:entity_type) { :pods }
@@ -34,9 +35,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Watch
     end
 
     it "updates the last resource_version" do
-      expect(watch_thread).to receive(:resource_version=).with("2")
-
       watch_thread.send(:collector_thread)
+      expect(resource_versions[entity_type]).to eq("2")
     end
 
     context "410 Gone" do
@@ -44,9 +44,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Watch
       let(:notice) { Kubeclient::Resource.new(:type => "ERROR", :object => object) }
 
       it "restarts the watch from the start" do
-        expect(watch_thread).to receive(:resource_version=).with(nil)
-
         watch_thread.send(:collector_thread)
+        expect(resource_versions[entity_type]).to be_nil
       end
     end
 

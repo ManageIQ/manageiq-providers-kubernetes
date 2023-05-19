@@ -155,7 +155,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Runner <
   end
 
   def start_collector_thread(entity_type)
-    ems.class::RefreshWorker::WatchThread.start!(ems, queue, entity_type, resource_version_by_entity[entity_type])
+    ems.class::RefreshWorker::WatchThread.start!(ems, queue, entity_type, resource_version_by_entity)
   end
 
   def stop_collector_threads

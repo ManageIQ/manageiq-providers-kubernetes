@@ -24,6 +24,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::Watch
         .with("watch_#{entity_type}", :resource_version => resource_version)
         .and_return(watch)
 
+      allow(watch).to receive(:finish)
       allow(watch).to receive(:each).and_yield(notice).once
     end
 

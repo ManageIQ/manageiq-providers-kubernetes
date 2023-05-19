@@ -30,7 +30,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
     return unless alive?
 
     finish.make_true
-    watch&.finish
+    watch&.finish rescue nil
     thread&.join(join_limit)
   end
 
@@ -83,6 +83,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
         retry_connection = false
         retry
+      ensure
+        watch.finish rescue nil
       end
     end
 

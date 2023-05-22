@@ -4,18 +4,18 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
   HTTP_UNAUTHORIZED = 401
   HTTP_GONE         = 410
 
-  def self.start!(ems, queue, entity_type, resource_version)
-    new(ems.connect_options, ems.class, queue, entity_type, resource_version).tap(&:start!)
+  def self.start!(ems, queue, entity_type, resource_versions)
+    new(ems.connect_options, ems.class, queue, entity_type, resource_versions).tap(&:start!)
   end
 
-  def initialize(connect_options, ems_klass, queue, entity_type, resource_version)
-    @connect_options = connect_options
-    @ems_klass       = ems_klass
-    @entity_type     = entity_type
-    @finish          = Concurrent::AtomicBoolean.new
-    @queue           = queue
+  def initialize(connect_options, ems_klass, queue, entity_type, resource_versions)
+    @connect_options   = connect_options
+    @ems_klass         = ems_klass
+    @entity_type       = entity_type
+    @resource_versions = resource_versions
+    @finish            = Concurrent::AtomicBoolean.new
+    @queue             = queue
 
-    self.resource_version = resource_version
   end
 
   def alive?
@@ -36,7 +36,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
   protected
 
-  attr_accessor :resource_version, :thread, :watch
+  attr_accessor :resource_versions, :thread, :watch
 
   private
 
@@ -47,8 +47,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
     while running?
       begin
-        _log.debug { "Starting watch thread for #{entity_type} from version [#{resource_version}]" }
-        self.watch = connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_version)
+        _log.debug { "Starting watch thread for #{entity_type} from version [#{resource_versions[entity_type]}]" }
+        self.watch = connection(entity_type).send("watch_#{entity_type}", :resource_version => resource_versions[entity_type])
 
         # reset the connection retry flag after a successful connection
         retry_connection = true
@@ -61,14 +61,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
             # If we get a 410 Gone then restart with a resourceVersion of nil
             # to start over from the current state
-            self.resource_version = nil if code == HTTP_GONE
+            resource_versions[entity_type] = nil if code == HTTP_GONE
 
-            _log.warn("Received an error watching #{entity_type}: [#{code} #{reason}], [#{message}]")
-            break
+            _log.error("Received an error watching #{entity_type}: [#{code} #{reason}], [#{message}]")
+            raise
           end
 
-          current_resource_version = notice.object&.metadata&.resourceVersion
-          self.resource_version    = current_resource_version if current_resource_version.present?
+          current_resource_version       = notice.object&.metadata&.resourceVersion
+          resource_versions[entity_type] = current_resource_version if current_resource_version.present?
 
           next if noop?(notice)
 

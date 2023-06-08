@@ -242,7 +242,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :name                   => "authentications.prometheus.valid",
                     :skipSubmit             => true,
                     :isRequired             => true,
-                    :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
+                    :validationDependencies => ['type', "metrics_selection"],
                     :condition              => {
                       :when => "metrics_selection",
                       :is   => 'prometheus',
@@ -364,7 +364,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :name                   => "authentications.prometheus_alerts.valid",
                     :skipSubmit             => true,
                     :isRequired             => true,
-                    :validationDependencies => ['type', "alerts_selection", "authentications.bearer.auth_key"],
+                    :validationDependencies => ['type', "alerts_selection"],
                     :condition              => {
                       :when => "alerts_selection",
                       :is   => 'prometheus_alerts',

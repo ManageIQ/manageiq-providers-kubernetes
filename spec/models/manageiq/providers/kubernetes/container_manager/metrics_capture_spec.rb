@@ -59,6 +59,33 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     end
   end
 
+  context "#perf_capture_all_queue" do
+    it "returns the objects" do
+      expect(@ems_kubernetes.perf_capture_object.perf_capture_all_queue).to include("Container" => [@container], "ContainerNode" => [@node])
+    end
+
+    context "with a missing metrics endpoint" do
+      before do
+        @ems_kubernetes.endpoints.find_by(:role => "prometheus").destroy
+      end
+
+      it "returns no objects" do
+        expect(@ems_kubernetes.perf_capture_object.perf_capture_all_queue).to be_empty
+      end
+    end
+
+    context "with invalid authentication on the metrics endpoint" do
+      before do
+        @ems_kubernetes.authentications.find_by(:authtype => "prometheus").update!(:status => "Error")
+        @ems_kubernetes.reload
+      end
+
+      it "returns no objects" do
+        expect(@ems_kubernetes.perf_capture_object.perf_capture_all_queue).to be_empty
+      end
+    end
+  end
+
   context "#perf_collect_metrics" do
     it "fails when no ems is defined" do
       @node.ext_management_system = nil

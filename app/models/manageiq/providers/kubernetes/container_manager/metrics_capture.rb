@@ -49,12 +49,36 @@ module ManageIQ::Providers
       }
     }
 
+    def capture_ems_targets(_options = {})
+      begin
+        verify_metrics_connection!(ems)
+      rescue TargetValidationError, TargetValidationWarning => e
+        _log.send(e.log_severity, e.message)
+        return []
+      end
+
+      super
+    end
+
     def prometheus_capture_context(target, start_time, end_time)
       PrometheusCaptureContext.new(target, start_time, end_time, INTERVAL)
     end
 
     def metrics_connection(ems)
       ems.connection_configurations.prometheus
+    end
+
+    def metrics_connection_valid?(ems)
+      metrics_connection(ems)&.authentication&.status == "Valid"
+    end
+
+    def verify_metrics_connection!(ems)
+      t = target || ems
+      target_name = "#{t.class.name.demodulize}(#{t.id})"
+      raise TargetValidationError, "no provider for #{target_name}" if ems.nil?
+
+      raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if metrics_connection(ems).nil?
+      raise TargetValidationWarning, "metrics authentication isn't valid for #{target_name}" unless metrics_connection_valid?(ems)
     end
 
     def capture_context(_ems, target, start_time, end_time)
@@ -73,11 +97,7 @@ module ManageIQ::Providers
                 "[#{start_time}] [#{end_time}]")
 
       begin
-        raise TargetValidationError, "no provider for #{target_name}" if ems.nil?
-
-        connection = metrics_connection(ems)
-        raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if connection.nil?
-        raise TargetValidationWarning, "metrics authentication isn't valid for #{target_name}" unless connection.authentication&.status == "Valid"
+        verify_metrics_connection!(ems)
 
         context = capture_context(ems, target, start_time, end_time)
 

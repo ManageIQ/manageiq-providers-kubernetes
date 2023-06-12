@@ -45,10 +45,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
     end
   end
 
-  context "#capture_context" do
+  context "#build_capture_context!" do
     it "detect prometheus metrics provider" do
       metric_capture = described_class.new(@node)
-      context = metric_capture.capture_context(
+      context = metric_capture.build_capture_context!(
         @ems_kubernetes,
         @node,
         5.minutes.ago,

@@ -81,11 +81,15 @@ module ManageIQ::Providers
       raise TargetValidationWarning, "metrics authentication isn't valid for #{target_name}" unless metrics_connection_valid?(ems)
     end
 
-    def capture_context(_ems, target, start_time, end_time)
+    def build_capture_context!(ems, target, start_time, end_time)
+      verify_metrics_connection!(ems)
       # make start_time align to minutes
       start_time = start_time.beginning_of_minute
 
-      prometheus_capture_context(target, start_time, end_time)
+      context = prometheus_capture_context(target, start_time, end_time)
+      raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if context.nil?
+
+      context
     end
 
     def perf_collect_metrics(interval_name, start_time = nil, end_time = nil)
@@ -97,11 +101,7 @@ module ManageIQ::Providers
                 "[#{start_time}] [#{end_time}]")
 
       begin
-        verify_metrics_connection!(ems)
-
-        context = capture_context(ems, target, start_time, end_time)
-
-        raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if context.nil?
+        context = build_capture_context!(ems, target, start_time, end_time)
       rescue TargetValidationError, TargetValidationWarning => e
         _log.send(e.log_severity, "[#{target_name}] #{e.message}")
         ems.try(:update,

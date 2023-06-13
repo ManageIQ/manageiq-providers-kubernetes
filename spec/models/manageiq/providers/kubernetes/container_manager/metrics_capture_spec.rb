@@ -22,6 +22,16 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture do
 
       expect(context).to be_a(described_class::PrometheusCaptureContext)
     end
+
+    context "on an invalid target" do
+      let(:group) { FactoryBot.create(:kubernetes_container_group, :ext_management_system => ems) }
+
+      it "raises an exception" do
+        metric_capture = described_class.new(group)
+        expect { metric_capture.build_capture_context!(ems, group, 5.minutes.ago, 0.minutes.ago) }
+          .to raise_error(described_class::TargetValidationWarning, "no associated node")
+      end
+    end
   end
 
   context "#perf_capture_all_queue" do

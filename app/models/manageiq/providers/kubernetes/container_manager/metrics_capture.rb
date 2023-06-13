@@ -132,7 +132,7 @@ module ManageIQ::Providers
     def target_name
       @target_name ||= begin
         t = target || ems
-        target_name = "#{t.class.name.demodulize}(#{t.id})"
+        "#{t.class.name.demodulize}(#{t.id})"
       end
     end
   end

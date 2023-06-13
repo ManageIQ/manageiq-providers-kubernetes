@@ -73,8 +73,6 @@ module ManageIQ::Providers
     end
 
     def verify_metrics_connection!(ems)
-      t = target || ems
-      target_name = "#{t.class.name.demodulize}(#{t.id})"
       raise TargetValidationError, "no provider for #{target_name}" if ems.nil?
 
       raise TargetValidationWarning, "no metrics endpoint found for #{target_name}" if metrics_connection(ems).nil?
@@ -96,9 +94,7 @@ module ManageIQ::Providers
       start_time ||= 15.minutes.ago.beginning_of_minute.utc
       ems = target.ext_management_system
 
-      target_name = "#{target.class.name.demodulize}(#{target.id})"
-      _log.info("Collecting metrics for #{target_name} [#{interval_name}] " \
-                "[#{start_time}] [#{end_time}]")
+      _log.info("Collecting metrics for #{target_name} [#{interval_name}] [#{start_time}] [#{end_time}]")
 
       begin
         context = build_capture_context!(ems, target, start_time, end_time)
@@ -129,6 +125,15 @@ module ManageIQ::Providers
 
       [{target.ems_ref => VIM_STYLE_COUNTERS},
        {target.ems_ref => context.ts_values}]
+    end
+
+    private
+
+    def target_name
+      @target_name ||= begin
+        t = target || ems
+        target_name = "#{t.class.name.demodulize}(#{t.id})"
+      end
     end
   end
 end

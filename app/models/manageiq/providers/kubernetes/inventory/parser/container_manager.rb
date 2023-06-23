@@ -851,13 +851,16 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_container_state(state_hash)
     return {} if state_hash.to_h.empty?
-    res = {}
+
     # state_hash key is the state and value are attributes e.g 'running': {...}
-    (state, state_info), = state_hash.to_h.to_a
-    res[:state] = state
-    %w(reason started_at finished_at exit_code signal message).each do |attr|
-      res[attr.to_sym] = state_info[attr.camelize(:lower)]
+    (state, state_info), = state_hash.to_h.deep_symbolize_keys.to_a
+
+    res = {:state => state}
+
+    %i[reason reason started_at startedAt finished_at finishedAt exit_code exitCode signal signal message message].each_slice(2) do |attr, state_info_attr|
+      res[attr] = state_info[state_info_attr]
     end
+
     res
   end
 

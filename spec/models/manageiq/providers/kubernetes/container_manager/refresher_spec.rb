@@ -108,14 +108,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           # :backing_ref => "docker://87cd51044d7175c246fa1fa7699253fc2aecb769021837a966fa71e9dcb54d71"
         )
 
-        [
-          @container.started_at,
-          @container.finished_at,
-          @container.last_started_at,
-          @container.last_finished_at,
-        ].each do |date_|
-          expect(date_.kind_of?(ActiveSupport::TimeWithZone) || date_.kind_of?(NilClass)).to be_truthy
-        end
+        expect(@container.started_at).to be_kind_of(ActiveSupport::TimeWithZone)
+        expect(@container.finished_at).to be_nil
+        expect(@container.last_started_at).to be_kind_of(ActiveSupport::TimeWithZone)
+        expect(@container.last_finished_at).to be_kind_of(ActiveSupport::TimeWithZone)
 
         expect(@container.container_image.name).to eq("kubernetes/heapster")
         expect(@container.command).to eq("/heapster --source\\=kubernetes:https://kubernetes "\

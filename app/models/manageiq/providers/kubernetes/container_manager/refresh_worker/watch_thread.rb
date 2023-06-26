@@ -31,7 +31,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::RefreshWorker::WatchThr
 
     finish.make_true
     watch&.finish rescue nil
-    thread&.join(join_limit)
+    thread&.join(join_limit.to_f)
   end
 
   protected

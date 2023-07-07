@@ -203,6 +203,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                         :id         => "authentications.bearer.auth_key",
                         :name       => "authentications.bearer.auth_key",
                         :label      => "Token",
+                        :helperText => _('Note: If enabled, the Default, Metrics, and Alert Endpoints must be revalidated when adding or changing the token'),
                         :type       => "password",
                         :isRequired => true,
                         :validate   => [{:type => "required"}],

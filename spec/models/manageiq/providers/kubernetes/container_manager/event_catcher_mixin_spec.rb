@@ -17,19 +17,54 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
   let(:ems) { FactoryBot.create(:ems_kubernetes) }
 
   describe '#queue_event' do
+    let(:subject) do
+      test_class.new(ems).tap { |catcher| catcher.instance_variable_set(:@cfg, :ems_id => ems.id) }
+    end
+
+    let(:kubernetes_event) do
+      {
+        'kind'           => 'Event',
+        'apiVersion'     => 'v1',
+        'reason'         => 'Scheduled',
+        'involvedObject' => {
+          'kind' => 'Pod',
+        },
+        'metadata'       => {
+          'uid' => 'SomeRandomUid',
+        },
+        'lastTimestamp'  => '2016-07-25T11:45:34Z'
+      }
+    end
+
+    let(:event) { array_recursive_ostruct(:object => kubernetes_event) }
+
     it 'sends the received event to queue after parsing' do
-      catcher = test_class.new(ems)
-      expect(catcher).to receive(:extract_event_data).once.with(:raw_event).and_return(:extracted_event)
-      expect(catcher).to receive(:log_prefix)
-      expect(catcher).to receive_message_chain("_log.info")
-      catcher.instance_variable_set(:@cfg, :ems_id => ems.id)
-      expect(
-        ManageIQ::Providers::Kubernetes::ContainerManager::EventParser
-      ).to receive(
-        :event_to_hash
-      ).with(:extracted_event, ems.id).and_return(:hashed_event)
-      expect(EmsEvent).to receive(:add_queue).with('add', ems.id, :hashed_event)
-      catcher.queue_event(:raw_event)
+      expect(EmsEvent).to receive(:add_queue).with('add', ems.id, hash_including(:event_type => "POD_SCHEDULED", :timestamp => '2016-07-25T11:45:34Z'))
+
+      subject.queue_event(event)
+    end
+
+    context "with an invalid event" do
+      let(:kubernetes_event) do
+        {
+          'kind'           => 'Event',
+          'apiVersion'     => 'v1',
+          'reason'         => 'Scheduled',
+          'involvedObject' => {
+            'kind' => 'Pod',
+          },
+          'metadata'       => {
+            'uid' => 'SomeRandomUid',
+          },
+          'lastTimestamp'  => nil
+        }
+      end
+
+      it "doesn't queue the event" do
+        expect(EmsEvent).not_to receive(:add_queue)
+
+        subject.queue_event(event)
+      end
     end
   end
 
@@ -256,12 +291,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           ))
         end
 
-        let(:missing_timestamp_event) do
-          array_recursive_ostruct(:object => kubernetes_event.merge(
-            'lastTimestamp' => nil
-          ))
-        end
-
         it 'without matching node returns nil uid' do
           expect(test_class.new(ems).extract_event_data(bad_uid_event)[:uid]).to eq(nil)
           expect(test_class.new(ems).extract_event_data(missing_uid_event)[:uid]).to eq(nil)
@@ -275,10 +304,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
 
           expect(test_class.new(ems).extract_event_data(bad_uid_event)).to eq(expected_data)
           expect(test_class.new(ems).extract_event_data(missing_uid_event)).to eq(expected_data)
-        end
-
-        it 'with missing timestamp' do
-          expect(test_class.new(ems).extract_event_data(missing_timestamp_event)).to be_nil
         end
       end
     end

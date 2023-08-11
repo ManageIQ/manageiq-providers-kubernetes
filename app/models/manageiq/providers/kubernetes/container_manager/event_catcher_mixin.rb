@@ -48,7 +48,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   def queue_event(event)
     event_data = extract_event_data(event)
-    return if event_data.nil?
+    if !event_valid?(event_data)
+      _log.info "#{log_prefix} Skipping invalid event [#{event_data[:event_type]}]"
+      return
+    end
 
     _log.info "#{log_prefix} Queuing event [#{event_data}]"
     event_hash = ManageIQ::Providers::Kubernetes::ContainerManager::EventParser.event_to_hash(event_data, @cfg[:ems_id])
@@ -57,7 +60,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   def filtered?(event)
     event_data = extract_event_data(event)
-    return true if event_data.nil?
 
     supported_reasons = ENABLED_EVENTS[event_data[:kind]] || []
     !supported_reasons.include?(event_data[:reason]) || filtered_events.include?(event_data[:event_type])
@@ -75,9 +77,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       :uid       => event.object.involvedObject.uid,
       :event_uid => event.object.metadata.uid,
     }
-
-    # If there is no timestamp we cannot properly handle the event
-    return if event_data[:timestamp].nil?
 
     unless event.object.involvedObject.fieldPath.nil?
       event_data[:fieldpath] = event.object.involvedObject.fieldPath
@@ -110,5 +109,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
     event_data[:event_type] = "#{event_type_prefix}_#{event_data[:reason].upcase}"
 
     event_data
+  end
+
+  def event_valid?(event_data)
+    # If there is no timestamp we cannot properly handle the event
+    return false if event_data[:timestamp].nil?
+
+    true
   end
 end

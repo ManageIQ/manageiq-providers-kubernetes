@@ -256,6 +256,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           ))
         end
 
+        let(:missing_timestamp_event) do
+          array_recursive_ostruct(:object => kubernetes_event.merge(
+            'lastTimestamp' => nil
+          ))
+        end
+
         it 'without matching node returns nil uid' do
           expect(test_class.new(ems).extract_event_data(bad_uid_event)[:uid]).to eq(nil)
           expect(test_class.new(ems).extract_event_data(missing_uid_event)[:uid]).to eq(nil)
@@ -269,6 +275,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
 
           expect(test_class.new(ems).extract_event_data(bad_uid_event)).to eq(expected_data)
           expect(test_class.new(ems).extract_event_data(missing_uid_event)).to eq(expected_data)
+        end
+
+        it 'with missing timestamp' do
+          expect(test_class.new(ems).extract_event_data(missing_timestamp_event)).to be_nil
         end
       end
     end
@@ -287,6 +297,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           'metadata'       => {
             'uid' => 'SomeRandomUid',
           },
+          'lastTimestamp'  => '2016-07-25T11:45:34Z',
         }
       end
 
@@ -306,6 +317,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           'metadata'       => {
             'uid' => 'SomeRandomUid',
           },
+          'lastTimestamp'  => '2016-07-25T11:45:34Z',
         }
       end
 

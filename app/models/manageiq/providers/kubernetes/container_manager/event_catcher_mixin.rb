@@ -48,6 +48,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   def queue_event(event)
     event_data = extract_event_data(event)
+    if !event_valid?(event_data)
+      _log.info "#{log_prefix} Skipping invalid event [#{event_data[:event_type]}]"
+      return
+    end
+
     _log.info "#{log_prefix} Queuing event [#{event_data}]"
     event_hash = ManageIQ::Providers::Kubernetes::ContainerManager::EventParser.event_to_hash(event_data, @cfg[:ems_id])
     EmsEvent.add_queue('add', @cfg[:ems_id], event_hash)
@@ -77,7 +82,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       event_data[:fieldpath] = event.object.involvedObject.fieldPath
     end
 
-
     event_type_prefix = event_data[:kind].upcase
 
     # Handle event data for specific entities
@@ -105,5 +109,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
     event_data[:event_type] = "#{event_type_prefix}_#{event_data[:reason].upcase}"
 
     event_data
+  end
+
+  def event_valid?(event_data)
+    # If there is no timestamp we cannot properly handle the event
+    return false if event_data[:timestamp].nil?
+
+    true
   end
 end

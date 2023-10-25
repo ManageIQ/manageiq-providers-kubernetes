@@ -643,11 +643,25 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
       }
     )
 
+    debug_kubeclient(conn)
+
     # Test the API endpoint at connect time to prevent exception being raised
     # on first method call
     conn.discover
 
     conn
+  end
+
+  def self.debug_kubeclient(conn)
+    return unless defined?($log) && $log.debug?
+
+    if conn.respond_to?(:configure_faraday)
+      conn.configure_faraday { |faraday| faraday.response :logger }
+    else
+      RestClient.log = STDOUT
+    end
+
+    Kubeclient::Common::WatchStream.prepend(ManageIQ::Providers::Kubernetes::DebugKubeclientWatch)
   end
 
   def self.kubernetes_auth_options(options)

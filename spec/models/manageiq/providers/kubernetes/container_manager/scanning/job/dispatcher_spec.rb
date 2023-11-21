@@ -40,6 +40,7 @@ RSpec.describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job:
     context "with container and vms jobs" do
       let(:container_image_classes) { ContainerImage.descendants.collect(&:name).append('ContainerImage') }
       before do
+        ActiveRecord::Base.yaml_column_permitted_classes |=  [ManageIQ::Providers::Openshift::ContainerManager::ContainerImage]
         @jobs = (@vms + @repo_vms).collect(&:raw_scan)
         User.current_user = FactoryBot.create(:user)
         @jobs += @container_images.map { |img| img.ext_management_system.raw_scan_job_create(img.class, img.id) }

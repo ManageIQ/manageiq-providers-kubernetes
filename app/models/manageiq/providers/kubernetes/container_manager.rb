@@ -142,7 +142,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :name                   => 'authentications.default.valid',
                     :skipSubmit             => true,
                     :isRequired             => true,
-                    :validationDependencies => %w[type],
+                    :validationDependencies => %w[type zone_id],
                     :fields                 => [
                       {
                         :component    => "select",
@@ -243,7 +243,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :name                   => "authentications.prometheus.valid",
                     :skipSubmit             => true,
                     :isRequired             => true,
-                    :validationDependencies => ['type', "metrics_selection", "authentications.bearer.auth_key"],
+                    :validationDependencies => %w[type zone_id metrics_selection authentications.bearer.auth_key],
                     :condition              => {
                       :when => "metrics_selection",
                       :is   => 'prometheus',
@@ -365,7 +365,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :name                   => 'endpoints.virtualization.valid',
                     :skipSubmit             => true,
                     :isRequired             => true,
-                    :validationDependencies => %w[type virtualization_selection],
+                    :validationDependencies => %w[type zone_id virtualization_selection],
                     :condition              => {
                       :when => 'virtualization_selection',
                       :is   => 'kubevirt',

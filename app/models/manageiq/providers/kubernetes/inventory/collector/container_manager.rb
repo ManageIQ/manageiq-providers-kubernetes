@@ -1,6 +1,4 @@
 class ManageIQ::Providers::Kubernetes::Inventory::Collector::ContainerManager < ManageIQ::Providers::Kubernetes::Inventory::Collector
-  require_nested :WatchNotice
-
   def additional_attributes
     @additional_attributes ||= {} # TODO: is this used?
   end

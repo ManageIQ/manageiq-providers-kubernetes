@@ -1,7 +1,5 @@
 module ManageIQ::Providers
   class Kubernetes::ContainerManager::MetricsCollectorWorker < BaseManager::MetricsCollectorWorker
-    require_nested :Runner
-
     self.default_queue_name = "kubernetes"
 
     def friendly_name

@@ -1,18 +1,4 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::ContainerManager
-  require_nested :Container
-  require_nested :ContainerGroup
-  require_nested :ContainerNode
-  require_nested :ContainerTemplate
-  require_nested :EventCatcher
-  require_nested :EventCatcherMixin
-  require_nested :EventParser
-  require_nested :MetricsCapture
-  require_nested :MetricsCollectorWorker
-  require_nested :RefreshWorker
-  require_nested :Refresher
-  require_nested :Scanning
-  require_nested :Options
-
   DEFAULT_PORT = 6443
   METRICS_ROLES = %w[prometheus].freeze
 

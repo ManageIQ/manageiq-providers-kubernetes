@@ -1,7 +1,5 @@
 module ManageIQ::Providers
   class Kubernetes::MonitoringManager < ManageIQ::Providers::MonitoringManager
-    require_nested :EventCatcher
-
     ENDPOINT_ROLE = :prometheus_alerts
 
 

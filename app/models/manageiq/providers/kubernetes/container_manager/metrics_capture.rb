@@ -15,8 +15,6 @@ module ManageIQ::Providers
       end
     end
 
-    require_nested :PrometheusCaptureContext
-
     INTERVAL = 60.seconds
 
     VIM_STYLE_COUNTERS = {

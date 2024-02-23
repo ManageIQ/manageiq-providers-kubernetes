@@ -9,7 +9,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
 
   supports :create
   supports :streaming_refresh do
-    unsupported_reason_add(:streaming_refresh, _("Streaming refresh not enabled")) unless streaming_refresh_enabled?
+    _("Streaming refresh not enabled") unless streaming_refresh_enabled?
   end
 
   supports :label_mapping
@@ -29,7 +29,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   end
 
   supports :metrics do
-    unsupported_reason_add(:metrics, _("No metrics endpoint has been added")) unless metrics_endpoint_exists?
+    _("No metrics endpoint has been added") unless metrics_endpoint_exists?
   end
 
   def metrics_endpoint_exists?

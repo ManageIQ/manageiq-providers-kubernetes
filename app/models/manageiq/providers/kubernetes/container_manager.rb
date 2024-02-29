@@ -586,6 +586,7 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   end
 
   def self.connection_rescue_block
+    require "kubeclient"
     require "rest-client"
     yield
   rescue SocketError,

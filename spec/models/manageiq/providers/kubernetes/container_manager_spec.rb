@@ -289,7 +289,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
-  context "#supports_metrics?" do
+  context "#supports?(:metrics)" do
     before(:each) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)
     end
@@ -314,7 +314,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         ]
       )
 
-      expect(ems.supports_metrics?).to be_truthy
+      expect(ems.supports?(:metrics)).to be_truthy
     end
 
     it "provider with some role endpoint has no metrics support" do
@@ -326,7 +326,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         ]
       )
 
-      expect(ems.supports_metrics?).to be_falsey
+      expect(ems.supports?(:metrics)).to be_falsey
     end
   end
 

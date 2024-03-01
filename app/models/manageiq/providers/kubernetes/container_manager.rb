@@ -2,6 +2,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   DEFAULT_PORT = 6443
   METRICS_ROLES = %w[prometheus].freeze
 
+  include HasInfraManagerMixin
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options
 
   before_save :stop_event_monitor_queue_on_change, :stop_refresh_worker_queue_on_change
@@ -22,12 +23,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     true
   end
 
-  def monitoring_manager_needed?
-    connection_configurations.roles.include?(
-      ManageIQ::Providers::Kubernetes::MonitoringManagerMixin::ENDPOINT_ROLE.to_s
-    )
-  end
-
   supports :metrics do
     _("No metrics endpoint has been added") unless metrics_endpoint_exists?
   end
@@ -35,13 +30,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   def metrics_endpoint_exists?
     endpoints.where(:role => METRICS_ROLES).exists?
   end
-
-  # See HasMonitoringManagerMixin
-  has_one :monitoring_manager,
-          :foreign_key => :parent_ems_id,
-          :class_name  => "ManageIQ::Providers::Kubernetes::MonitoringManager",
-          :autosave    => true,
-          :dependent   => :destroy
 
   def self.ems_type
     @ems_type ||= "kubernetes".freeze
@@ -688,18 +676,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     !!prometheus_connect(hostname, port, options)&.query(:query => "ALL")&.kind_of?(Hash)
   end
 
-  def self.verify_prometheus_alerts_credentials(hostname, port, options)
-    !!module_parent::MonitoringManager.verify_credentials(
-      :url         => raw_api_endpoint(hostname, port),
-      :path        => options[:path] || "/topics/alerts",
-      :credentials => {:token => options[:bearer]},
-      :ssl         => {
-        :verify     => options.dig(:ssl_options, :verify_ssl) != OpenSSL::SSL::VERIFY_NONE,
-        :cert_store => options.dig(:ssl_options, :ca_file)
-      }
-    )
-  end
-
   def self.kubevirt_connect(hostname, port, options)
     ManageIQ::Providers::Kubevirt::InfraManager.raw_connect(:server => hostname, :port => port, :token => options[:bearer])
   end
@@ -748,11 +724,6 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
   def verify_prometheus_credentials
     client = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClient.new(self)
     client.prometheus_try_connect
-  end
-
-  def verify_prometheus_alerts_credentials
-    ensure_monitoring_manager
-    monitoring_manager.verify_credentials
   end
 
   def verify_kubevirt_credentials

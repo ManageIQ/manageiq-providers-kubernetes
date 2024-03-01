@@ -2,6 +2,13 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   DEFAULT_PORT = 6443
   METRICS_ROLES = %w[prometheus].freeze
 
+  has_one :infra_manager,
+          :foreign_key => :parent_ems_id,
+          :class_name  => "ManageIQ::Providers::Kubevirt::InfraManager",
+          :autosave    => true,
+          :inverse_of  => :parent_manager,
+          :dependent   => :destroy
+
   include HasInfraManagerMixin
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options
 

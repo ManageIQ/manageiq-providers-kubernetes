@@ -662,8 +662,9 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
     credentials = {:token => options[:bearer]}
     ssl_options = options[:ssl_options] || {:verify_ssl => OpenSSL::SSL::VERIFY_NONE}
 
+    http_proxy_uri = options[:http_proxy] || VMDB::Util.http_proxy_uri.to_s
     prometheus_options = {
-      :http_proxy_uri => options[:http_proxy] || VMDB::Util.http_proxy_uri.to_s,
+      :http_proxy_uri => http_proxy_uri.presence,
       :verify_ssl     => ssl_options[:verify_ssl],
       :ssl_cert_store => ssl_options[:ca_file],
     }

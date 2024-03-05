@@ -277,6 +277,72 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
+  describe ".verify_credentials" do
+    let(:zone)            { EvmSpecHelper.create_guid_miq_server_zone.last }
+    let(:params)          { {"name" => "k8s", "zone" => zone, "endpoints" => endpoints, "authentications" => authentications} }
+    let(:endpoints)       { {} }
+    let(:authentications) { {} }
+
+    context "with a default endpoint" do
+      require "kubeclient"
+
+      let(:kubeclient_client) { double("Kubeclient::Client") }
+      let(:endpoints)         { {"default" => {"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => "ssl-with-validation"}} }
+      let(:authentications)   { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+
+      before do
+        allow(kubeclient_client).to receive(:discover)
+        allow(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", anything).and_return(kubeclient_client)
+      end
+
+      it "returns true if the parameters are valid" do
+        expect(kubeclient_client).to receive(:api_valid?).and_return(true)
+        expect(kubeclient_client).to receive(:get_namespaces).with(:limit => 1).and_return([Kubeclient::Resource.new])
+        expect(described_class.verify_credentials(params)).to be_truthy
+      end
+
+      it "returns false if the parameters aren't valid" do
+        expect(kubeclient_client).to receive(:api_valid?).and_return(false)
+        expect(described_class.verify_credentials(params)).to be_falsey
+      end
+    end
+
+    context "with a metrics endpoint" do
+      require "prometheus/api_client"
+
+      let(:endpoints)             { {"prometheus" => {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443, "security_protocol" => "ssl-with-validation"}} }
+      let(:authentications)       { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+      let(:prometheus_api_client) { double("Prometheus::ApiClient") }
+
+      before do
+        allow(Prometheus::ApiClient).to receive(:client).with(anything).and_return(prometheus_api_client)
+      end
+
+      it "returns true if the parameters are valid" do
+        expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return({})
+        expect(described_class.verify_credentials(params)).to be_truthy
+      end
+
+      it "returns false if the parameters aren't valid" do
+        expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return(nil)
+        expect(described_class.verify_credentials(params)).to be_falsey
+      end
+    end
+
+    context "with a virtualization endpoint" do
+      let(:endpoints)       { {"kubevirt" => {"role" => "kubevirt", "hostname" => "kubevirt.kubernetes.local", "port" => 443, "security_protocol" => "ssl-with-validation"}} }
+      let(:authentications) { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+
+      it "returns true if the parameters are valid" do
+        expect(ManageIQ::Providers::Kubevirt::InfraManager)
+          .to receive(:verify_credentials)
+          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "token" => "super secret"}})
+          .and_return(true)
+        expect(described_class.verify_credentials(params)).to be_truthy
+      end
+    end
+  end
+
   describe "hostname_uniqueness_valid?" do
     it "allows duplicate hostname with different ports" do
       FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443)

@@ -287,23 +287,72 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       require "kubeclient"
 
       let(:kubeclient_client) { double("Kubeclient::Client") }
-      let(:endpoints)         { {"default" => {"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => "ssl-with-validation"}} }
+      let(:endpoints)         { {"default" => {"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => security_protocol}} }
       let(:authentications)   { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+      let(:security_protocol) { "ssl-with-validation" }
 
       before do
         allow(kubeclient_client).to receive(:discover)
         allow(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", anything).and_return(kubeclient_client)
       end
 
-      it "returns true if the parameters are valid" do
-        expect(kubeclient_client).to receive(:api_valid?).and_return(true)
-        expect(kubeclient_client).to receive(:get_namespaces).with(:limit => 1).and_return([Kubeclient::Resource.new])
-        expect(described_class.verify_credentials(params)).to be_truthy
+      context "with valid parameters" do
+        before do
+          expect(kubeclient_client).to receive(:api_valid?).and_return(true)
+          expect(kubeclient_client).to receive(:get_namespaces).with(:limit => 1).and_return([Kubeclient::Resource.new])
+        end
+
+        it "returns true" do
+          expect(described_class.verify_credentials(params)).to be_truthy
+        end
+
+        it "verifies ssl" do
+          expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER))).and_return(kubeclient_client)
+
+          described_class.verify_credentials(params)
+        end
+
+        context "with security_protocol=ssl-without-validation" do
+          let(:security_protocol) { "ssl-without-validation" }
+
+          it "doesn't verify ssl" do
+            expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_NONE))).and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with security_protocol=sssl-with-validation-custom-ca" do
+          let(:security_protocol)     { "ssl-with-validation-custom-ca" }
+          let(:endpoints)             { {"default" => {"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => security_protocol, "certificate_authority" => certificate_authority}} }
+          let(:certificate_authority) { "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----" }
+
+          it "verifies ssl with a custom certificate_authority" do
+            expect(Kubeclient::Client)
+              .to receive(:new)
+              .with(
+                instance_of(URI::HTTPS),
+                "v1",
+                hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER, :ca_file => certificate_authority))
+              )
+              .and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
       end
 
-      it "returns false if the parameters aren't valid" do
-        expect(kubeclient_client).to receive(:api_valid?).and_return(false)
-        expect(described_class.verify_credentials(params)).to be_falsey
+      context "with invalid parameters" do
+        it "returns false if the api isn't valid" do
+          expect(kubeclient_client).to receive(:api_valid?).and_return(false)
+          expect(described_class.verify_credentials(params)).to be_falsey
+        end
+
+        it "returns false if no namespaces can be retrieved" do
+          expect(kubeclient_client).to receive(:api_valid?).and_return(true)
+          expect(kubeclient_client).to receive(:get_namespaces).with(:limit => 1).and_return(nil)
+          expect(described_class.verify_credentials(params)).to be_falsey
+        end
       end
     end
 

@@ -36,7 +36,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
     worker_class = ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCollectorWorker
 
     {
-      :http_proxy_uri => VMDB::Util.http_proxy_uri.to_s,
+      :http_proxy_uri => VMDB::Util.http_proxy_uri.to_s.presence,
       :verify_ssl     => @ext_management_system.verify_ssl_mode(prometheus_endpoint),
       :ssl_cert_store => @ext_management_system.ssl_cert_store(prometheus_endpoint),
       :open_timeout   => worker_class.worker_settings[:prometheus_open_timeout] || 5,

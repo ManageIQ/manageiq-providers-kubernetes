@@ -391,14 +391,75 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         allow(Prometheus::ApiClient).to receive(:client).with(anything).and_return(prometheus_api_client)
       end
 
-      it "returns true if the parameters are valid" do
-        expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return({})
-        expect(described_class.verify_credentials(params)).to be_truthy
+      context "with valid parameters" do
+        before do
+          expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return({})
+        end
+
+        it "returns true" do
+          expect(described_class.verify_credentials(params)).to be_truthy
+        end
+
+        it "verifies ssl" do
+          expect(Prometheus::ApiClient)
+            .to receive(:client)
+            .with(
+              :url         => "https://prometheus.kubernetes.local",
+              :credentials => {:token => "super secret"},
+              :options     => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER)
+            )
+            .and_return(prometheus_api_client)
+
+          described_class.verify_credentials(params)
+        end
+
+        context "with no http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => nil})
+          end
+
+          it "doesn't set an http_proxy_uri" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(:http_proxy_uri => nil)
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with an http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => "proxy.local"})
+          end
+
+          it "sets an http_proxy_uri" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(:http_proxy_uri => "http://proxy.local")
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
       end
 
-      it "returns false if the parameters aren't valid" do
-        expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return(nil)
-        expect(described_class.verify_credentials(params)).to be_falsey
+      context "with invalid parameters" do
+        before do
+          expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return(nil)
+        end
+
+        it "returns false" do
+          expect(described_class.verify_credentials(params)).to be_falsey
+        end
       end
     end
 

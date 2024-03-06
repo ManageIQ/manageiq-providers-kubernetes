@@ -292,8 +292,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       let(:security_protocol) { "ssl-with-validation" }
 
       before do
+        expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+
         allow(kubeclient_client).to receive(:discover)
-        allow(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", anything).and_return(kubeclient_client)
+        allow(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", anything).and_return(kubeclient_client)
       end
 
       context "with valid parameters" do
@@ -307,7 +309,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         end
 
         it "verifies ssl" do
-          expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER))).and_return(kubeclient_client)
+          expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+          expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER))).and_return(kubeclient_client)
 
           described_class.verify_credentials(params)
         end
@@ -316,7 +319,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
           let(:security_protocol) { "ssl-without-validation" }
 
           it "doesn't verify ssl" do
-            expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_NONE))).and_return(kubeclient_client)
+            expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+            expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_NONE))).and_return(kubeclient_client)
 
             described_class.verify_credentials(params)
           end
@@ -328,10 +332,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
           let(:certificate_authority) { "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----" }
 
           it "verifies ssl with a custom certificate_authority" do
+            expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+
             expect(Kubeclient::Client)
               .to receive(:new)
               .with(
-                instance_of(URI::HTTPS),
+                expected_uri,
                 "v1",
                 hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER, :ca_file => certificate_authority))
               )
@@ -347,7 +353,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
           end
 
           it "doesn't pass a proxy to Kubeclient" do
-            expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:http_proxy_uri => nil)).and_return(kubeclient_client)
+            expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+            expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:http_proxy_uri => nil)).and_return(kubeclient_client)
 
             described_class.verify_credentials(params)
           end
@@ -359,7 +366,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
           end
 
           it "passes the proxy info to Kubeclient" do
-            expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:http_proxy_uri => instance_of(URI::Generic))).and_return(kubeclient_client)
+            expected_uri       = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+            expected_proxy_uri = URI::Generic.build(:scheme => "http", :host => "proxy.local")
+            expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:http_proxy_uri => expected_proxy_uri)).and_return(kubeclient_client)
 
             described_class.verify_credentials(params)
           end

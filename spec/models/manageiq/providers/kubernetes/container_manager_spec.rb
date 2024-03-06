@@ -277,6 +277,263 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
+  describe ".verify_credentials" do
+    let(:zone)            { EvmSpecHelper.create_guid_miq_server_zone.last }
+    let(:params)          { {"name" => "k8s", "zone" => zone, "endpoints" => endpoints, "authentications" => authentications} }
+    let(:endpoints)       { {} }
+    let(:authentications) { {} }
+
+    context "with a default endpoint" do
+      require "kubeclient"
+
+      let(:kubeclient_client) { double("Kubeclient::Client") }
+      let(:endpoints)         { {"default" => {"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => security_protocol}} }
+      let(:authentications)   { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+      let(:security_protocol) { "ssl-with-validation" }
+
+      before do
+        expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+
+        allow(kubeclient_client).to receive(:discover)
+        allow(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", anything).and_return(kubeclient_client)
+      end
+
+      context "with valid parameters" do
+        before do
+          expect(kubeclient_client).to receive(:api_valid?).and_return(true)
+          expect(kubeclient_client).to receive(:get_namespaces).with(:limit => 1).and_return([Kubeclient::Resource.new])
+        end
+
+        it "returns true" do
+          expect(described_class.verify_credentials(params)).to be_truthy
+        end
+
+        it "verifies ssl" do
+          expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+          expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER))).and_return(kubeclient_client)
+
+          described_class.verify_credentials(params)
+        end
+
+        context "with security_protocol=ssl-without-validation" do
+          let(:security_protocol) { "ssl-without-validation" }
+
+          it "doesn't verify ssl" do
+            expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+            expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_NONE))).and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with security_protocol=sssl-with-validation-custom-ca" do
+          let(:security_protocol)     { "ssl-with-validation-custom-ca" }
+          let(:endpoints)             { {"default" => {"role" => "default", "hostname" => "kubernetes.local", "port" => 6443, "security_protocol" => security_protocol, "certificate_authority" => certificate_authority}} }
+          let(:certificate_authority) { "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----" }
+
+          it "verifies ssl with a custom certificate_authority" do
+            expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+
+            expect(Kubeclient::Client)
+              .to receive(:new)
+              .with(
+                expected_uri,
+                "v1",
+                hash_including(:ssl_options => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER, :ca_file => certificate_authority))
+              )
+              .and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with no http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => nil})
+          end
+
+          it "doesn't pass a proxy to Kubeclient" do
+            expected_uri = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+            expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:http_proxy_uri => nil)).and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => "proxy.local"})
+          end
+
+          it "passes the proxy info to Kubeclient" do
+            expected_uri       = URI::HTTPS.build(:host => "kubernetes.local", :port => 6443)
+            expected_proxy_uri = URI::Generic.build(:scheme => "http", :host => "proxy.local")
+            expect(Kubeclient::Client).to receive(:new).with(expected_uri, "v1", hash_including(:http_proxy_uri => expected_proxy_uri)).and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+      end
+
+      context "with invalid parameters" do
+        it "returns false if the api isn't valid" do
+          expect(kubeclient_client).to receive(:api_valid?).and_return(false)
+          expect(described_class.verify_credentials(params)).to be_falsey
+        end
+
+        it "returns false if no namespaces can be retrieved" do
+          expect(kubeclient_client).to receive(:api_valid?).and_return(true)
+          expect(kubeclient_client).to receive(:get_namespaces).with(:limit => 1).and_return(nil)
+          expect(described_class.verify_credentials(params)).to be_falsey
+        end
+      end
+    end
+
+    context "with a metrics endpoint" do
+      require "prometheus/api_client"
+
+      let(:endpoints)             { {"prometheus" => {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443, "security_protocol" => security_protocol}} }
+      let(:authentications)       { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+      let(:prometheus_api_client) { double("Prometheus::ApiClient") }
+      let(:security_protocol)     { "ssl-with-validation" }
+
+      before do
+        allow(Prometheus::ApiClient).to receive(:client).with(anything).and_return(prometheus_api_client)
+      end
+
+      context "with valid parameters" do
+        before do
+          expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return({})
+        end
+
+        it "returns true" do
+          expect(described_class.verify_credentials(params)).to be_truthy
+        end
+
+        it "verifies ssl" do
+          expect(Prometheus::ApiClient)
+            .to receive(:client)
+            .with(
+              :url         => "https://prometheus.kubernetes.local",
+              :credentials => {:token => "super secret"},
+              :options     => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_PEER)
+            )
+            .and_return(prometheus_api_client)
+
+          described_class.verify_credentials(params)
+        end
+
+        context "with security_protocol=ssl-without-validation" do
+          let(:security_protocol) { "ssl-without-validation" }
+
+          it "doesn't verify ssl" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_NONE)
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with security_protocol=sssl-with-validation-custom-ca" do
+          let(:security_protocol)     { "ssl-with-validation-custom-ca" }
+          let(:endpoints)             { {"prometheus" => {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443, "security_protocol" => security_protocol, "certificate_authority" => certificate_authority}} }
+          let(:certificate_authority) { "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----" }
+
+          it "verifies ssl with a custom certificate_authority" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(
+                  :verify_ssl     => OpenSSL::SSL::VERIFY_PEER,
+                  :ssl_cert_store => certificate_authority
+                )
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with no http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => nil})
+          end
+
+          it "doesn't set an http_proxy_uri" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(:http_proxy_uri => nil)
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with an http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => "proxy.local"})
+          end
+
+          it "sets an http_proxy_uri" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(:http_proxy_uri => "http://proxy.local")
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+      end
+
+      context "with invalid parameters" do
+        before do
+          expect(prometheus_api_client).to receive(:query).with(:query => "ALL").and_return(nil)
+        end
+
+        it "returns false" do
+          expect(described_class.verify_credentials(params)).to be_falsey
+        end
+      end
+    end
+
+    context "with a virtualization endpoint" do
+      let(:endpoints)       { {"kubevirt" => {"role" => "kubevirt", "hostname" => "kubevirt.kubernetes.local", "port" => 443, "security_protocol" => "ssl-with-validation"}} }
+      let(:authentications) { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
+
+      it "returns true if the parameters are valid" do
+        expect(ManageIQ::Providers::Kubevirt::InfraManager)
+          .to receive(:verify_credentials)
+          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "token" => "super secret"}})
+          .and_return(true)
+        expect(described_class.verify_credentials(params)).to be_truthy
+      end
+
+      it "returns false if the parameters are invalid" do
+        expect(ManageIQ::Providers::Kubevirt::InfraManager)
+          .to receive(:verify_credentials)
+          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "token" => "super secret"}})
+          .and_return(false)
+        expect(described_class.verify_credentials(params)).to be_falsey
+      end
+    end
+  end
+
   describe "hostname_uniqueness_valid?" do
     it "allows duplicate hostname with different ports" do
       FactoryBot.create(:ems_kubernetes, :hostname => "k8s.local", :port => 6443)

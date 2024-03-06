@@ -514,6 +514,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
           .and_return(true)
         expect(described_class.verify_credentials(params)).to be_truthy
       end
+
+      it "returns false if the parameters are invalid" do
+        expect(ManageIQ::Providers::Kubevirt::InfraManager)
+          .to receive(:verify_credentials)
+          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "token" => "super secret"}})
+          .and_return(false)
+        expect(described_class.verify_credentials(params)).to be_falsey
+      end
     end
   end
 

@@ -340,6 +340,30 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
             described_class.verify_credentials(params)
           end
         end
+
+        context "with no http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => nil})
+          end
+
+          it "doesn't pass a proxy to Kubeclient" do
+            expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:http_proxy_uri => nil)).and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with http_proxy set in Settings" do
+          before do
+            stub_settings_merge(:http_proxy => {:host => "proxy.local"})
+          end
+
+          it "passes the proxy info to Kubeclient" do
+            expect(Kubeclient::Client).to receive(:new).with(instance_of(URI::HTTPS), "v1", hash_including(:http_proxy_uri => instance_of(URI::Generic))).and_return(kubeclient_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
       end
 
       context "with invalid parameters" do

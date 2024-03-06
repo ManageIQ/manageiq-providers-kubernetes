@@ -383,9 +383,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     context "with a metrics endpoint" do
       require "prometheus/api_client"
 
-      let(:endpoints)             { {"prometheus" => {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443, "security_protocol" => "ssl-with-validation"}} }
+      let(:endpoints)             { {"prometheus" => {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443, "security_protocol" => security_protocol}} }
       let(:authentications)       { {"bearer" => {"authtype" => "bearer", "auth_key" => "super secret"}} }
       let(:prometheus_api_client) { double("Prometheus::ApiClient") }
+      let(:security_protocol)     { "ssl-with-validation" }
 
       before do
         allow(Prometheus::ApiClient).to receive(:client).with(anything).and_return(prometheus_api_client)
@@ -411,6 +412,45 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
             .and_return(prometheus_api_client)
 
           described_class.verify_credentials(params)
+        end
+
+        context "with security_protocol=ssl-without-validation" do
+          let(:security_protocol) { "ssl-without-validation" }
+
+          it "doesn't verify ssl" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(:verify_ssl => OpenSSL::SSL::VERIFY_NONE)
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
+        end
+
+        context "with security_protocol=sssl-with-validation-custom-ca" do
+          let(:security_protocol)     { "ssl-with-validation-custom-ca" }
+          let(:endpoints)             { {"prometheus" => {"role" => "prometheus", "hostname" => "prometheus.kubernetes.local", "port" => 443, "security_protocol" => security_protocol, "certificate_authority" => certificate_authority}} }
+          let(:certificate_authority) { "-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----" }
+
+          it "verifies ssl with a custom certificate_authority" do
+            expect(Prometheus::ApiClient)
+              .to receive(:client)
+              .with(
+                :url         => "https://prometheus.kubernetes.local",
+                :credentials => {:token => "super secret"},
+                :options     => hash_including(
+                  :verify_ssl     => OpenSSL::SSL::VERIFY_PEER,
+                  :ssl_cert_store => certificate_authority
+                )
+              )
+              .and_return(prometheus_api_client)
+
+            described_class.verify_credentials(params)
+          end
         end
 
         context "with no http_proxy set in Settings" do

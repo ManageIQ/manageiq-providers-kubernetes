@@ -1,6 +1,4 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::PrometheusClientMixin
-  require 'prometheus/api_client'
-
   def prometheus_client
     @prometheus_uri ||= prometheus_uri
     @prometheus_credentials ||= prometheus_credentials
@@ -10,6 +8,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   end
 
   def prometheus_client_new(uri, credentials, options)
+    require 'prometheus/api_client'
+
     Prometheus::ApiClient.client(
       :url         => uri.to_s,
       :options     => options,

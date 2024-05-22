@@ -18,11 +18,10 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "image-inspector-client",          "~> 2.0"
-  spec.add_dependency "kubeclient",                      "~> 4.7"
-  spec.add_dependency "more_core_extensions",            ">= 3.6", "< 5"
-  spec.add_dependency "prometheus-alert-buffer-client",  "~> 0.3.0"
-  spec.add_dependency "prometheus-api-client",           "~> 0.6"
+  spec.add_dependency "image-inspector-client", "~> 2.0"
+  spec.add_dependency "kubeclient",             "~> 4.7"
+  spec.add_dependency "more_core_extensions",   ">= 3.6", "< 5"
+  spec.add_dependency "prometheus-api-client",  "~> 0.6"
 
   spec.add_development_dependency "manageiq-style"
   spec.add_development_dependency "recursive-open-struct", "~> 1.1"

@@ -546,7 +546,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
     end
   end
 
-  context "#supports_metrics?" do
+  context "#supports?(:metrics)" do
     before(:each) do
       EvmSpecHelper.local_miq_server(:zone => Zone.seed)
     end
@@ -571,7 +571,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         ]
       )
 
-      expect(ems.supports_metrics?).to be_truthy
+      expect(ems.supports?(:metrics)).to be_truthy
     end
 
     it "provider with some role endpoint has no metrics support" do
@@ -583,7 +583,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
         ]
       )
 
-      expect(ems.supports_metrics?).to be_falsey
+      expect(ems.supports?(:metrics)).to be_falsey
     end
   end
 
@@ -729,63 +729,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       )
       ems.update(:options => {:proxy_settings => {:http_proxy => my_proxy_value}})
       ems.connect
-    end
-  end
-
-  # Test MonitoringManager functionality related to ContainerManager
-  context "MonitoringManager" do
-    it "Creates a monitoring manager when container manager is created with a prometheus_alert endpoint" do
-      ems = FactoryBot.create(
-        :ems_kubernetes,
-        :endpoints => [
-          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryBot.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
-        ]
-      )
-      expect(ems.monitoring_manager).not_to be_nil
-      expect(ems.monitoring_manager.parent_manager).to eq(ems)
-    end
-
-    it "Does not create a monitoring manager when there is no prometheus_alert endpoint" do
-      ems = FactoryBot.create(
-        :ems_kubernetes,
-        :endpoints => [
-          FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host2'),
-          FactoryBot.create(:endpoint, :role => 'prometheus', :hostname => 'host2'),
-        ]
-      )
-      expect(ems.monitoring_manager).to be_nil
-    end
-
-    it "Creates a monitoring manager when container manager is updated with a prometheus_alerts endpoint" do
-      ems = FactoryBot.create(:ems_kubernetes)
-      ems.endpoints << FactoryBot.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2', :resource => ems)
-
-      expect(ems.monitoring_manager).not_to be_nil
-      expect(ems.monitoring_manager.parent_manager).to eq(ems)
-    end
-
-    it "Does not create a monitoring manager when added a non prometheus_alerts endpoint" do
-      ems = FactoryBot.create(:ems_kubernetes)
-      ems.endpoints << FactoryBot.create(:endpoint, :role => 'prometheus', :hostname => 'host2')
-      expect(ems.monitoring_manager).to be_nil
-    end
-
-    it "Deletes the monitoring manager when container manager is removed the prometheus_alerts endpoint" do
-      ems = FactoryBot.create(
-        :ems_kubernetes_with_zone,
-        :endpoints => [
-          FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host2'),
-          FactoryBot.build(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2')
-        ]
-      )
-      expect(ems.monitoring_manager).not_to be_nil
-      expect(ems.monitoring_manager.parent_manager).to eq(ems)
-
-      ems.endpoints = [FactoryBot.build(:endpoint, :role => 'default', :hostname => 'host3')]
-      queue_item = MiqQueue.find_by(:method_name => 'orchestrate_destroy')
-      expect(queue_item).not_to be_nil
-      expect(queue_item.instance_id).to eq(ems.monitoring_manager.id)
     end
   end
 

@@ -317,6 +317,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     labels = parse_labels(node)
     tags   = map_labels('ContainerNode', labels)
+    annotations = parse_annotations(node)
 
     new_result.merge!(
       :identity_infra => node.spec.providerID,
@@ -360,7 +361,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     container_conditions(container_node, container_conditions)
     node_computer_systems(container_node, computer_system)
-    custom_attributes(container_node, :labels => labels)
+    custom_attributes(container_node, :labels => labels, :annotations => annotations)
     taggings(container_node, tags)
 
     container_node
@@ -398,9 +399,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     # Typically this happens for kubernetes services
     new_result[:ems_ref] = "#{new_result[:namespace]}_#{new_result[:name]}" if new_result[:ems_ref].nil?
 
-    labels         = parse_labels(service)
-    tags           = map_labels('ContainerService', labels)
-    selector_parts = parse_selector_parts(service)
+    labels           = parse_labels(service)
+    tags             = map_labels('ContainerService', labels)
+    selector_parts   = parse_selector_parts(service)
+    annotations      = parse_annotations(service)
 
     new_result.merge!(
       :container_project => lazy_find_project(:name => new_result[:namespace]),
@@ -429,7 +431,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     container_service = persister.container_services.build(new_result)
 
     container_service_port_configs(container_service, container_service_port_configs)
-    custom_attributes(container_service, :labels => labels, :selectors => selector_parts)
+    custom_attributes(container_service, :labels => labels, :selectors => selector_parts, :annotations => annotations)
     taggings(container_service, tags)
 
     container_service
@@ -496,6 +498,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
     labels = parse_labels(pod)
     tags   = map_labels('ContainerGroup', labels)
+    annotations = parse_annotations(pod)
 
     node_selector_parts = parse_node_selector_parts(pod)
     container_volumes = parse_volumes(pod)
@@ -505,7 +508,7 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
     containers(container_group, containers)
     container_conditions(container_group, container_conditions)
     container_volumes(container_group, container_volumes)
-    custom_attributes(container_group, :labels => labels, :node_selectors => node_selector_parts)
+    custom_attributes(container_group, :labels => labels, :node_selectors => node_selector_parts, :annotations => annotations)
     taggings(container_group, tags)
 
     container_group
@@ -738,6 +741,10 @@ class ManageIQ::Providers::Kubernetes::Inventory::Parser::ContainerManager < Man
 
   def parse_labels(entity)
     parse_identifying_attributes(entity.metadata.labels, 'labels')
+  end
+
+  def parse_annotations(entity)
+    parse_identifying_attributes(entity.metadata.annotations, 'annotations')
   end
 
   def parse_selector_parts(entity)

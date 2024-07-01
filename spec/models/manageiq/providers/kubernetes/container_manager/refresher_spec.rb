@@ -149,6 +149,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           :dns_policy     => "ClusterFirst",
           :phase          => "Running"
         )
+        expect(@containergroup.annotations).to contain_exactly(
+          annotation_with_name_value("name", "kubernetes.io/created-by")
+        )
         expect(@containergroup.labels).to contain_exactly(
           label_with_name_value("name", "heapster")
         )
@@ -203,6 +206,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           :max_container_groups       => 40
         )
 
+        # expect(@containernode.annotations).to contain_exactly(
+        #   annotation_with_name_value("name", "machineconfiguration.openshift.io/desiredConfig")
+        # )
+        
         @containernodeconditions = ContainerCondition.where(:container_entity_type => "ContainerNode")
         expect(@containernodeconditions.count).to eq(2)
         expect(@containernodeconditions.first).to have_attributes(
@@ -253,6 +260,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           label_with_name_value("provider", "kubernetes"),
           label_with_name_value("component", "apiserver")
         )
+        # expect(@containersrv.annotations).to contain_exactly(
+        #   annotation_with_name_value("provider", "kubernetes"),
+        #   annotation_with_name_value("component", "apiserver")
+        # )
         expect(@containersrv.selector_parts.count).to eq(0)
 
         @confs = @containersrv.container_service_port_configs
@@ -403,6 +414,13 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
       def label_with_name_value(name, value)
         an_object_having_attributes(
           :section => 'labels', :source => 'kubernetes',
+          :name => name, :value => value
+        )
+      end
+
+      def annotation_with_name_value(name, value)
+        an_object_having_attributes(
+          :section => 'annotations', :source => 'kubernetes',
           :name => name, :value => value
         )
       end

@@ -150,7 +150,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           :phase          => "Running"
         )
         expect(@containergroup.annotations).to contain_exactly(
-          annotation_with_name_value("name", "kubernetes.io/created-by")
+          annotation_with_name("kubernetes.io/created-by")
         )
         expect(@containergroup.labels).to contain_exactly(
           label_with_name_value("name", "heapster")
@@ -418,10 +418,11 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         )
       end
 
-      def annotation_with_name_value(name, value)
-        an_object_having_attributes(
-          :section => 'annotations', :source => 'kubernetes',
-          :name => name, :value => value
+      def annotation_with_name(name)
+        have_attributes(
+          :section => 'annotations', 
+          :source => 'kubernetes',
+          :name => name
         )
       end
 

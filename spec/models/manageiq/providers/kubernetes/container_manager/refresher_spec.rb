@@ -149,6 +149,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
           :dns_policy     => "ClusterFirst",
           :phase          => "Running"
         )
+        expect(@containergroup.annotations).to contain_exactly(
+          annotation_with_name("kubernetes.io/created-by")
+        )
         expect(@containergroup.labels).to contain_exactly(
           label_with_name_value("name", "heapster")
         )
@@ -404,6 +407,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         an_object_having_attributes(
           :section => 'labels', :source => 'kubernetes',
           :name => name, :value => value
+        )
+      end
+
+      def annotation_with_name(name)
+        have_attributes(
+          :section => 'annotations',
+          :source  => 'kubernetes',
+          :name    => name
         )
       end
 

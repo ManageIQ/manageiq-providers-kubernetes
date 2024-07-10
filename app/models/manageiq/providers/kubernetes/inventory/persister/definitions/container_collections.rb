@@ -58,23 +58,23 @@ module ManageIQ::Providers::Kubernetes::Inventory::Persister::Definitions::Conta
   def initialize_custom_attributes
     %i(container_nodes
        container_projects).each do |name|
-      add_custom_attributes(name, %w(labels additional_attributes))
+      add_custom_attributes(name, %w(labels additional_attributes annotations))
     end
 
     %i(container_groups).each do |name|
-      add_custom_attributes(name, %w(labels node_selectors))
+      add_custom_attributes(name, %w(labels node_selectors annotations))
     end
 
     %i(container_replicators
        container_services).each do |name|
-      add_custom_attributes(name, %w(labels selectors))
+      add_custom_attributes(name, %w(labels selectors annotations))
     end
 
     %i(container_builds
        container_build_pods
        container_routes
        container_templates).each do |name|
-      add_custom_attributes(name, %w(labels))
+      add_custom_attributes(name, %w(labels annotations))
     end
   end
 

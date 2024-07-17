@@ -334,7 +334,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                         :value => 'none',
                       },
                       {
-                        :label => _('KubeVirt'),
+                        :label => _('OpenShift Virtualization / KubeVirt'),
                         :value => 'kubevirt',
                         :pivot => 'endpoints.kubevirt.hostname',
                       },

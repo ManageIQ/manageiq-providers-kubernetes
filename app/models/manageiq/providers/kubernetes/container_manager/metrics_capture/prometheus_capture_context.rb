@@ -20,7 +20,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       # set node labels
       labels = labels_to_s(:id => "/", :node => @target.name)
       ne_labels = labels_to_s_ne(
-        :node => ""
+        :node => "",
       )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)
@@ -36,8 +36,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
       )
       #set container labels with not equal to condition
       ne_labels = labels_to_s_ne(
-        :container => ""
-        :container => "POD"
+        :container => "",
+        :container => "POD",
       )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average)
@@ -55,8 +55,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
         :namespace => @target.container_project.name,
       )
       ne_labels = labels_to_s_ne(
-        :container => ""
-        :container => "POD"
+        :container => "",
+        :container => "POD",
       )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)

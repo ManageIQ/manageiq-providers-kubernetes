@@ -19,9 +19,12 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
     def collect_node_metrics
       # set node labels
       labels = labels_to_s(:id => "/", :node => @target.name)
+      ne_labels = labels_to_s_ne(
+        :node => ""
+      )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)
-      collect_metrics_for_labels(labels)
+      collect_metrics_for_labels(labels,ne_labels)
     end
 
     def collect_container_metrics
@@ -31,9 +34,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
         :pod       => @target.container_group.name,
         :namespace => @target.container_project.name,
       )
+      #set container labels with not equal to condition
+      ne_labels = labels_to_s_ne(
+        :container => ""
+        :container => "POD"
+      )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average)
-      collect_metrics_for_labels(labels)
+      collect_metrics_for_labels(labels,ne_labels)
     end
 
     def collect_group_metrics
@@ -46,17 +54,21 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture
         :pod       => @target.name,
         :namespace => @target.container_project.name,
       )
+      ne_labels = labels_to_s_ne(
+        :container => ""
+        :container => "POD"
+      )
 
       @metrics = %w(cpu_usage_rate_average mem_usage_absolute_average net_usage_rate_average)
-      collect_metrics_for_labels(labels)
+      collect_metrics_for_labels(labels,ne_labels)
     end
 
-    def collect_metrics_for_labels(labels)
+    def collect_metrics_for_labels(labels,ne_labels)
       # prometheus field is in core usage per sec
       # miq field is in pct of node cpu
       #
       #   rate is the "usage per sec" readings avg over last 5m
-      cpu_resid = "sum(rate(container_cpu_usage_seconds_total{#{labels}}[#{AVG_OVER}]))"
+      cpu_resid = "sum(rate(container_cpu_usage_seconds_total{#{ne_labels},#{labels}}[#{AVG_OVER}]))"
       fetch_counters_data(cpu_resid, 'cpu_usage_rate_average', @node_cores / 100.0)
 
       # prometheus field is in bytes, @node_memory is in mb

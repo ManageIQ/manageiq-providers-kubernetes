@@ -47,6 +47,10 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::MetricsCapture::Promet
   def labels_to_s(labels, job = "kubelet")
     labels.merge(:job => job).compact.sort.map { |k, v| "#{k}=\"#{v}\"" }.join(',')
   end
+  # added as a fix for https://github.com/ManageIQ/manageiq-providers-kubernetes/issues/533
+  def labels_to_s_ne(labels, job = "kubelet")
+    labels.merge(:job => job).compact.sort.map { |k, v| "#{k}!=\"#{v}\"" }.join(',')
+  end
 
   def prometheus_try_connect
     # NOTE: we do not catch errors from prometheus_client here

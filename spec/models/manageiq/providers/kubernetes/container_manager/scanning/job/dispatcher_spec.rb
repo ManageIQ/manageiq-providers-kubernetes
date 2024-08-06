@@ -40,11 +40,7 @@ RSpec.describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job:
     context "with container and vms jobs" do
       let(:container_image_classes) { ContainerImage.descendants.collect(&:name).append('ContainerImage') }
       before do
-        if ActiveRecord.respond_to?(:yaml_column_permitted_classes)
-          ActiveRecord.yaml_column_permitted_classes       = YamlPermittedClasses.app_yaml_permitted_classes | [ManageIQ::Providers::Openshift::ContainerManager::ContainerImage]
-        else
-          ActiveRecord::Base.yaml_column_permitted_classes = YamlPermittedClasses.app_yaml_permitted_classes | [ManageIQ::Providers::Openshift::ContainerManager::ContainerImage]
-        end
+        ActiveRecord.yaml_column_permitted_classes = YamlPermittedClasses.app_yaml_permitted_classes | [ManageIQ::Providers::Openshift::ContainerManager::ContainerImage]
 
         @jobs = (@vms + @repo_vms).collect(&:raw_scan)
         User.current_user = FactoryBot.create(:user)

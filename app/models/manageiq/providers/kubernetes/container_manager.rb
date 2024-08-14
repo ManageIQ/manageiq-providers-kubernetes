@@ -328,17 +328,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
                     :skipSubmit   => true,
                     :initialValue => 'none',
                     :label        => _('Type'),
-                    :options      => [
-                      {
-                        :label => _('Disabled'),
-                        :value => 'none',
-                      },
-                      {
-                        :label => _('OpenShift Virtualization / KubeVirt'),
-                        :value => 'kubevirt',
-                        :pivot => 'endpoints.kubevirt.hostname',
-                      },
-                    ],
+                    :options      => virtualization_options,
                   },
                   {
                     :component              => 'validate-provider-credentials',
@@ -542,6 +532,20 @@ Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
         },
       ],
     }
+  end
+
+  def self.virtualization_options
+    [
+      {
+        :label => _('Disabled'),
+        :value => 'none',
+      },
+      {
+        :label => _('KubeVirt'),
+        :value => 'kubevirt',
+        :pivot => 'endpoints.kubevirt.hostname',
+      },
+    ]
   end
 
   def self.verify_credentials(args)

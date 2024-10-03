@@ -42,6 +42,7 @@ class ManageIQ::Providers::Kubernetes::MonitoringManager::EventCatcher::Stream
     # }
     alert_list = @ems.connect.get(:generation_id => @current_generation, :from_index => @current_index)
     alerts = []
+    alert_list = JSON.parse(alert_list) if alert_list.kind_of?(String)
     @current_generation = alert_list["generationID"]
     return alerts if alert_list['messages'].blank?
     alert_list["messages"].each do |message|

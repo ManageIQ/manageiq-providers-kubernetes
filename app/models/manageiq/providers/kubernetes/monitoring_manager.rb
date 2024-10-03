@@ -38,7 +38,9 @@ module ManageIQ::Providers
     end
 
     def self.verify_credentials(options)
-      raw_connect(options)&.get&.key?('generationID')
+      response = raw_connect(options)&.get
+      response = JSON.parse(response) if response.kind_of?(String)
+      response.key?('generationID')   if response
     rescue OpenSSL::X509::CertificateError => err
       raise MiqException::MiqInvalidCredentialsError, "SSL Error: #{err.message}"
     rescue Faraday::ParsingError
@@ -60,7 +62,9 @@ module ManageIQ::Providers
 
     def verify_credentials(_auth_type = nil, _options = {})
       with_provider_connection do |conn|
-        conn.get.key?('generationID')
+        response = conn.get
+        response = JSON.parse(response) if response.kind_of?(String)
+        response.key?('generationID')
       end
     rescue OpenSSL::X509::CertificateError => err
       raise MiqException::MiqInvalidCredentialsError, "SSL Error: #{err.message}"

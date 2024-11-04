@@ -47,9 +47,8 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::Options
             },
             :cve_url     => {
               :label          => N_('CVE Location'),
-              :help_text      => N_('Enables defining a URL path prefix for XCCDF file instead of accessing the default location.
-  example: http://my_file_server.org:3333/xccdf_files/
-  Expecting to find com.redhat.rhsa-RHEL7.ds.xml.bz2 file there.'),
+              :help_text      => N_('Alternative URL path for the XCCDF file, where a com.redhat.rhsa-RHEL7.ds.xml.bz2 file is expected. example: http://my_file_server.example.org:3333/xccdf_files/'),
+
               # Future versions of image inspector will extend this.
               :global_default => ::Settings.ems.ems_kubernetes.image_inspector_cve_url,
             },

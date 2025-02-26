@@ -18,13 +18,6 @@ shared_examples "kubernetes rollup tests" do
                                                           :verify_ssl => false},
                                       :authentication => {:role     => :bearer,
                                                           :auth_key => token,
-                                                          :userid   => "_"}},
-                                     {:endpoint       => {:role       => :hawkular,
-                                                          :hostname   => hostname,
-                                                          :port       => "443",
-                                                          :verify_ssl => false},
-                                      :authentication => {:role     => :hawkular,
-                                                          :auth_key => token,
                                                           :userid   => "_"}}]
     )
   end

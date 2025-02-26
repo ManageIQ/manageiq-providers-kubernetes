@@ -98,29 +98,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       end
     end
 
-    context "with an alerts endpoint" do
-      let(:endpoints) do
-        [
-          {"role" => "default",           "hostname" => "kubernetes.local",                   "port" => 6443, "security_protocol" => "ssl-with-validation"},
-          {"role" => "prometheus_alerts", "hostname" => "prometheus_alerts.kubernetes.local", "port" => 443,  "security_protocol" => "ssl-with-validation"}
-        ]
-      end
-      let(:authentications) do
-        [
-          {"authtype" => "bearer", "auth_key" => "super secret"}
-        ]
-      end
-
-      it "copies the default auth_key to the prometheus endpoint" do
-        ems = described_class.create_from_params(params, endpoints, authentications)
-        expect(ems.endpoints.count).to eq(2)
-        expect(ems.authentications.count).to eq(2)
-        expect(ems.authentications.find_by(:authtype => "prometheus_alerts")).to have_attributes(
-          "auth_key" => "super secret"
-        )
-      end
-    end
-
     context "with a virtualization endpoint" do
       let(:endpoints) do
         [
@@ -723,8 +700,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       ems = FactoryBot.create(
         :ems_kubernetes,
         :endpoints => [
-          FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host'),
-          FactoryBot.create(:endpoint, :role => 'prometheus_alerts', :hostname => 'host2'),
+          FactoryBot.create(:endpoint, :role => 'default', :hostname => 'host')
         ]
       )
       ems.update(:options => {:proxy_settings => {:http_proxy => my_proxy_value}})

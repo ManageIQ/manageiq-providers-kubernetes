@@ -496,7 +496,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       it "returns true if the parameters are valid" do
         expect(ManageIQ::Providers::Kubevirt::InfraManager)
           .to receive(:verify_credentials)
-          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "token" => "super secret"}})
+          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "security_protocol"=>"ssl-without-validation", "certificate_authority" => nil, "token" => "super secret"}})
           .and_return(true)
         expect(described_class.verify_credentials(params)).to be_truthy
       end
@@ -504,7 +504,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager do
       it "returns false if the parameters are invalid" do
         expect(ManageIQ::Providers::Kubevirt::InfraManager)
           .to receive(:verify_credentials)
-          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "token" => "super secret"}})
+          .with("endpoints" => {"default" => {"server" => "kubevirt.kubernetes.local", "port" => 443, "security_protocol"=>"ssl-without-validation", "certificate_authority" => nil, "token" => "super secret"}})
           .and_return(false)
         expect(described_class.verify_credentials(params)).to be_falsey
       end

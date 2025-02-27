@@ -687,12 +687,22 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   end
 
   def self.verify_kubevirt_credentials(hostname, port, options)
+    security_protocol = if !options[:verify_ssl]
+                          "ssl-without-validation"
+                        elsif options[:ca_file].present?
+                          "ssl-with-validation-custom-ca"
+                        else
+                          "ssl-with-validation"
+                        end
+
     ManageIQ::Providers::Kubevirt::InfraManager.verify_credentials(
       "endpoints" => {
         "default" => {
-          "server" => hostname,
-          "port"   => port,
-          "token"  => options[:bearer]
+          "server"                => hostname,
+          "port"                  => port,
+          "token"                 => options[:bearer],
+          "security_protocol"     => security_protocol,
+          "certificate_authority" => options[:ca_file]
         }
       }
     )

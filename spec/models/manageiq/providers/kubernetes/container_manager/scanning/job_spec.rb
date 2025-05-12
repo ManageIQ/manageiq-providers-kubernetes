@@ -260,7 +260,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
     context "using provider options and settings" do
       def create_pod_definition
         allow_any_instance_of(described_class).to receive_messages(:kubernetes_client => MockKubeClient.new)
-        kc = @job.kubernetes_client
+
         secret_name = @job.send(:inspector_admin_secrets)
         @job.send(:pod_definition, secret_name)
       end
@@ -316,7 +316,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Scanning::Job do
 
     it 'should send correct dockercfg secrets' do
       allow(@job).to receive(:kubernetes_client).and_return(MockKubeClient.new)
-      kc = @job.kubernetes_client
+
       secret_names = @job.send(:inspector_admin_secrets)
       pod = @job.send(:pod_definition, secret_names)
       secret_name = secret_names.first

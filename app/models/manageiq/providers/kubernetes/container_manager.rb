@@ -570,12 +570,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
         verify_default_credentials(hostname, port, options)
       when 'kubevirt'
         verify_kubevirt_credentials(hostname, port, options)
-      when 'hawkular'
-        verify_hawkular_credentials(hostname, port, options)
       when 'prometheus'
         verify_prometheus_credentials(hostname, port, options)
-      when 'prometheus_alerts'
-        verify_prometheus_alerts_credentials(hostname, port, options)
       else
         raise MiqException::MiqInvalidCredentialsError, _("Unsupported endpoint")
       end
@@ -804,7 +800,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   def authentications_to_validate
     at = [:bearer]
     at << :prometheus if has_authentication_type?(:prometheus)
-    at << :prometheus_alerts if has_authentication_type?(:prometheus_alerts)
     at << :kubevirt if has_authentication_type?(:kubevirt)
     at
   end
@@ -824,8 +819,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
       case options[:auth_type].to_s
       when "prometheus"
         verify_prometheus_credentials
-      when "prometheus_alerts"
-        verify_prometheus_alerts_credentials
       when "kubevirt"
         verify_kubevirt_credentials
       else
@@ -845,7 +838,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   end
 
   def supported_auth_types
-    %w[default password bearer prometheus prometheus_alerts kubevirt]
+    %w[default password bearer prometheus kubevirt]
   end
 
   def default_authentication_type

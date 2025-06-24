@@ -315,7 +315,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         @container_pr = ContainerProject.find_by(:name => "default")
         expect(@container_pr).to have_attributes(
           :name         => "default",
-          :display_name => nil
+          :display_name => nil,
+          :type         => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject"
         )
 
         expect(@container_pr.container_groups.count).to eq(2)

@@ -4,11 +4,19 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject < ::Co
   supports :delete
 
   def self.raw_create_container_project(ext_management_system, options)
-    project_name = extract_name_from_options(options)
-    validate_project_name(project_name)
+    project_name = options["name"]
+    raise ArgumentError, _("Must specify a name for the container project") if project_name.blank?
+    
+    unless project_name.match?(/\A[a-z0-9]([-a-z0-9]*[a-z0-9])?\z/)
+      raise ArgumentError, _("Name must consist of lower case alphanumeric characters or '-', start with an alphanumeric character, and end with an alphanumeric character")
+    end
+    
+    if project_name.length > 63
+      raise ArgumentError, _("Name must be no more than 63 characters")
+    end
 
-    labels = extract_labels_from_options(options, project_name)
-    annotations = extract_annotations_from_options(options)
+    labels = options.fetch("labels", {}).merge("name" => project_name)
+    annotations = options["annotations"] || {}
 
     namespace_payload = Kubeclient::Resource.new(
       :apiVersion => "v1",
@@ -24,21 +32,22 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject < ::Co
     result = core_client.create_namespace(namespace_payload)
     
     {:ems_ref => result.metadata.name, :name => result.metadata.name}
-  rescue Kubeclient::ResourceAlreadyExistsError => e
-    raise MiqException::Error, "Container project '#{project_name}' already exists"
   rescue Kubeclient::HttpError => e
+  if e.error_code == 409
+    raise MiqException::Error, _("Container project '%{project_name}' already exists") % {:project_name => project_name}
+  else
     raise MiqException::Error, "Kubernetes API error: #{e.message}"
+  end
   rescue => e
     raise MiqException::Error, "Failed to create container project: #{e.message}", e.backtrace
   end
 
   def raw_update_container_project(options)
     namespace_name = name
+    resource_data = options["resource"]
     
-    resource_data = extract_resource_data_from_options(options)
-    
-    if resource_data.key?(:name) || resource_data.key?("name")
-      new_name = resource_data[:name] || resource_data["name"]
+    if resource_data.key?("name")
+      new_name = resource_data["name"]
       if new_name.present? && new_name != name
         raise MiqException::Error, "Cannot rename namespace '#{name}' to '#{new_name}' - namespace names are immutable in Kubernetes"
       end
@@ -60,16 +69,16 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject < ::Co
     
     updates_made = []
     
-    if resource_data.key?(:labels) || resource_data.key?("labels")
-      new_labels = resource_data[:labels] || resource_data["labels"]
+    if resource_data.key?("labels")
+      new_labels = resource_data["labels"]
       if new_labels.present?
         updated_metadata[:labels].merge!(new_labels.stringify_keys)
         updates_made << "labels"
       end
     end
     
-    if resource_data.key?(:annotations) || resource_data.key?("annotations")
-      new_annotations = resource_data[:annotations] || resource_data["annotations"]
+    if resource_data.key?("annotations")
+      new_annotations = resource_data["annotations"]
       if new_annotations.present?
         updated_metadata[:annotations].merge!(new_annotations.stringify_keys)
         updates_made << "annotations"
@@ -109,56 +118,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject < ::Co
     end
   rescue => e
     raise MiqException::Error, "Failed to delete container project: #{e.message}", e.backtrace
-  end
-
-  def self.display_name(number = 1)
-    n_('Container Project (Kubernetes)', 'Container Projects (Kubernetes)', number)
-  end
-
-  private
-
-  def self.extract_name_from_options(options)
-    project_name = options[:name] || options["name"]
-    raise ArgumentError, _("Must specify a name for the container project") if project_name.blank?
-    project_name.to_s.strip
-  end
-
-  def extract_resource_data_from_options(options)
-    if options.key?("resource") || options.key?(:resource)
-      return options["resource"] || options[:resource]
-    end
-    options
-  end
-
-  def self.validate_project_name(project_name)
-    unless project_name.match?(/\A[a-z0-9]([-a-z0-9]*[a-z0-9])?\z/)
-      raise ArgumentError, _("Name must consist of lower case alphanumeric characters or '-', start with an alphanumeric character, and end with an alphanumeric character")
-    end
-    
-    if project_name.length > 63
-      raise ArgumentError, _("Name must be no more than 63 characters")
-    end
-    
-    if project_name.length < 1
-      raise ArgumentError, _("Name must be at least 1 character")
-    end
-
-    reserved_names = %w[kube-system kube-public kube-node-lease default]
-    if reserved_names.include?(project_name)
-      raise ArgumentError, _("Name '#{project_name}' is reserved and cannot be used")
-    end
-  end
-
-  def self.extract_labels_from_options(options, project_name)
-    labels = { "name" => project_name }
-    custom_labels = options[:labels] || options["labels"]
-    labels.merge!(custom_labels.stringify_keys) if custom_labels.present?
-    labels
-  end
-
-  def self.extract_annotations_from_options(options)
-    annotations = options[:annotations] || options["annotations"] || {}
-    annotations.stringify_keys
   end
 
   def self.display_name(number = 1)

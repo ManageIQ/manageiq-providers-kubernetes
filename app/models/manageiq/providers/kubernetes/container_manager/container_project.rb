@@ -33,11 +33,11 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject < ::Co
     
     {:ems_ref => result.metadata.name, :name => result.metadata.name}
   rescue Kubeclient::HttpError => e
-  if e.error_code == 409
-    raise MiqException::Error, _("Container project '%{project_name}' already exists") % {:project_name => project_name}
-  else
-    raise MiqException::Error, "Kubernetes API error: #{e.message}"
-  end
+    if e.error_code == 409
+      raise MiqException::Error, _("Container project '%{project_name}' already exists") % {:project_name => project_name}
+    else
+      raise MiqException::Error, "Kubernetes API error: #{e.message}"
+    end
   rescue => e
     raise MiqException::Error, "Failed to create container project: #{e.message}", e.backtrace
   end

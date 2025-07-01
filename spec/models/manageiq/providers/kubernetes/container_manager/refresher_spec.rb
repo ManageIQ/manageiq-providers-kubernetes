@@ -6,10 +6,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   let!(:ems) do
     FactoryBot.create(
       :ems_kubernetes_with_zone,
-      :hostname        => Rails.application.secrets.kubernetes[:hostname],
+      :hostname        => VcrSecrets.kubernetes.hostname,
       :port            => 6443,
       :authentications => [
-        AuthToken.new(:name => "test", :auth_key => Rails.application.secrets.kubernetes[:auth_key])
+        AuthToken.new(:name => "test", :auth_key => VcrSecrets.kubernetes.auth_key)
       ]
     )
   end

@@ -1,6 +1,5 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject < ::ContainerProject
   supports :create
-  supports :update
   supports :delete
 
   def self.display_name(number = 1)

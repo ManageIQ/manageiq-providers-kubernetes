@@ -13,8 +13,5 @@ VCR.configure do |config|
   config.ignore_hosts 'codeclimate.com' if ENV['CI']
   config.cassette_library_dir = File.join(ManageIQ::Providers::Kubernetes::Engine.root, 'spec/vcr_cassettes')
 
-  secrets = Rails.application.secrets
-  secrets.kubernetes.each_key do |secret|
-    config.define_cassette_placeholder(secrets.kubernetes_defaults[secret]) { secrets.kubernetes[secret] }
-  end
+  VcrSecrets.define_all_cassette_placeholders(config, :kubernetes)
 end

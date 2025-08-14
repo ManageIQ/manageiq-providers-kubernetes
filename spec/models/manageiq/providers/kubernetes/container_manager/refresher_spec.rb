@@ -6,10 +6,10 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
   let!(:ems) do
     FactoryBot.create(
       :ems_kubernetes_with_zone,
-      :hostname        => Rails.application.secrets.kubernetes[:hostname],
+      :hostname        => VcrSecrets.kubernetes.hostname,
       :port            => 6443,
       :authentications => [
-        AuthToken.new(:name => "test", :auth_key => Rails.application.secrets.kubernetes[:auth_key])
+        AuthToken.new(:name => "test", :auth_key => VcrSecrets.kubernetes.auth_key)
       ]
     )
   end
@@ -315,7 +315,8 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         @container_pr = ContainerProject.find_by(:name => "default")
         expect(@container_pr).to have_attributes(
           :name         => "default",
-          :display_name => nil
+          :display_name => nil,
+          :type         => "ManageIQ::Providers::Kubernetes::ContainerManager::ContainerProject"
         )
 
         expect(@container_pr.container_groups.count).to eq(2)

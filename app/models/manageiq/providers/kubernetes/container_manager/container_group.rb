@@ -1,4 +1,5 @@
 class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup < ContainerGroup
+  include Logs
   include RemoteConsole
 
   alias_attribute :pod_uid, :ems_ref

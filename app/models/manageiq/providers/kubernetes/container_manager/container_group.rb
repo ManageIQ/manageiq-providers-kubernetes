@@ -1,4 +1,6 @@
-class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup < ::ContainerGroup
+class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup < ContainerGroup
+  include RemoteConsole
+
   alias_attribute :pod_uid, :ems_ref
 
   supports :capture

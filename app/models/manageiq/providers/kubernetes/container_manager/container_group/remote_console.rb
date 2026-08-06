@@ -5,13 +5,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup::Remote
 
   def validate_remote_console_acquire_ticket(protocol, _options = {})
     if ext_management_system.nil?
-      raise(MiqException::RemoteConsoleNotSupportedError,
-            "#{protocol} remote console requires the pod to be registered with a management system.")
+      raise MiqException::RemoteConsoleNotSupportedError,
+        "#{protocol} remote console requires the pod to be registered with a management system."
     end
 
     unless phase == "Running"
-      raise(MiqException::RemoteConsoleNotSupportedError,
-            "#{protocol} remote console requires the pod to be running.")
+      raise MiqException::RemoteConsoleNotSupportedError,
+        "#{protocol} remote console requires the pod to be running."
     end
   end
 

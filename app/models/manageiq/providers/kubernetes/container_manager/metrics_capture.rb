@@ -55,7 +55,12 @@ module ManageIQ::Providers
         return []
       end
 
-      super
+      MiqPreloader.preload([ems], :container_images => :tags, :container_nodes => :tags, :container_groups => [:tags, :containers => :tags])
+
+      with_archived(ems.all_container_nodes) +
+        with_archived(ems.all_container_groups) +
+        with_archived(ems.all_containers) +
+        with_archived(ems.container_images)
     end
 
     def prometheus_capture_context(target, start_time, end_time)

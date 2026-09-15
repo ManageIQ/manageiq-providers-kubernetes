@@ -229,8 +229,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
           'involvedObject' => {
             'kind' => 'Node',
             'name' => 'vm-test-03.example.com',
-            # Actually saw 'uid' => 'vm-test-03.example.com' but this is what we will get once
-            # https://github.com/kubernetes/kubernetes/issues/29289 gets fixed.
             'uid'  => 'd30a880d-dfa7-11e5-af89-525400c7c086'
           },
           'reason'         => 'Rebooted',
@@ -268,44 +266,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         expect(test_class.new.extract_event_data(event)).to eq(expected_data)
       end
 
-      # Remove when we no longer support kubernetes with bug
-      # https://github.com/kubernetes/kubernetes/issues/29289
-      context 'given useless/missing uid' do
-        # We've seen events with both missing uid and uid == name.
-        let(:bad_uid_event) do
-          array_recursive_ostruct(:object => kubernetes_event.merge(
-            'involvedObject' => {
-              'kind' => 'Node',
-              'name' => 'vm-test-03.example.com',
-              'uid'  => 'vm-test-03.example.com'
-            }
-          ))
-        end
-
-        let(:missing_uid_event) do
-          array_recursive_ostruct(:object => kubernetes_event.merge(
-            'involvedObject' => {
-              'kind' => 'Node',
-              'name' => 'vm-test-03.example.com'
-            }
-          ))
-        end
-
-        it 'without matching node returns nil uid' do
-          expect(test_class.new(ems).extract_event_data(bad_uid_event)[:uid]).to eq(nil)
-          expect(test_class.new(ems).extract_event_data(missing_uid_event)[:uid]).to eq(nil)
-        end
-
-        it 'with matching node takes its uid' do
-          node = FactoryBot.create(:container_node, :name => 'vm-test-03.example.com')
-          node.ext_management_system = ems
-          node.ems_ref = 'd30a880d-dfa7-11e5-af89-525400c7c086'
-          node.save
-
-          expect(test_class.new(ems).extract_event_data(bad_uid_event)).to eq(expected_data)
-          expect(test_class.new(ems).extract_event_data(missing_uid_event)).to eq(expected_data)
-        end
-      end
     end
   end
 

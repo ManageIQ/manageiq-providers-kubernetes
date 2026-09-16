@@ -5,6 +5,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcher::Runner < 
 
   def worker_options
     options = super
+    options[:settings] = worker_settings
     options[:ems].each do |manager|
       manager_record = ExtManagementSystem.find(manager["id"])
       manager["authentications"].each do |authentication|

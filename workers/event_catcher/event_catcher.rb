@@ -1,9 +1,4 @@
 class EventCatcher
-  SUPPORTED_EMS_TYPES = %w[
-    ManageIQ::Providers::Kubernetes::ContainerManager
-    ManageIQ::Providers::Openshift::ContainerManager
-  ].freeze
-
   ENABLED_EVENTS = {
     'Node'                  => %w[NodeReady NodeNotReady Rebooted NodeSchedulable NodeNotSchedulable InvalidDiskCapacity FailedMount],
     'Pod'                   => %w[Scheduled FailedScheduling FailedValidation HostPortConflict DeadlineExceeded OutOfDisk NodeSelectorMismatching InsufficientFreeCPU InsufficientFreeMemory Created Failed Started Killing Stopped Unhealthy],
@@ -17,22 +12,17 @@ class EventCatcher
     @settings = settings
     @messaging = messaging
     @logger = logger
-    settings_name = ems['type'].include?('Openshift') ? 'ems_openshift' : 'ems_kubernetes'
-    @filtered_events = settings.dig('ems', settings_name, 'blacklisted_event_names') || []
+    @filtered_events = (settings['blacklisted_event_names'] || settings.dig('ems', 'ems_kubernetes', 'blacklisted_event_names') || []).map(&:to_s)
   end
 
   def run!
-    client = Kubeclient::Client.new(
-      URI::HTTPS.build(:host => endpoint['hostname'], :port => (endpoint['port'] || 443).to_i),
-      'v1',
-      :ssl_options  => Kubeclient::Client::DEFAULT_SSL_OPTIONS.merge(:verify_ssl => verify_ssl_mode),
-      :auth_options => auth_options
-    )
     notify_started
     logger.info("#{log_prefix} Collecting events...")
-    version = client.get_events.resourceVersion
-    logger.info("#{log_prefix} Watching from resourceVersion=#{version}")
+    version = nil
     loop do
+      client = build_client
+      version = client.get_events.resourceVersion if version.nil?
+      logger.info("#{log_prefix} Watching from resourceVersion=#{version}")
       version = watch_events(client, version)
     end
   rescue Interrupt
@@ -45,6 +35,17 @@ class EventCatcher
   end
 
   private
+
+  def build_client
+    client = Kubeclient::Client.new(
+      URI::HTTPS.build(:host => endpoint['hostname'], :port => (endpoint['port'] || 443).to_i),
+      'v1',
+      :ssl_options  => Kubeclient::Client::DEFAULT_SSL_OPTIONS.merge(:verify_ssl => verify_ssl_mode),
+      :auth_options => auth_options
+    )
+    client.discover
+    client
+  end
 
   def watch_events(client, version)
     client.watch_events(version).each do |event|
@@ -72,8 +73,8 @@ class EventCatcher
       heartbeat
     end
     version
-  rescue EOFError, OpenSSL::SSL::SSLError => error
-    logger.info("#{log_prefix} Monitoring connection closed, reconnecting... #{error}")
+  rescue EOFError, OpenSSL::SSL::SSLError, StandardError => error
+    logger.warn("#{log_prefix} Monitoring connection error, reconnecting... #{error}")
     version
   end
 

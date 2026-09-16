@@ -5,7 +5,7 @@ require_relative '../../../workers/event_catcher/event_catcher'
 
 RSpec.describe EventCatcher do
   let(:settings) { {'ems' => {'ems_kubernetes' => {'blacklisted_event_names' => []}}} }
-  let(:logger) { instance_double('Logger', :info => nil) }
+  let(:logger) { instance_double('Logger', :info => nil, :warn => nil) }
   let(:catcher) do
     described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager'}, {'hostname' => 'localhost'}, {}, settings, {}, logger)
   end
@@ -23,7 +23,12 @@ RSpec.describe EventCatcher do
     expect(catcher.send(:filtered?, event('Node', 'Unknown'))).to be(true)
   end
 
-  it 'filters blacklisted events' do
+  it 'filters blacklisted events from scoped worker settings' do
+    scoped_catcher = described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager'}, {'hostname' => 'localhost'}, {}, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
+    expect(scoped_catcher.send(:filtered?, event('Node', 'Rebooted'))).to be(true)
+  end
+
+  it 'filters blacklisted events from full ems settings fallback' do
     settings['ems']['ems_kubernetes']['blacklisted_event_names'] = ['NODE_REBOOTED']
     expect(catcher.send(:filtered?, event('Node', 'Rebooted'))).to be(true)
   end
@@ -51,19 +56,20 @@ RSpec.describe EventCatcher do
 
     it 'rescues EOFError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(EOFError, 'connection closed')
-      expect(logger).to receive(:info).with(/reconnecting/)
+      expect(logger).to receive(:warn).with(/reconnecting/)
       expect(catcher.send(:watch_events, client, '99')).to eq('99')
     end
 
     it 'rescues OpenSSL::SSL::SSLError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(OpenSSL::SSL::SSLError, 'unexpected eof while reading')
-      expect(logger).to receive(:info).with(/reconnecting/)
+      expect(logger).to receive(:warn).with(/reconnecting/)
       expect(catcher.send(:watch_events, client, '99')).to eq('99')
     end
 
-    it 'does not suppress errors other than EOFError or OpenSSL::SSL::SSLError' do
+    it 'rescues StandardError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(RuntimeError, 'unexpected')
-      expect { catcher.send(:watch_events, client, '1') }.to raise_error(RuntimeError)
+      expect(logger).to receive(:warn).with(/reconnecting/)
+      expect(catcher.send(:watch_events, client, '99')).to eq('99')
     end
   end
 
@@ -72,9 +78,18 @@ RSpec.describe EventCatcher do
 
     before do
       allow(Kubeclient::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:discover)
       allow(client).to receive(:get_events).and_return(double('EventList', :resourceVersion => 'v1'))
       allow(catcher).to receive(:notify_started)
       allow(catcher).to receive(:notify_stopping)
+    end
+
+    it 'calls notify_started before the first watch loop' do
+      expect(catcher).to receive(:notify_started).ordered
+      expect(client).to receive(:discover).ordered
+      allow(catcher).to receive(:watch_events).and_raise(Interrupt)
+
+      catcher.run!
     end
 
     it 'calls watch_events in a loop until interrupted' do

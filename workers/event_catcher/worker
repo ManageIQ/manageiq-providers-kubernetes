@@ -33,7 +33,7 @@ rescue JSON::ParserError
 end
 
 args = parse_args
-ems = args['ems'].find { |manager| EventCatcher::SUPPORTED_EMS_TYPES.include?(manager['type']) }
+ems = args['ems'].first
 endpoint = ems['endpoints'].find { |item| item['role'] == 'default' }
 authentication = ems['authentications'].find { |item| item['authtype'] == 'bearer' || item['authtype'] == 'default' }
 logger = build_logger

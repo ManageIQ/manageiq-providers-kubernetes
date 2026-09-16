@@ -1,0 +1,11 @@
+---
+:object:
+  :lastTimestamp: '2016-07-25T10:22:08Z'
+  :involvedObject:
+    :kind: Node
+    :name: node-1
+    :uid: node-uid
+  :reason: Rebooted
+  :message: Node node-1 has been rebooted
+  :metadata:
+    :uid: event-node-uid

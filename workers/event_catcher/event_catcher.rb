@@ -53,6 +53,7 @@ class EventCatcher
 
       if event_data.empty?
         logger.info("#{log_prefix} Skipping event with no involvedObject (type=#{event.type})")
+        version = nil if event.type == "ERROR"
         next
       end
 

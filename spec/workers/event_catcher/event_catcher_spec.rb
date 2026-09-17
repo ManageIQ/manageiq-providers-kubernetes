@@ -54,6 +54,14 @@ RSpec.describe EventCatcher do
       expect(catcher.send(:watch_events, client, '42')).to eq('42')
     end
 
+    it 'resets version to nil on an ERROR event so the outer loop re-fetches a fresh resourceVersion' do
+      error_event = double('WatchEvent', :type => 'ERROR')
+      allow(EventParser).to receive(:extract_event_data).and_return({})
+      allow(watcher).to receive(:each).and_yield(error_event)
+      allow(logger).to receive(:info).with(/Skipping event with no involvedObject/)
+      expect(catcher.send(:watch_events, client, '123072296')).to be_nil
+    end
+
     it 'rescues EOFError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(EOFError, 'connection closed')
       expect(logger).to receive(:warn).with(/reconnecting/)

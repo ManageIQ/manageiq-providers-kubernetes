@@ -111,10 +111,6 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   private
 
-  def worker_cmdline
-    ManageIQ::Providers::Kubernetes::Engine.root.join("workers/event_catcher/worker").to_s
-  end
-
   def worker_options
     options = super
     options[:settings] = worker_settings

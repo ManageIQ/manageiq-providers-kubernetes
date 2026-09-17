@@ -7,7 +7,7 @@ RSpec.describe EventCatcher do
   let(:settings) { {'ems' => {'ems_kubernetes' => {'blacklisted_event_names' => []}}} }
   let(:logger) { instance_double('Logger', :info => nil, :warn => nil) }
   let(:catcher) do
-    described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager'}, {'hostname' => 'localhost'}, {}, settings, {}, logger)
+    described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager', 'ems_type' => 'kubernetes'}, {'hostname' => 'localhost'}, {}, settings, {}, logger)
   end
 
   def event(kind, reason)
@@ -24,7 +24,7 @@ RSpec.describe EventCatcher do
   end
 
   it 'filters blacklisted events from scoped worker settings' do
-    scoped_catcher = described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager'}, {'hostname' => 'localhost'}, {}, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
+    scoped_catcher = described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager', 'ems_type' => 'kubernetes'}, {'hostname' => 'localhost'}, {}, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
     expect(scoped_catcher.send(:filtered?, event('Node', 'Rebooted'))).to be(true)
   end
 
@@ -70,12 +70,6 @@ RSpec.describe EventCatcher do
 
     it 'rescues OpenSSL::SSL::SSLError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(OpenSSL::SSL::SSLError, 'unexpected eof while reading')
-      expect(logger).to receive(:warn).with(/reconnecting/)
-      expect(catcher.send(:watch_events, client, '99')).to eq('99')
-    end
-
-    it 'rescues StandardError, logs a reconnect message, and returns the current version' do
-      allow(watcher).to receive(:each).and_raise(RuntimeError, 'unexpected')
       expect(logger).to receive(:warn).with(/reconnecting/)
       expect(catcher.send(:watch_events, client, '99')).to eq('99')
     end

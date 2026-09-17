@@ -12,7 +12,6 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
   include HasInfraManagerMixin
   include ManageIQ::Providers::Kubernetes::ContainerManager::Options
 
-  before_save :stop_event_monitor_queue_on_change, :stop_refresh_worker_queue_on_change
   before_destroy :stop_event_monitor, :stop_refresh_worker
 
   supports :create
@@ -827,9 +826,14 @@ class ManageIQ::Providers::Kubernetes::ContainerManager < ManageIQ::Providers::C
     end
   end
 
-  def after_update_authentication
+  def after_update_authentication(changes)
     super
-    stop_refresh_worker_queue_on_credential_change
+    stop_refresh_worker_queue_on_credential_change(changes)
+  end
+
+  def after_update_endpoints(changes)
+    super
+    stop_refresh_worker_queue_on_change(changes)
   end
 
   def ensure_authentications_record

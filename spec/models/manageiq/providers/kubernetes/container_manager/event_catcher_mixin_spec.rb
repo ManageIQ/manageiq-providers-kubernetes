@@ -66,6 +66,30 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         subject.queue_event(event)
       end
     end
+
+    context "with a new-style event using eventTime instead of lastTimestamp" do
+      let(:kubernetes_event) do
+        {
+          'kind'           => 'Event',
+          'apiVersion'     => 'v1',
+          'reason'         => 'Scheduled',
+          'involvedObject' => {
+            'kind' => 'Pod',
+          },
+          'metadata'       => {
+            'uid' => 'SomeRandomUid',
+          },
+          'lastTimestamp'  => nil,
+          'eventTime'      => '2016-07-25T11:45:34.000000Z'
+        }
+      end
+
+      it 'falls back to eventTime and queues the event' do
+        expect(EmsEvent).to receive(:add_queue).with('add', ems.id, hash_including(:event_type => "POD_SCHEDULED", :timestamp => '2016-07-25T11:45:34.000000Z'))
+
+        subject.queue_event(event)
+      end
+    end
   end
 
   describe '#extract_event_data' do

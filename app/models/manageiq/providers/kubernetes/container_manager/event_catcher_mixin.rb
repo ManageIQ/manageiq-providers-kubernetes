@@ -68,7 +68,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
   # Returns hash, or nil if event should be discarded.
   def extract_event_data(event)
     event_data = {
-      :timestamp => event.object.lastTimestamp,
+      :timestamp => event.object.lastTimestamp || event.object.eventTime,
       :kind      => event.object.involvedObject.kind,
       :name      => event.object.involvedObject.name,
       :namespace => event.object.involvedObject.namespace,

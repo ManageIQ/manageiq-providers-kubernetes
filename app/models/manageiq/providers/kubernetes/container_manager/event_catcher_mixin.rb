@@ -1,18 +1,6 @@
 module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
   extend ActiveSupport::Concern
 
-  # https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/container/event.go
-  # 'Created', 'Failed', 'Started', 'Killing', 'Stopped' and 'Unhealthy' are in fact container related events,
-  # returned as part of a pod event.
-  ENABLED_EVENTS = {
-    'Node'                  => %w(NodeReady NodeNotReady Rebooted NodeSchedulable NodeNotSchedulable InvalidDiskCapacity
-                                  FailedMount),
-    'Pod'                   => %w(Scheduled FailedScheduling FailedValidation HostPortConflict DeadlineExceeded
-                                  OutOfDisk NodeSelectorMismatching InsufficientFreeCPU
-                                  InsufficientFreeMemory Created Failed Started Killing Stopped Unhealthy),
-    'ReplicationController' => %w(SuccessfulCreate FailedCreate)
-  }
-
   def event_monitor_handle
     @event_monitor_handle ||= ManageIQ::Providers::Kubernetes::ContainerManager::KubernetesEventMonitor.new(@ems)
   end
@@ -60,9 +48,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   def filtered?(event)
     event_data = extract_event_data(event)
-
-    supported_reasons = ENABLED_EVENTS[event_data[:kind]] || []
-    !supported_reasons.include?(event_data[:reason]) || filtered_events.include?(event_data[:event_type])
+    filtered_events.include?(event_data[:event_type])
   end
 
   # Returns hash, or nil if event should be discarded.
@@ -95,8 +81,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       end
       event_data[:container_group_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]
+    # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
+    # consider removing the REPLICATOR prefix override once no longer needed.
     when 'ReplicationController'
       event_type_prefix = "REPLICATOR"
+      event_data[:container_replicator_name] = event_data[:name]
+      event_data[:container_namespace] = event_data[:namespace]
+    when 'ReplicaSet', 'Deployment', 'StatefulSet', 'DaemonSet', 'Job', 'CronJob'
       event_data[:container_replicator_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]
     end

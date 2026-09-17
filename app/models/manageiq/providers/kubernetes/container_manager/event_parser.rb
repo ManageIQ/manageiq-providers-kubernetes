@@ -6,7 +6,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::EventParser
                     :container_node_ems_ref
                   when 'Pod'
                     :container_group_ems_ref
-                  when 'ReplicationController'
+                  # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
+                  # consider removing once no longer needed.
+                  when 'ReplicationController', 'ReplicaSet', 'Deployment', 'StatefulSet', 'DaemonSet', 'Job', 'CronJob'
                     :container_replicator_ems_ref
                   end
 

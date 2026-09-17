@@ -272,46 +272,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
   describe "#filtered?" do
     let(:test_instance) { test_class.new }
 
-    context 'given an event with an unsupported kind' do
-      let(:kubernetes_event) do
-        {
-          'reason'         => 'DoesItReallyMatter',
-          'involvedObject' => {
-            'kind' => 'SomeRandomObject',
-          },
-          'metadata'       => {
-            'uid' => 'SomeRandomUid',
-          },
-          'lastTimestamp'  => '2016-07-25T11:45:34Z',
-        }
-      end
-
-      it 'will return true' do
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
-        expect(test_instance.filtered?(event)).to be_truthy
-      end
-    end
-
-    context 'given an event with an unsupported reason' do
-      let(:kubernetes_event) do
-        {
-          'reason'         => 'DoesItReallyMatter',
-          'involvedObject' => {
-            'kind' => 'ReplicationController',
-          },
-          'metadata'       => {
-            'uid' => 'SomeRandomUid',
-          },
-          'lastTimestamp'  => '2016-07-25T11:45:34Z',
-        }
-      end
-
-      it 'will return true' do
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
-        expect(test_instance.filtered?(event)).to be_truthy
-      end
-    end
-
     let(:kubernetes_event) do
       {
         'metadata'       => {
@@ -354,18 +314,18 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       expect(test_instance.filtered?(event)).to be_falsey
     end
 
-    it 'with an event with an unsupported kind' do
+    it 'with an event with an unknown kind' do
       kubernetes_event.store_path('involvedObject', 'kind', 'SomeRandomObject')
 
       event = RecursiveOpenStruct.new(:object => kubernetes_event)
-      expect(test_instance.filtered?(event)).to be_truthy
+      expect(test_instance.filtered?(event)).to be_falsey
     end
 
-    it 'with an event with an unsupported reason' do
+    it 'with an unknown reason' do
       kubernetes_event.store_path('reason', 'DoesItReallyMatter')
 
       event = RecursiveOpenStruct.new(:object => kubernetes_event)
-      expect(test_instance.filtered?(event)).to be_truthy
+      expect(test_instance.filtered?(event)).to be_falsey
     end
   end
 end

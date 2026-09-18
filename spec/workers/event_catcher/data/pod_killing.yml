@@ -1,0 +1,13 @@
+---
+:object:
+  :lastTimestamp: '2016-07-25T11:45:34Z'
+  :involvedObject:
+    :kind: Pod
+    :name: pod-1
+    :namespace: project
+    :uid: pod-uid
+    :fieldPath: 'spec.containers{app}'
+  :reason: Killing
+  :message: Container stopped
+  :metadata:
+    :uid: event-pod-uid

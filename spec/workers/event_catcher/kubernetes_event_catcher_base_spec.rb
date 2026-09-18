@@ -82,6 +82,102 @@ RSpec.describe KubernetesEventCatcherBase do
       expect(base_catcher).to receive(:auth_options).once.and_call_original
       base_catcher.send(:build_client)
     end
+
+    it 'resets @token_expiry to nil before calling auth_options' do
+      allow(Kubeclient::Client).to receive(:new).and_return(kubeclient)
+      base_catcher.instance_variable_set(:@token_expiry, Time.now.utc + 3600)
+      base_catcher.send(:build_client)
+      expect(base_catcher.instance_variable_get(:@token_expiry)).to be_nil
+    end
+  end
+
+  describe '#token_expiry' do
+    it 'returns nil by default so no timer is scheduled for long-lived tokens' do
+      expect(base_catcher.send(:token_expiry)).to be_nil
+    end
+
+    it 'can be overridden by a subclass to return a future Time' do
+      expiry = Time.now.utc + 3600
+      subclass_with_expiry = Class.new(described_class) do
+        define_method(:token_expiry) { expiry }
+      end
+      catcher = subclass_with_expiry.new(ems, endpoint, authentication, settings, {}, logger)
+      expect(catcher.send(:token_expiry)).to eq(expiry)
+    end
+  end
+
+  describe '#schedule_token_refresh' do
+    let(:watcher) { double('Kubeclient::Common::WatchStream') }
+
+    it 'returns nil and spawns no thread when token_expiry is nil' do
+      expect(Thread).not_to receive(:new)
+      result = base_catcher.send(:schedule_token_refresh, watcher)
+      expect(result).to be_nil
+    end
+
+    it 'returns a Thread when token_expiry is set' do
+      allow(base_catcher).to receive(:token_expiry).and_return(Time.now.utc + 3600)
+      allow(watcher).to receive(:finish)
+      thread = base_catcher.send(:schedule_token_refresh, watcher)
+      expect(thread).to be_a(Thread)
+      thread.kill
+    end
+
+    it 'schedules the timer at 90% of the remaining TTL' do
+      now    = Time.now.utc
+      expiry = now + 1000
+      allow(base_catcher).to receive(:token_expiry).and_return(expiry)
+      allow(Time).to receive(:now).and_return(now)
+
+      # Capture the delay passed to sleep without actually sleeping
+      observed_delay = nil
+      dummy_thread   = Thread.new { nil }
+      expect(Thread).to receive(:new) do |&blk|
+        observed_delay = blk.binding.eval('delay')
+        dummy_thread
+      end
+
+      base_catcher.send(:schedule_token_refresh, watcher)
+
+      # 90% of 1000s TTL = 900s delay
+      expect(observed_delay).to be_within(1).of(900)
+    end
+
+    it 'clamps delay to 0 when token is already expired' do
+      allow(base_catcher).to receive(:token_expiry).and_return(Time.now.utc - 10)
+      allow(watcher).to receive(:finish)
+      thread = base_catcher.send(:schedule_token_refresh, watcher)
+      expect(thread).to be_a(Thread)
+      thread.kill
+    end
+  end
+
+  describe '#watch_events — token refresh integration' do
+    let(:watcher) { double('Kubeclient::Common::WatchStream') }
+    let(:client)  { double('Kubeclient::Client', :watch_events => watcher) }
+
+    it 'kills the timer thread after watch completes normally' do
+      timer = instance_double(Thread)
+      allow(base_catcher).to receive(:schedule_token_refresh).and_return(timer)
+      allow(watcher).to receive(:each)
+      expect(timer).to receive(:kill)
+      base_catcher.send(:watch_events, client, '1')
+    end
+
+    it 'kills the timer thread even when an EOFError is raised' do
+      timer = instance_double(Thread)
+      allow(base_catcher).to receive(:schedule_token_refresh).and_return(timer)
+      allow(watcher).to receive(:each).and_raise(EOFError)
+      expect(timer).to receive(:kill)
+      base_catcher.send(:watch_events, client, '1')
+    end
+
+    it 'rescues Kubeclient::HttpError, logs a reconnect message, and returns the current version' do
+      allow(base_catcher).to receive(:schedule_token_refresh).and_return(nil)
+      allow(watcher).to receive(:each).and_raise(Kubeclient::HttpError.new(401, 'Unauthorized', nil))
+      expect(logger).to receive(:warn).with(/reconnecting/)
+      expect(base_catcher.send(:watch_events, client, '77')).to eq('77')
+    end
   end
 
   describe '#log_prefix' do

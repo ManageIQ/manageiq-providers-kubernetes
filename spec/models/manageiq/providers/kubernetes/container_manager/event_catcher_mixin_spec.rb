@@ -327,5 +327,14 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       event = RecursiveOpenStruct.new(:object => kubernetes_event)
       expect(test_instance.filtered?(event)).to be_falsey
     end
+
+    described_class::DISABLED_KINDS.each do |kind|
+      it "with a #{kind} event (disabled kind)" do
+        kubernetes_event.store_path('involvedObject', 'kind', kind)
+
+        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        expect(test_instance.filtered?(event)).to be_truthy
+      end
+    end
   end
 end

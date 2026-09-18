@@ -5,6 +5,11 @@ class KubernetesEventCatcherBase
     'ReplicationController' => %w[SuccessfulCreate FailedCreate]
   }.freeze
 
+  # Fraction of a token's remaining TTL to use as a safety margin before forcing
+  # a reconnect. At 0.1 a 1-hour token refreshes after 54 minutes; a 15-minute
+  # STS token refreshes after ~13.5 minutes. Subclasses may override as a method.
+  TOKEN_REFRESH_MARGIN_RATIO = 0.1
+
   def initialize(ems, endpoint, authentication, settings, messaging, logger)
     @ems = ems
     @endpoint = endpoint
@@ -38,10 +43,14 @@ class KubernetesEventCatcherBase
   private
 
   def build_client
+    @token_expiry = nil # cleared before auth_options so a failed/incomplete fetch never leaves a stale expiry
     client = Kubeclient::Client.new(
       URI::HTTPS.build(:host => endpoint['hostname'], :port => (endpoint['port'] || 443).to_i),
       'v1',
-      :ssl_options  => Kubeclient::Client::DEFAULT_SSL_OPTIONS.merge(:verify_ssl => verify_ssl_mode),
+      :ssl_options  => Kubeclient::Client::DEFAULT_SSL_OPTIONS.merge(
+        :verify_ssl => verify_ssl_mode,
+        :cert_store => ca_cert_store
+      ),
       :auth_options => auth_options
     )
     client.discover
@@ -49,7 +58,10 @@ class KubernetesEventCatcherBase
   end
 
   def watch_events(client, version)
-    client.watch_events(version).each do |event|
+    watcher = client.watch_events(version)
+    timer   = schedule_token_refresh(watcher)
+
+    watcher.each do |event|
       event_data = EventParser.extract_event_data(event)
 
       if event_data.empty?
@@ -75,12 +87,35 @@ class KubernetesEventCatcherBase
       heartbeat
     end
     version
-  rescue EOFError, OpenSSL::SSL::SSLError => error
+  rescue EOFError, OpenSSL::SSL::SSLError, Kubeclient::HttpError => error
     logger.warn("#{log_prefix} Monitoring connection error, reconnecting... #{error}")
     version
+  ensure
+    timer&.kill
   end
 
   attr_reader :ems, :endpoint, :authentication, :settings, :messaging, :logger, :filtered_events
+
+  # Override in subclasses that issue short-lived tokens.
+  # Return the Time at which the current token expires, or nil for long-lived/static tokens.
+  # When non-nil, the watch stream is closed proactively before the token expires so that
+  # the next loop iteration fetches a fresh token via build_client -> auth_options.
+  def token_expiry
+    nil
+  end
+
+  def schedule_token_refresh(watcher)
+    expiry = token_expiry
+    return nil if expiry.nil?
+
+    ttl   = expiry - Time.now.utc
+    delay = [ttl * (1 - TOKEN_REFRESH_MARGIN_RATIO), 0].max
+    logger.info("#{log_prefix} Token expires in #{ttl.round}s, scheduling refresh in #{delay.round}s")
+    Thread.new do
+      sleep(delay)
+      watcher.finish
+    end
+  end
 
   def filtered?(event)
     event_data = EventParser.extract_event_data(event)
@@ -115,6 +150,18 @@ class KubernetesEventCatcherBase
     else
       OpenSSL::SSL::VERIFY_PEER
     end
+  end
+
+  # Returns an OpenSSL::X509::Store built from the endpoint's PEM text, or nil
+  # when no custom CA is configured. Uses :cert_store rather than :ca_file
+  # because :ca_file expects a filesystem path, not a PEM string.
+  def ca_cert_store
+    pem = endpoint['certificate_authority']
+    return nil if pem.nil? || pem.strip.empty?
+
+    store = OpenSSL::X509::Store.new
+    store.add_cert(OpenSSL::X509::Certificate.new(pem))
+    store
   end
 
   # Override in subclasses to provide provider-specific authentication options.

@@ -33,7 +33,7 @@ rescue JSON::ParserError
 end
 
 args = parse_args
-ems = args['ems'].first
+ems = args['ems'].find { |m| m['type'] == 'ManageIQ::Providers::Kubernetes::ContainerManager' }
 endpoint = ems['endpoints'].find { |item| item['role'] == 'default' }
 authentication = ems['authentications'].find { |item| item['authtype'] == 'bearer' || item['authtype'] == 'default' }
 logger = build_logger

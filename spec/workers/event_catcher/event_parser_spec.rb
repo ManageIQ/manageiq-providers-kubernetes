@@ -24,6 +24,47 @@ RSpec.describe EventParser do
     expect(parse('replication_controller_event.yml')).to include(:event_type => 'REPLICATOR_SUCCESSFULCREATE', :container_replicator_ems_ref => 'rc-uid')
   end
 
+  %w[ReplicaSet Deployment StatefulSet DaemonSet Job CronJob].each do |kind|
+    it "parses a #{kind} event without setting :container_replicator_name or :container_replicator_ems_ref" do
+      raw = RecursiveOpenStruct.new(
+        :object => {
+          :metadata       => {:uid => 'event-123'},
+          :involvedObject => {:kind => kind, :name => 'workload-1', :namespace => 'prod', :uid => 'workload-uid'},
+          :reason         => 'ScalingReplicaSet',
+          :message        => 'Scaling event',
+          :lastTimestamp  => '2026-09-16T11:08:00Z'
+        }
+      )
+      data = described_class.extract_event_data(raw)
+      expect(data[:container_namespace]).to eq('prod')
+      expect(data).not_to have_key(:container_replicator_name)
+      expect(data[:event_type]).to eq("#{kind.upcase}_SCALINGREPLICASET")
+
+      hash = described_class.event_to_hash_from_data(data, 42)
+      expect(hash).not_to have_key(:container_replicator_ems_ref)
+      expect(hash).not_to have_key(nil)
+    end
+  end
+
+  it 'parses an unknown kind event without setting ems_ref keys or nil key' do
+    raw = RecursiveOpenStruct.new(
+      :object => {
+        :metadata       => {:uid => 'event-123'},
+        :involvedObject => {:kind => 'CustomResource', :name => 'cr-1', :namespace => 'prod', :uid => 'cr-uid'},
+        :reason         => 'Updated',
+        :message        => 'Custom resource updated',
+        :lastTimestamp  => '2026-09-16T11:08:00Z'
+      }
+    )
+    data = described_class.extract_event_data(raw)
+    hash = described_class.event_to_hash_from_data(data, 42)
+
+    expect(hash).not_to have_key(nil)
+    expect(hash).not_to have_key(:container_node_ems_ref)
+    expect(hash).not_to have_key(:container_group_ems_ref)
+    expect(hash).not_to have_key(:container_replicator_ems_ref)
+  end
+
   it 'falls back to eventTime when lastTimestamp is absent' do
     event = parse('pod_scheduled.yml')
     expect(event[:timestamp]).to eq('2026-09-16T11:08:00Z')

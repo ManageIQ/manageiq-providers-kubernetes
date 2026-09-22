@@ -1,9 +1,7 @@
 class KubernetesEventCatcherBase
-  ENABLED_EVENTS = {
-    'Node'                  => %w[NodeReady NodeNotReady Rebooted NodeSchedulable NodeNotSchedulable InvalidDiskCapacity FailedMount],
-    'Pod'                   => %w[Scheduled FailedScheduling FailedValidation HostPortConflict DeadlineExceeded OutOfDisk NodeSelectorMismatching InsufficientFreeCPU InsufficientFreeMemory Created Failed Started Killing Stopped Unhealthy],
-    'ReplicationController' => %w[SuccessfulCreate FailedCreate]
-  }.freeze
+  # Kinds not modelled in ManageIQ inventory; dropped before parsing regardless
+  # of reason. Not operator-configurable — there is no valid use-case for them.
+  DISABLED_KINDS = %w[Endpoints EndpointSlice Lease].freeze
 
   # Fraction of a token's remaining TTL to use as a safety margin before forcing a reconnect.
   TOKEN_REFRESH_MARGIN_RATIO = 0.1
@@ -117,7 +115,7 @@ class KubernetesEventCatcherBase
   end
 
   def filtered?(event_data)
-    Array(ENABLED_EVENTS[event_data[:kind]]).none?(event_data[:reason]) || filtered_events.include?(event_data[:event_type])
+    DISABLED_KINDS.include?(event_data[:kind]) || filtered_events.include?(event_data[:event_type])
   end
 
   def event_valid?(event_data)

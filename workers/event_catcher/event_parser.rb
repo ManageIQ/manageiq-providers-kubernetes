@@ -25,9 +25,12 @@ class EventParser
       event_data[:container_name] = container_name unless container_name.nil?
       event_data[:container_group_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]
+    # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
     when 'ReplicationController'
       event_type_prefix = 'REPLICATOR'
       event_data[:container_replicator_name] = event_data[:name]
+      event_data[:container_namespace] = event_data[:namespace]
+    when 'ReplicaSet', 'Deployment', 'StatefulSet', 'DaemonSet', 'Job', 'CronJob'
       event_data[:container_namespace] = event_data[:namespace]
     end
 
@@ -36,11 +39,15 @@ class EventParser
   end
 
   def self.event_to_hash_from_data(event, ems_id = nil)
-    ems_ref_key = {
-      'Node'                  => :container_node_ems_ref,
-      'Pod'                   => :container_group_ems_ref,
-      'ReplicationController' => :container_replicator_ems_ref,
-    }[event[:kind]]
+    # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
+    ems_ref_key = case event[:kind]
+                  when 'Node'
+                    :container_node_ems_ref
+                  when 'Pod'
+                    :container_group_ems_ref
+                  when 'ReplicationController'
+                    :container_replicator_ems_ref
+                  end
 
     event_hash = {
       :event_type                => event[:event_type],
@@ -56,7 +63,7 @@ class EventParser
       :ems_id                    => ems_id,
       :ems_ref                   => event[:event_uid],
     }
-    event_hash[ems_ref_key] = event[:uid]
+    event_hash[ems_ref_key] = event[:uid] if ems_ref_key
     event_hash
   end
 end

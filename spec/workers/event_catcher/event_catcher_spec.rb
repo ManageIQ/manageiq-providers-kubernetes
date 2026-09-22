@@ -19,8 +19,10 @@ RSpec.describe EventCatcher do
                             })
   end
 
-  it 'filters unsupported reasons' do
-    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Unknown')))).to be(true)
+  described_class::DISABLED_KINDS.each do |kind|
+    it "filters #{kind} events (disabled kind)" do
+      expect(catcher.send(:filtered?, EventParser.extract_event_data(event(kind, 'SomeReason')))).to be(true)
+    end
   end
 
   it 'filters blacklisted events from scoped worker settings' do
@@ -33,8 +35,10 @@ RSpec.describe EventCatcher do
     expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Rebooted')))).to be(true)
   end
 
-  it 'accepts supported events' do
-    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Rebooted')))).to be(false)
+  it 'accepts non-disabled kind events with arbitrary reasons' do
+    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Unknown')))).to be(false)
+    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Pod', 'CustomReason')))).to be(false)
+    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Deployment', 'ScalingReplicaSet')))).to be(false)
   end
 
   describe '#watch_events' do

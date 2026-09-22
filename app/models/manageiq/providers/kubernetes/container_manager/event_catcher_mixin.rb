@@ -89,13 +89,11 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
       event_data[:container_group_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]
     # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
-    # consider removing the REPLICATOR prefix override once no longer needed.
     when 'ReplicationController'
       event_type_prefix = "REPLICATOR"
       event_data[:container_replicator_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]
     when 'ReplicaSet', 'Deployment', 'StatefulSet', 'DaemonSet', 'Job', 'CronJob'
-      event_data[:container_replicator_name] = event_data[:name]
       event_data[:container_namespace] = event_data[:namespace]
     end
 

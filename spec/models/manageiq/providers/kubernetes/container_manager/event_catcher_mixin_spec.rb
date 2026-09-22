@@ -260,12 +260,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
             }
           end
 
-          it 'sets :container_replicator_name and :container_namespace' do
+          it 'sets :container_namespace and does not set :container_replicator_name' do
             event = array_recursive_ostruct(:object => kubernetes_event)
             result = test_class.new.extract_event_data(event)
 
-            expect(result[:container_replicator_name]).to eq('my-workload')
             expect(result[:container_namespace]).to eq('default')
+            expect(result).not_to have_key(:container_replicator_name)
           end
 
           it "produces event_type #{kind.upcase}_SCALINGREPLICASET" do
@@ -275,12 +275,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
             expect(result[:event_type]).to eq("#{kind.upcase}_SCALINGREPLICASET")
           end
 
-          it 'flows through EventParser with :container_replicator_ems_ref set and no nil key' do
+          it 'flows through EventParser without setting :container_replicator_ems_ref or nil key' do
             event = array_recursive_ostruct(:object => kubernetes_event)
             event_data = test_class.new.extract_event_data(event)
             hash = ManageIQ::Providers::Kubernetes::ContainerManager::EventParser.event_to_hash(event_data)
 
-            expect(hash[:container_replicator_ems_ref]).to eq('workload-uid-001')
+            expect(hash).not_to have_key(:container_replicator_ems_ref)
             expect(hash).not_to have_key(nil)
           end
         end

@@ -43,20 +43,38 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventParser do
       end
     end
 
-    context 'with a replicator-family event' do
-      %w[ReplicationController ReplicaSet Deployment StatefulSet DaemonSet Job CronJob].each do |kind|
-        it "sets :container_replicator_ems_ref for #{kind}" do
+    context 'with a ReplicationController event' do
+      let(:rc_event_data) do
+        base_event_data.merge(
+          :kind                      => 'ReplicationController',
+          :event_type                => 'REPLICATOR_SUCCESSFULCREATE',
+          :uid                       => 'rc-uid-abc',
+          :container_replicator_name => 'my-rc',
+          :container_namespace       => 'default',
+        )
+      end
+
+      it 'sets :container_replicator_ems_ref from :uid' do
+        result = described_class.event_to_hash(rc_event_data, 42)
+
+        expect(result[:container_replicator_ems_ref]).to eq('rc-uid-abc')
+        expect(result).not_to have_key(nil)
+      end
+    end
+
+    context 'with other workload-kind events' do
+      %w[ReplicaSet Deployment StatefulSet DaemonSet Job CronJob].each do |kind|
+        it "does not set :container_replicator_ems_ref for #{kind}" do
           event_data = base_event_data.merge(
-            :kind                      => kind,
-            :event_type                => "#{kind.upcase}_SCALINGREPLICASET",
-            :uid                       => "#{kind.downcase}-uid",
-            :container_replicator_name => 'my-workload',
-            :container_namespace       => 'default',
+            :kind                => kind,
+            :event_type          => "#{kind.upcase}_SCALINGREPLICASET",
+            :uid                 => "#{kind.downcase}-uid",
+            :container_namespace => 'default',
           )
 
           result = described_class.event_to_hash(event_data, 42)
 
-          expect(result[:container_replicator_ems_ref]).to eq("#{kind.downcase}-uid")
+          expect(result).not_to have_key(:container_replicator_ems_ref)
           expect(result).not_to have_key(nil)
         end
       end

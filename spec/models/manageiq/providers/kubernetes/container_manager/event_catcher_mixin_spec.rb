@@ -238,6 +238,55 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       end
     end
 
+    context 'given new workload-kind events' do
+      %w[ReplicaSet Deployment StatefulSet DaemonSet Job CronJob].each do |kind|
+        context "given a #{kind} event" do
+          let(:kubernetes_event) do
+            {
+              'metadata'       => {
+                'uid'               => 'event-uid-001',
+                'resourceVersion'   => '1',
+                'creationTimestamp' => '2024-01-01T00:00:00Z',
+              },
+              'involvedObject' => {
+                'kind'      => kind,
+                'namespace' => 'default',
+                'name'      => 'my-workload',
+                'uid'       => 'workload-uid-001',
+              },
+              'reason'         => 'ScalingReplicaSet',
+              'message'        => "Scaled up replica set my-workload-abc to 2",
+              'lastTimestamp'  => '2024-01-01T00:00:00Z',
+            }
+          end
+
+          it 'sets :container_replicator_name and :container_namespace' do
+            event = array_recursive_ostruct(:object => kubernetes_event)
+            result = test_class.new.extract_event_data(event)
+
+            expect(result[:container_replicator_name]).to eq('my-workload')
+            expect(result[:container_namespace]).to eq('default')
+          end
+
+          it "produces event_type #{kind.upcase}_SCALINGREPLICASET" do
+            event = array_recursive_ostruct(:object => kubernetes_event)
+            result = test_class.new.extract_event_data(event)
+
+            expect(result[:event_type]).to eq("#{kind.upcase}_SCALINGREPLICASET")
+          end
+
+          it 'flows through EventParser with :container_replicator_ems_ref set and no nil key' do
+            event = array_recursive_ostruct(:object => kubernetes_event)
+            event_data = test_class.new.extract_event_data(event)
+            hash = ManageIQ::Providers::Kubernetes::ContainerManager::EventParser.event_to_hash(event_data)
+
+            expect(hash[:container_replicator_ems_ref]).to eq('workload-uid-001')
+            expect(hash).not_to have_key(nil)
+          end
+        end
+      end
+    end
+
     context 'given node event' do
       let(:kubernetes_event) do
         {
@@ -296,46 +345,6 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
   describe "#filtered?" do
     let(:test_instance) { test_class.new }
 
-    context 'given an event with an unsupported kind' do
-      let(:kubernetes_event) do
-        {
-          'reason'         => 'DoesItReallyMatter',
-          'involvedObject' => {
-            'kind' => 'SomeRandomObject',
-          },
-          'metadata'       => {
-            'uid' => 'SomeRandomUid',
-          },
-          'lastTimestamp'  => '2016-07-25T11:45:34Z',
-        }
-      end
-
-      it 'will return true' do
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
-        expect(test_instance.filtered?(event)).to be_truthy
-      end
-    end
-
-    context 'given an event with an unsupported reason' do
-      let(:kubernetes_event) do
-        {
-          'reason'         => 'DoesItReallyMatter',
-          'involvedObject' => {
-            'kind' => 'ReplicationController',
-          },
-          'metadata'       => {
-            'uid' => 'SomeRandomUid',
-          },
-          'lastTimestamp'  => '2016-07-25T11:45:34Z',
-        }
-      end
-
-      it 'will return true' do
-        event = RecursiveOpenStruct.new(:object => kubernetes_event)
-        expect(test_instance.filtered?(event)).to be_truthy
-      end
-    end
-
     let(:kubernetes_event) do
       {
         'metadata'       => {
@@ -378,18 +387,27 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       expect(test_instance.filtered?(event)).to be_falsey
     end
 
-    it 'with an event with an unsupported kind' do
+    it 'with an event with an unknown kind' do
       kubernetes_event.store_path('involvedObject', 'kind', 'SomeRandomObject')
 
       event = RecursiveOpenStruct.new(:object => kubernetes_event)
-      expect(test_instance.filtered?(event)).to be_truthy
+      expect(test_instance.filtered?(event)).to be_falsey
     end
 
-    it 'with an event with an unsupported reason' do
+    it 'with an unknown reason' do
       kubernetes_event.store_path('reason', 'DoesItReallyMatter')
 
       event = RecursiveOpenStruct.new(:object => kubernetes_event)
-      expect(test_instance.filtered?(event)).to be_truthy
+      expect(test_instance.filtered?(event)).to be_falsey
+    end
+
+    described_class::DISABLED_KINDS.each do |kind|
+      it "with a #{kind} event (disabled kind)" do
+        kubernetes_event.store_path('involvedObject', 'kind', kind)
+
+        event = RecursiveOpenStruct.new(:object => kubernetes_event)
+        expect(test_instance.filtered?(event)).to be_truthy
+      end
     end
   end
 end

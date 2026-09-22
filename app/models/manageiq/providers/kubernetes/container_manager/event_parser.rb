@@ -6,6 +6,8 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::EventParser
                     :container_node_ems_ref
                   when 'Pod'
                     :container_group_ems_ref
+                  # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
+                  # consider removing once no longer needed.
                   when 'ReplicationController'
                     :container_replicator_ems_ref
                   end
@@ -25,7 +27,7 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::EventParser
       :ems_ref                   => event[:event_uid],
     }
 
-    event_hash[ems_ref_key] = event[:uid]
+    event_hash[ems_ref_key] = event[:uid] if ems_ref_key
 
     event_hash
   end

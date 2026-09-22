@@ -114,6 +114,36 @@ RSpec.describe KubernetesEventCatcherBase do
       catcher.send(:build_client)
     end
 
+    it 'loads all certs from a PEM chain into the cert_store' do
+      # Build two distinct self-signed certs to simulate an intermediate + root chain
+      certs = 2.times.map do |i|
+        key  = OpenSSL::PKey::RSA.new(2048)
+        cert = OpenSSL::X509::Certificate.new
+        cert.subject = cert.issuer = OpenSSL::X509::Name.parse("/CN=test-ca-#{i}")
+        cert.not_before = Time.now.utc
+        cert.not_after  = Time.now.utc + 3600
+        cert.public_key = key.public_key
+        cert.serial     = i + 1
+        cert.version    = 2
+        cert.sign(key, OpenSSL::Digest::SHA256.new)
+        cert
+      end
+      chain_pem = certs.map(&:to_pem).join
+      catcher = described_class.new(
+        ems,
+        endpoint.merge('certificate_authority' => chain_pem),
+        authentication, settings, {}, logger
+      )
+      expect(Kubeclient::Client).to receive(:new) do |_url, _version, opts|
+        store = opts[:ssl_options][:cert_store]
+        expect(store).to be_an(OpenSSL::X509::Store)
+        # Both certs must be trusted by the store
+        certs.each { |cert| expect(store.verify(cert)).to be(true) }
+        kubeclient
+      end
+      catcher.send(:build_client)
+    end
+
     it 'passes nil cert_store when certificate_authority is absent' do
       captured_opts = nil
       allow(Kubeclient::Client).to receive(:new) do |_url, _version, opts|
@@ -160,21 +190,10 @@ RSpec.describe KubernetesEventCatcherBase do
     it 'schedules the timer at 90% of the remaining TTL' do
       now    = Time.now.utc
       expiry = now + 1000
-      allow(base_catcher).to receive(:token_expiry).and_return(expiry)
       allow(Time).to receive(:now).and_return(now)
 
-      # Capture the delay passed to sleep without actually sleeping
-      observed_delay = nil
-      dummy_thread   = Thread.new { nil }
-      expect(Thread).to receive(:new) do |&blk|
-        observed_delay = blk.binding.eval('delay')
-        dummy_thread
-      end
-
-      base_catcher.send(:schedule_token_refresh, watcher)
-
       # 90% of 1000s TTL = 900s delay
-      expect(observed_delay).to be_within(1).of(900)
+      expect(base_catcher.send(:token_refresh_delay, expiry)).to be_within(0.001).of(900)
     end
 
     it 'clamps delay to 0 when token is already expired' do

@@ -20,21 +20,21 @@ RSpec.describe EventCatcher do
   end
 
   it 'filters unsupported reasons' do
-    expect(catcher.send(:filtered?, event('Node', 'Unknown'))).to be(true)
+    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Unknown')))).to be(true)
   end
 
   it 'filters blacklisted events from scoped worker settings' do
     scoped_catcher = described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager', 'ems_type' => 'kubernetes'}, {'hostname' => 'localhost'}, {}, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
-    expect(scoped_catcher.send(:filtered?, event('Node', 'Rebooted'))).to be(true)
+    expect(scoped_catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Rebooted')))).to be(true)
   end
 
   it 'filters blacklisted events from full ems settings fallback' do
     settings['ems']['ems_kubernetes']['blacklisted_event_names'] = ['NODE_REBOOTED']
-    expect(catcher.send(:filtered?, event('Node', 'Rebooted'))).to be(true)
+    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Rebooted')))).to be(true)
   end
 
   it 'accepts supported events' do
-    expect(catcher.send(:filtered?, event('Node', 'Rebooted'))).to be(false)
+    expect(catcher.send(:filtered?, EventParser.extract_event_data(event('Node', 'Rebooted')))).to be(false)
   end
 
   describe '#watch_events' do

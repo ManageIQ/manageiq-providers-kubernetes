@@ -5,9 +5,7 @@ class KubernetesEventCatcherBase
     'ReplicationController' => %w[SuccessfulCreate FailedCreate]
   }.freeze
 
-  # Fraction of a token's remaining TTL to use as a safety margin before forcing
-  # a reconnect. At 0.1 a 1-hour token refreshes after 54 minutes; a 15-minute
-  # STS token refreshes after ~13.5 minutes. Subclasses may override as a method.
+  # Fraction of a token's remaining TTL to use as a safety margin before forcing a reconnect.
   TOKEN_REFRESH_MARGIN_RATIO = 0.1
 
   def initialize(ems, endpoint, authentication, settings, messaging, logger)
@@ -72,7 +70,7 @@ class KubernetesEventCatcherBase
 
       logger.info("#{log_prefix} Received event kind=#{event_data[:kind]} reason=#{event_data[:reason]} name=#{event_data[:name]} namespace=#{event_data[:namespace]}")
 
-      if filtered?(event)
+      if filtered?(event_data)
         logger.info("#{log_prefix} Filtered event kind=#{event_data[:kind]} reason=#{event_data[:reason]} event_type=#{event_data[:event_type]}")
         next
       end
@@ -97,9 +95,6 @@ class KubernetesEventCatcherBase
   attr_reader :ems, :endpoint, :authentication, :settings, :messaging, :logger, :filtered_events
 
   # Override in subclasses that issue short-lived tokens.
-  # Return the Time at which the current token expires, or nil for long-lived/static tokens.
-  # When non-nil, the watch stream is closed proactively before the token expires so that
-  # the next loop iteration fetches a fresh token via build_client -> auth_options.
   def token_expiry
     nil
   end
@@ -108,17 +103,20 @@ class KubernetesEventCatcherBase
     expiry = token_expiry
     return nil if expiry.nil?
 
-    ttl   = expiry - Time.now.utc
-    delay = [ttl * (1 - TOKEN_REFRESH_MARGIN_RATIO), 0].max
-    logger.info("#{log_prefix} Token expires in #{ttl.round}s, scheduling refresh in #{delay.round}s")
+    delay = token_refresh_delay(expiry)
+    logger.info("#{log_prefix} Token expires in #{(expiry - Time.now.utc).round}s, scheduling refresh in #{delay.round}s")
     Thread.new do
       sleep(delay)
       watcher.finish
     end
   end
 
-  def filtered?(event)
-    event_data = EventParser.extract_event_data(event)
+  def token_refresh_delay(expiry)
+    ttl = expiry - Time.now.utc
+    [ttl * (1 - TOKEN_REFRESH_MARGIN_RATIO), 0].max
+  end
+
+  def filtered?(event_data)
     Array(ENABLED_EVENTS[event_data[:kind]]).none?(event_data[:reason]) || filtered_events.include?(event_data[:event_type])
   end
 
@@ -152,15 +150,16 @@ class KubernetesEventCatcherBase
     end
   end
 
-  # Returns an OpenSSL::X509::Store built from the endpoint's PEM text, or nil
-  # when no custom CA is configured. Uses :cert_store rather than :ca_file
-  # because :ca_file expects a filesystem path, not a PEM string.
+  # Builds an OpenSSL::X509::Store from the endpoint's certificate_authority PEM, or nil if absent.
+  # Supports CA chains by splitting on PEM boundaries before loading.
   def ca_cert_store
     pem = endpoint['certificate_authority']
     return nil if pem.nil? || pem.strip.empty?
 
     store = OpenSSL::X509::Store.new
-    store.add_cert(OpenSSL::X509::Certificate.new(pem))
+    pem.split(/(?=-----BEGIN)/).each do |fragment|
+      store.add_cert(OpenSSL::X509::Certificate.new(fragment))
+    end
     store
   end
 

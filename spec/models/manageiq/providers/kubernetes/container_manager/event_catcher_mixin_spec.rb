@@ -410,4 +410,53 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       end
     end
   end
+
+  describe '#worker_options' do
+    let(:runner_class) do
+      Class.new(ManageIQ::Providers::BaseManager::EventCatcher::Runner) do
+        include ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
+      end
+    end
+
+    let(:worker) do
+      ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcher.create!(:miq_server_id => server.id)
+    end
+
+    let(:runner) do
+      runner_class.allocate.tap do |r|
+        r.instance_variable_set(:@ems, ems)
+        r.instance_variable_set(:@cfg, :ems_id => ems.id)
+        r.instance_variable_set(:@worker, worker)
+        r.instance_variable_set(:@worker_settings, {})
+      end
+    end
+
+    let(:server) { EvmSpecHelper.local_miq_server }
+    let(:zone) { server.zone }
+    let(:ems) { FactoryBot.create(:ems_kubernetes, :zone => zone) }
+
+    before do
+      ems.authentications << FactoryBot.create(:authentication, :authtype => "bearer", :auth_key => "my_secret_token", :resource => ems)
+      ems.endpoints << FactoryBot.create(:endpoint, :role => "default", :hostname => "k8s.example.com", :port => 6443, :resource => ems)
+    end
+
+    it 'includes ems settings and serializes endpoints and authentications' do
+      options = runner.send(:worker_options)
+
+      expect(options[:settings]).to include(:ems => hash_including("ems_kubernetes"))
+      expect(options[:ems].length).to eq(1)
+
+      ems_options = options[:ems].first
+      expect(ems_options["id"]).to eq(ems.id)
+      expect(ems_options["endpoints"]).to eq(ems.endpoints)
+      expect(ems_options["authentications"]).to eq(ems.authentications)
+    end
+
+    it 'serializes authentications with decrypted credentials when converted to json' do
+      json = JSON.parse(runner.send(:worker_options).to_json)
+      serialized_auth = json["ems"].first["authentications"].find { |a| a["authtype"] == "bearer" }
+
+      expect(serialized_auth["auth_key"]).to eq("my_secret_token")
+    end
+  end
 end

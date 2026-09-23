@@ -30,6 +30,39 @@ RSpec.describe KubernetesEventCatcherBase do
     subclass.new(ems, endpoint, authentication, settings, {}, logger)
   end
 
+  def normal_event(kind, reason)
+    RecursiveOpenStruct.new(:object => {
+                              :lastTimestamp  => 'now',
+                              :involvedObject => {:kind => kind, :name => 'name', :uid => 'uid'},
+                              :reason         => reason,
+                              :metadata       => {:uid => 'event-uid'}
+                            })
+  end
+
+  describe '#filtered?' do
+    described_class::DISABLED_KINDS.each do |kind|
+      it "filters #{kind} events (disabled kind)" do
+        expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event(kind, 'SomeReason')))).to be(true)
+      end
+    end
+
+    it 'filters blacklisted events from scoped worker settings' do
+      scoped_catcher = described_class.new(ems, endpoint, authentication, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
+      expect(scoped_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)
+    end
+
+    it 'filters blacklisted events from full ems settings fallback' do
+      settings['ems']['ems_kubernetes']['blacklisted_event_names'] = ['NODE_REBOOTED']
+      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)
+    end
+
+    it 'accepts non-disabled kind events with arbitrary reasons' do
+      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Unknown')))).to be(false)
+      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Pod', 'CustomReason')))).to be(false)
+      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Deployment', 'ScalingReplicaSet')))).to be(false)
+    end
+  end
+
   describe '#auth_options' do
     context 'default implementation' do
       it 'returns bearer_token from authentication auth_key' do
@@ -205,9 +238,42 @@ RSpec.describe KubernetesEventCatcherBase do
     end
   end
 
-  describe '#watch_events — token refresh integration' do
+  describe '#watch_events' do
     let(:watcher) { double('Kubeclient::Common::WatchStream') }
     let(:client)  { double('Kubeclient::Client', :watch_events => watcher) }
+
+    before { allow(base_catcher).to receive(:schedule_token_refresh).and_return(nil) }
+
+    it 'returns the incoming version unchanged when the watcher yields no events' do
+      allow(watcher).to receive(:each)
+      expect(base_catcher.send(:watch_events, client, '42')).to eq('42')
+    end
+
+    it 'skips and logs events with no involvedObject without crashing' do
+      bare_event = double('WatchEvent', :type => 'BOOKMARK')
+      allow(EventParser).to receive(:extract_event_data).and_return({})
+      allow(watcher).to receive(:each).and_yield(bare_event)
+      expect(logger).to receive(:info).with(/Skipping event with no involvedObject/)
+      expect(base_catcher.send(:watch_events, client, '42')).to eq('42')
+    end
+
+    it 'rescues EOFError, logs a reconnect message, and returns the current version' do
+      allow(watcher).to receive(:each).and_raise(EOFError, 'connection closed')
+      expect(logger).to receive(:info).with(/reconnecting/)
+      expect(base_catcher.send(:watch_events, client, '99')).to eq('99')
+    end
+
+    it 'rescues OpenSSL::SSL::SSLError, logs a reconnect message, and returns the current version' do
+      allow(watcher).to receive(:each).and_raise(OpenSSL::SSL::SSLError, 'unexpected eof while reading')
+      expect(logger).to receive(:info).with(/reconnecting/)
+      expect(base_catcher.send(:watch_events, client, '99')).to eq('99')
+    end
+
+    it 'rescues Kubeclient::HttpError, logs a reconnect message, and returns the current version' do
+      allow(watcher).to receive(:each).and_raise(Kubeclient::HttpError.new(401, 'Unauthorized', nil))
+      expect(logger).to receive(:info).with(/reconnecting/)
+      expect(base_catcher.send(:watch_events, client, '77')).to eq('77')
+    end
 
     it 'kills the timer thread after watch completes normally' do
       timer = instance_double(Thread)
@@ -225,11 +291,96 @@ RSpec.describe KubernetesEventCatcherBase do
       base_catcher.send(:watch_events, client, '1')
     end
 
-    it 'rescues Kubeclient::HttpError, logs a reconnect message, and returns the current version' do
-      allow(base_catcher).to receive(:schedule_token_refresh).and_return(nil)
-      allow(watcher).to receive(:each).and_raise(Kubeclient::HttpError.new(401, 'Unauthorized', nil))
-      expect(logger).to receive(:info).with(/reconnecting/)
-      expect(base_catcher.send(:watch_events, client, '77')).to eq('77')
+    context '410 Gone ERROR notice' do
+      def gone_notice(code = 410)
+        RecursiveOpenStruct.new(
+          :type   => 'ERROR',
+          :object => RecursiveOpenStruct.new(:code => code, :reason => 'Gone', :message => 'too old resource version', :involvedObject => nil)
+        )
+      end
+
+      it 'clears the resource version and breaks out of the watch loop on 410' do
+        allow(watcher).to receive(:each).and_yield(gone_notice)
+        expect(base_catcher.send(:watch_events, client, '42')).to be_nil
+      end
+
+      it 'logs a warning when a 410 Gone ERROR notice is received' do
+        allow(watcher).to receive(:each).and_yield(gone_notice)
+        expect(logger).to receive(:warn).with(/410/)
+        base_catcher.send(:watch_events, client, '42')
+      end
+
+      it 'preserves the resource version for non-410 ERROR notices' do
+        allow(watcher).to receive(:each).and_yield(gone_notice(500))
+        expect(base_catcher.send(:watch_events, client, '99')).to eq('99')
+      end
+
+      it 'stops iterating after the ERROR notice (does not process further events)' do
+        extra_event = RecursiveOpenStruct.new(
+          :type   => 'ADDED',
+          :object => RecursiveOpenStruct.new(:code => nil, :involvedObject => nil)
+        )
+        allow(watcher).to receive(:each).and_yield(gone_notice).and_yield(extra_event)
+        expect(base_catcher).not_to receive(:publish_events)
+        base_catcher.send(:watch_events, client, '42')
+      end
+    end
+  end
+
+  describe '#run!' do
+    let(:client) { double('Kubeclient::Client') }
+
+    before do
+      allow(Kubeclient::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:discover)
+      allow(client).to receive(:get_events).and_return(double('EventList', :resourceVersion => 'v1'))
+      allow(base_catcher).to receive(:notify_started)
+      allow(base_catcher).to receive(:notify_stopping)
+    end
+
+    it 'calls notify_started before the first watch loop' do
+      expect(base_catcher).to receive(:notify_started).ordered
+      expect(client).to receive(:discover).ordered
+      allow(base_catcher).to receive(:watch_events).and_raise(Interrupt)
+
+      base_catcher.run!
+    end
+
+    it 'calls watch_events in a loop until interrupted' do
+      call_count = 0
+      allow(base_catcher).to receive(:watch_events) do
+        call_count += 1
+        raise Interrupt if call_count >= 3
+
+        'v1'
+      end
+
+      base_catcher.run!
+      expect(call_count).to eq(3)
+    end
+
+    it 'reconnects after an EOFError by re-entering the watch loop' do
+      allow(base_catcher).to receive(:watch_events).and_return('v1', 'v1').and_raise(Interrupt)
+      expect { base_catcher.run! }.not_to raise_error
+    end
+
+    it 'calls notify_stopping in the ensure block even when interrupted' do
+      allow(base_catcher).to receive(:watch_events).and_raise(Interrupt)
+      expect(base_catcher).to receive(:notify_stopping)
+      base_catcher.run!
+    end
+
+    it 'passes the version returned by watch_events into the next iteration' do
+      versions_received = []
+      allow(base_catcher).to receive(:watch_events) do |_client, ver|
+        versions_received << ver
+        raise Interrupt if versions_received.length >= 2
+
+        'v2'
+      end
+
+      base_catcher.run!
+      expect(versions_received).to eq(%w[v1 v2])
     end
   end
 

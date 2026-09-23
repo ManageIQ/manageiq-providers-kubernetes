@@ -61,8 +61,13 @@ class KubernetesEventCatcherBase
       event_data = EventParser.extract_event_data(event)
 
       if event_data.empty?
+        if event.type == "ERROR"
+          code = event.object&.code
+          logger.warn("#{log_prefix} Received ERROR watch event (code=#{code}), clearing version and reconnecting")
+          version = nil if code == 410
+          break
+        end
         logger.info("#{log_prefix} Skipping event with no involvedObject (type=#{event.type})")
-        version = nil if event.type == "ERROR"
         next
       end
 

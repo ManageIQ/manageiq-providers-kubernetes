@@ -8,7 +8,7 @@ RSpec.describe KubernetesEventCatcherBase do
   let(:endpoint)       { {'hostname' => 'localhost'} }
   let(:authentication) { {'auth_key' => 'test-token'} }
   let(:settings)       { {'ems' => {'ems_kubernetes' => {'blacklisted_event_names' => []}}} }
-  let(:logger)         { instance_double('Logger', :info => nil, :warn => nil) }
+  let(:logger)         { instance_double('Logger', :debug => nil, :info => nil, :warn => nil, :error => nil) }
 
   let(:subclass) do
     Class.new(described_class) do
@@ -228,7 +228,7 @@ RSpec.describe KubernetesEventCatcherBase do
     it 'rescues Kubeclient::HttpError, logs a reconnect message, and returns the current version' do
       allow(base_catcher).to receive(:schedule_token_refresh).and_return(nil)
       allow(watcher).to receive(:each).and_raise(Kubeclient::HttpError.new(401, 'Unauthorized', nil))
-      expect(logger).to receive(:warn).with(/reconnecting/)
+      expect(logger).to receive(:info).with(/reconnecting/)
       expect(base_catcher.send(:watch_events, client, '77')).to eq('77')
     end
   end

@@ -119,12 +119,13 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
         "ems_#{ems_type}" => ::Settings.ems["ems_#{ems_type}"]&.to_hash
       }
     )
+    # `.attributes` returns raw (encrypted) column values; decrypt each credential
+    # field here so the non-Rails worker subprocess receives usable plaintext.
     options[:ems].each do |manager|
-      manager_record = ExtManagementSystem.find(manager["id"])
       manager["authentications"].each do |authentication|
-        auth_type = authentication["authtype"]
-        authentication["password"] = manager_record.authentication_password(auth_type)
-        authentication["auth_key"] = manager_record.authentication_key(auth_type)
+        auth_record = Authentication.find(authentication["id"])
+        authentication["password"] = auth_record.password
+        authentication["auth_key"] = auth_record.auth_key
       end
     end
     options

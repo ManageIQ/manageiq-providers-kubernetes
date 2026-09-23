@@ -66,10 +66,8 @@ class KubernetesEventCatcherBase
         next
       end
 
-      logger.info("#{log_prefix} Received event kind=#{event_data[:kind]} reason=#{event_data[:reason]} name=#{event_data[:name]} namespace=#{event_data[:namespace]}")
-
       if filtered?(event_data)
-        logger.info("#{log_prefix} Filtered event kind=#{event_data[:kind]} reason=#{event_data[:reason]} event_type=#{event_data[:event_type]}")
+        logger.debug("#{log_prefix} Filtered event kind=#{event_data[:kind]} reason=#{event_data[:reason]} event_type=#{event_data[:event_type]}")
         next
       end
 
@@ -78,13 +76,15 @@ class KubernetesEventCatcherBase
         next
       end
 
+      logger.info("#{log_prefix} Queuing event kind=#{event_data[:kind]} reason=#{event_data[:reason]} name=#{event_data[:name]} namespace=#{event_data[:namespace]}")
+
       version = (event_data[:timestamp] && event.dig('metadata', 'resourceVersion')) || version
       publish_events([EventParser.event_to_hash_from_data(event_data, ems['id'])])
       heartbeat
     end
     version
   rescue EOFError, OpenSSL::SSL::SSLError, Kubeclient::HttpError => error
-    logger.warn("#{log_prefix} Monitoring connection error, reconnecting... #{error}")
+    logger.info("#{log_prefix} Monitoring connection closed, reconnecting... #{error}")
     version
   ensure
     timer&.kill

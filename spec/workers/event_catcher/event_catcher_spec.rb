@@ -5,7 +5,7 @@ require_relative '../../../workers/event_catcher/event_catcher'
 
 RSpec.describe EventCatcher do
   let(:settings) { {'ems' => {'ems_kubernetes' => {'blacklisted_event_names' => []}}} }
-  let(:logger) { instance_double('Logger', :info => nil, :warn => nil) }
+  let(:logger) { instance_double('Logger', :debug => nil, :info => nil, :warn => nil, :error => nil) }
   let(:catcher) do
     described_class.new({'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager', 'ems_type' => 'kubernetes'}, {'hostname' => 'localhost'}, {}, settings, {}, logger)
   end
@@ -68,13 +68,13 @@ RSpec.describe EventCatcher do
 
     it 'rescues EOFError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(EOFError, 'connection closed')
-      expect(logger).to receive(:warn).with(/reconnecting/)
+      expect(logger).to receive(:info).with(/reconnecting/)
       expect(catcher.send(:watch_events, client, '99')).to eq('99')
     end
 
     it 'rescues OpenSSL::SSL::SSLError, logs a reconnect message, and returns the current version' do
       allow(watcher).to receive(:each).and_raise(OpenSSL::SSL::SSLError, 'unexpected eof while reading')
-      expect(logger).to receive(:warn).with(/reconnecting/)
+      expect(logger).to receive(:info).with(/reconnecting/)
       expect(catcher.send(:watch_events, client, '99')).to eq('99')
     end
   end

@@ -5,27 +5,29 @@
     :image_inspector_registry: docker.io
     :image_inspector_repository: openshift/image-inspector
     :image_inspector_cve_url:
+    # High-frequency or routine lifecycle events filtered to reduce queue churn.
     :blacklisted_event_names:
-    # Node health affirmations fired continuously when a node is healthy.
-    - NODE_NODEHASSUFFICIENTMEMORY
+    - CRONJOB_SCALINGREPLICASET
+    - DAEMONSET_SCALINGREPLICASET
+    - DEPLOYMENT_SCALINGREPLICASET
+    - JOB_COMPLETED
+    - JOB_SCALINGREPLICASET
     - NODE_NODEHASNODISKPRESSURE
+    - NODE_NODEHASSUFFICIENTMEMORY
     - NODE_NODEHASSUFFICIENTPID
-    # Image pull lifecycle; not in any event_group and not actionable.
-    - POD_PULLING
+    - NODE_STARTING
+    - PERSISTENTVOLUMECLAIM_PROVISIONINGSUCCEEDED
+    - PERSISTENTVOLUMECLAIM_UNRECOGNIZEDDATASOURCEKIND
+    - POD_ADDEDINTERFACE
     - POD_PULLED
-    # Scaling churn from HPA loops; not in any event_group.
+    - POD_PULLING
+    - POD_SUCCESSFULATTACHVOLUME
+    - POD_SUCCESSFULDETACHVOLUME
+    - POD_SUCCESSFULMOUNTVOLUME
+    - POD_SUCCESSFULUNMOUNTVOLUME
     - REPLICASET_SCALINGREPLICASET
     - REPLICATOR_SCALINGREPLICASET
-    - DEPLOYMENT_SCALINGREPLICASET
     - STATEFULSET_SCALINGREPLICASET
-    - DAEMONSET_SCALINGREPLICASET
-    - JOB_SCALINGREPLICASET
-    - CRONJOB_SCALINGREPLICASET
-    # Routine volume lifecycle confirmations; fire on every pod attach/mount.
-    - POD_SUCCESSFULATTACHVOLUME
-    - POD_SUCCESSFULMOUNTVOLUME
-    # Kubelet startup; fires once per kubelet restart, not actionable.
-    - NODE_STARTING
 
     :event_handling:
       :event_groups:

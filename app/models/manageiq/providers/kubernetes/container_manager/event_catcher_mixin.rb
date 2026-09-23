@@ -113,7 +113,12 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   def worker_options
     options = super
-    options[:settings] = worker_settings
+    ems_type = @ems.class.ems_type
+    options[:settings] = worker_settings.merge(
+      :ems => {
+        "ems_#{ems_type}" => ::Settings.ems["ems_#{ems_type}"]&.to_hash
+      }
+    )
     options[:ems].each do |manager|
       manager_record = ExtManagementSystem.find(manager["id"])
       manager["authentications"].each do |authentication|

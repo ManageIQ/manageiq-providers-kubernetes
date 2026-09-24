@@ -409,5 +409,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
         expect(test_instance.filtered?(event)).to be_truthy
       end
     end
+
+    it 'includes VirtualMachine and VirtualMachineInstance in DISABLED_KINDS' do
+      expect(described_class::DISABLED_KINDS).to include('VirtualMachine', 'VirtualMachineInstance')
+    end
   end
 end

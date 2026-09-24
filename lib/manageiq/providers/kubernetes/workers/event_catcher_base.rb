@@ -1,7 +1,7 @@
 class KubernetesEventCatcherBase
   # Kinds not modelled in ManageIQ inventory; dropped before parsing regardless
   # of reason. Not operator-configurable — there is no valid use-case for them.
-  DISABLED_KINDS = %w[Endpoints EndpointSlice Lease].freeze
+  DISABLED_KINDS = %w[Endpoints EndpointSlice Lease VirtualMachine VirtualMachineInstance].freeze
 
   # Fraction of a token's remaining TTL to use as a safety margin before forcing a reconnect.
   TOKEN_REFRESH_MARGIN_RATIO = 0.1

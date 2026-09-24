@@ -46,6 +46,10 @@ RSpec.describe KubernetesEventCatcherBase do
       end
     end
 
+    it 'includes VirtualMachine and VirtualMachineInstance in DISABLED_KINDS' do
+      expect(described_class::DISABLED_KINDS).to include('VirtualMachine', 'VirtualMachineInstance')
+    end
+
     it 'filters blacklisted events from scoped worker settings' do
       scoped_catcher = described_class.new(ems, endpoint, authentication, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
       expect(scoped_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)

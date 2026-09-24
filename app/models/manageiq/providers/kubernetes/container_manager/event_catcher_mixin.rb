@@ -108,4 +108,18 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
     true
   end
+
+  private
+
+  def worker_options
+    super.merge(
+      :ems => [
+        @ems.attributes.merge(
+          "ems_type"        => @ems.class.ems_type,
+          "endpoints"       => @ems.endpoints,
+          "authentications" => @ems.authentications
+        )
+      ]
+    )
+  end
 end

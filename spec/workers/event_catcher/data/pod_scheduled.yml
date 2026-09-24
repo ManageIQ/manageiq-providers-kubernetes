@@ -1,0 +1,13 @@
+---
+:object:
+  :lastTimestamp:
+  :eventTime: '2026-09-16T11:08:00Z'
+  :involvedObject:
+    :kind: Pod
+    :name: some-pod
+    :namespace: cp4aiops
+    :uid: pod-uid
+  :reason: Scheduled
+  :message: Successfully assigned cp4aiops/some-pod to node-1
+  :metadata:
+    :uid: event-pod-scheduled-uid

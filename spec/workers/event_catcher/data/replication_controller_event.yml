@@ -1,0 +1,12 @@
+---
+:object:
+  :lastTimestamp: '2016-07-25T11:45:34Z'
+  :involvedObject:
+    :kind: ReplicationController
+    :name: rc-1
+    :namespace: project
+    :uid: rc-uid
+  :reason: SuccessfulCreate
+  :message: Created pod
+  :metadata:
+    :uid: event-rc-uid

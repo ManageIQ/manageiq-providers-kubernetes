@@ -16,6 +16,8 @@ class EventParser
 
     event_data[:fieldpath] = involved_object.fieldPath unless involved_object.fieldPath.nil?
 
+    return {} if event_data[:kind].nil? || event_data[:reason].nil?
+
     event_type_prefix = event_data[:kind].upcase
     case event_data[:kind]
     when 'Node'

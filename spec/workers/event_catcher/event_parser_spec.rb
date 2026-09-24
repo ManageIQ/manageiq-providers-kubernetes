@@ -75,4 +75,28 @@ RSpec.describe EventParser do
     raw = RecursiveOpenStruct.new(:object => {:involvedObject => nil, :metadata => {:uid => 'x'}})
     expect(described_class.extract_event_data(raw)).to eq({})
   end
+
+  it 'returns an empty hash when involvedObject.kind is nil' do
+    raw = RecursiveOpenStruct.new(
+      :object => {
+        :metadata       => {:uid => 'event-123'},
+        :involvedObject => {:kind => nil, :name => 'obj-1', :namespace => 'default', :uid => 'uid-1'},
+        :reason         => 'SomeReason',
+        :lastTimestamp  => '2026-09-16T11:08:00Z'
+      }
+    )
+    expect(described_class.extract_event_data(raw)).to eq({})
+  end
+
+  it 'returns an empty hash when reason is nil' do
+    raw = RecursiveOpenStruct.new(
+      :object => {
+        :metadata       => {:uid => 'event-123'},
+        :involvedObject => {:kind => 'Pod', :name => 'pod-1', :namespace => 'default', :uid => 'uid-1'},
+        :reason         => nil,
+        :lastTimestamp  => '2026-09-16T11:08:00Z'
+      }
+    )
+    expect(described_class.extract_event_data(raw)).to eq({})
+  end
 end

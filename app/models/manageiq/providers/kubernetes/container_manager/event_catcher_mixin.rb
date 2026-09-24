@@ -115,6 +115,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
     super.merge(
       :ems => [
         @ems.attributes.merge(
+          "ems_type"        => @ems.class.ems_type,
           "endpoints"       => @ems.endpoints,
           "authentications" => @ems.authentications
         )

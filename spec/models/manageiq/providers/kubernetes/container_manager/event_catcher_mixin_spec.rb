@@ -440,10 +440,9 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin do
       ems.endpoints << FactoryBot.create(:endpoint, :role => "default", :hostname => "k8s.example.com", :port => 6443, :resource => ems)
     end
 
-    it 'includes ems settings and serializes endpoints and authentications' do
+    it 'serializes endpoints and authentications as AR objects' do
       options = runner.send(:worker_options)
 
-      expect(options[:settings]).to include(:ems => hash_including("ems_kubernetes"))
       expect(options[:ems].length).to eq(1)
 
       ems_options = options[:ems].first

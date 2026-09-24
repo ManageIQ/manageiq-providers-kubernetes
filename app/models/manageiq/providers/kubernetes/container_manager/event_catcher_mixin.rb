@@ -3,7 +3,7 @@ module ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcherMixin
 
   # Kinds not modelled in ManageIQ inventory; dropped before parsing regardless
   # of reason. Not operator-configurable — there is no valid use-case for them.
-  DISABLED_KINDS = %w[Endpoints EndpointSlice Lease].freeze
+  DISABLED_KINDS = %w[Endpoints EndpointSlice Lease VirtualMachine VirtualMachineInstance].freeze
 
   def event_monitor_handle
     @event_monitor_handle ||= ManageIQ::Providers::Kubernetes::ContainerManager::KubernetesEventMonitor.new(@ems)

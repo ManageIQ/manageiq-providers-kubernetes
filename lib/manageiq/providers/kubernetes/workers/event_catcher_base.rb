@@ -153,7 +153,7 @@ module ManageIQ
           def verify_ssl_mode
             case endpoint['security_protocol']
             when nil, ''
-              endpoint['verify_ssl'].to_i != OpenSSL::SSL::VERIFY_NONE ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+              endpoint['verify_ssl'].to_i == OpenSSL::SSL::VERIFY_NONE ? OpenSSL::SSL::VERIFY_NONE : OpenSSL::SSL::VERIFY_PEER
             when 'ssl-without-validation'
               OpenSSL::SSL::VERIFY_NONE
             else

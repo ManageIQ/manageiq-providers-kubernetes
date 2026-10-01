@@ -46,14 +46,11 @@ module ManageIQ
 
           def self.event_to_hash_from_data(event, ems_id = nil)
             # TODO: ReplicationController is deprecated in favour of ReplicaSet/Deployment;
-            ems_ref_key = case event[:kind]
-                          when 'Node'
-                            :container_node_ems_ref
-                          when 'Pod'
-                            :container_group_ems_ref
-                          when 'ReplicationController'
-                            :container_replicator_ems_ref
-                          end
+            ems_ref_key = {
+              'Node'                  => :container_node_ems_ref,
+              'Pod'                   => :container_group_ems_ref,
+              'ReplicationController' => :container_replicator_ems_ref,
+            }[event[:kind]]
 
             event_hash = {
               :event_type                => event[:event_type],

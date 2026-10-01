@@ -1,6 +1,4 @@
-require 'kubeclient'
-require 'recursive-open-struct'
-require_relative '../../../workers/event_catcher/event_parser'
+require_relative '../../../lib/manageiq/providers/kubernetes/workers/event_parser'
 require_relative '../../../lib/manageiq/providers/kubernetes/workers/event_catcher_base'
 
 RSpec.describe KubernetesEventCatcherBase do

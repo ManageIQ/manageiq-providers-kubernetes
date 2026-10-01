@@ -32,7 +32,7 @@ def main(args)
   settings       = args['settings']
   messaging      = args['messaging']&.transform_keys(&:to_sym) || {}
 
-  EventCatcher.new(ems, endpoint, authentication, settings, messaging, logger).run!
+  ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcher.new(ems, endpoint, authentication, settings, messaging, logger).run!
 end
 
 main(parse_args)

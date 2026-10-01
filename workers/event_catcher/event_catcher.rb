@@ -1,4 +1,4 @@
 require_relative '../../lib/manageiq/providers/kubernetes/workers/event_catcher_base'
 
-class EventCatcher < KubernetesEventCatcherBase
+class EventCatcher < ManageIQ::Providers::Kubernetes::Workers::EventCatcherBase
 end

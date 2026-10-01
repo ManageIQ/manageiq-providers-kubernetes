@@ -1,6 +1,4 @@
-require_relative '../../../lib/manageiq/providers/kubernetes/workers/event_parser'
-
-RSpec.describe EventParser do
+RSpec.describe ManageIQ::Providers::Kubernetes::Workers::EventParser do
   let(:fixture_dir) { File.expand_path('data', __dir__) }
 
   def load_event(name)

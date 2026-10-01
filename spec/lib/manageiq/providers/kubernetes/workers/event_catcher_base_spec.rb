@@ -1,7 +1,4 @@
-require_relative '../../../lib/manageiq/providers/kubernetes/workers/event_parser'
-require_relative '../../../lib/manageiq/providers/kubernetes/workers/event_catcher_base'
-
-RSpec.describe KubernetesEventCatcherBase do
+RSpec.describe ManageIQ::Providers::Kubernetes::Workers::EventCatcherBase do
   let(:ems)            { {'id' => 1, 'type' => 'ManageIQ::Providers::Kubernetes::ContainerManager', 'ems_type' => 'kubernetes'} }
   let(:endpoint)       { {'hostname' => 'localhost'} }
   let(:authentication) { {'auth_key' => 'test-token'} }
@@ -40,7 +37,7 @@ RSpec.describe KubernetesEventCatcherBase do
   describe '#filtered?' do
     described_class::DISABLED_KINDS.each do |kind|
       it "filters #{kind} events (disabled kind)" do
-        expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event(kind, 'SomeReason')))).to be(true)
+        expect(base_catcher.send(:filtered?, ManageIQ::Providers::Kubernetes::Workers::EventParser.extract_event_data(normal_event(kind, 'SomeReason')))).to be(true)
       end
     end
 
@@ -50,18 +47,18 @@ RSpec.describe KubernetesEventCatcherBase do
 
     it 'filters blacklisted events from scoped worker settings' do
       scoped_catcher = described_class.new(ems, endpoint, authentication, {'blacklisted_event_names' => ['NODE_REBOOTED']}, {}, logger)
-      expect(scoped_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)
+      expect(scoped_catcher.send(:filtered?, ManageIQ::Providers::Kubernetes::Workers::EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)
     end
 
     it 'filters blacklisted events from full ems settings fallback' do
       settings['ems']['ems_kubernetes']['blacklisted_event_names'] = ['NODE_REBOOTED']
-      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)
+      expect(base_catcher.send(:filtered?, ManageIQ::Providers::Kubernetes::Workers::EventParser.extract_event_data(normal_event('Node', 'Rebooted')))).to be(true)
     end
 
     it 'accepts non-disabled kind events with arbitrary reasons' do
-      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Node', 'Unknown')))).to be(false)
-      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Pod', 'CustomReason')))).to be(false)
-      expect(base_catcher.send(:filtered?, EventParser.extract_event_data(normal_event('Deployment', 'ScalingReplicaSet')))).to be(false)
+      expect(base_catcher.send(:filtered?, ManageIQ::Providers::Kubernetes::Workers::EventParser.extract_event_data(normal_event('Node', 'Unknown')))).to be(false)
+      expect(base_catcher.send(:filtered?, ManageIQ::Providers::Kubernetes::Workers::EventParser.extract_event_data(normal_event('Pod', 'CustomReason')))).to be(false)
+      expect(base_catcher.send(:filtered?, ManageIQ::Providers::Kubernetes::Workers::EventParser.extract_event_data(normal_event('Deployment', 'ScalingReplicaSet')))).to be(false)
     end
   end
 
@@ -253,7 +250,7 @@ RSpec.describe KubernetesEventCatcherBase do
 
     it 'skips and logs events with no involvedObject without crashing' do
       bare_event = double('WatchEvent', :type => 'BOOKMARK')
-      allow(EventParser).to receive(:extract_event_data).and_return({})
+      allow(ManageIQ::Providers::Kubernetes::Workers::EventParser).to receive(:extract_event_data).and_return({})
       allow(watcher).to receive(:each).and_yield(bare_event)
       expect(logger).to receive(:info).with(/Skipping event with no involvedObject/)
       expect(base_catcher.send(:watch_events, client, '42')).to eq('42')

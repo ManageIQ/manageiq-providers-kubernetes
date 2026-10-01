@@ -1,25 +1,13 @@
 #!/usr/bin/env ruby
 
-require 'bundler/inline'
-
-gemfile(false) do
-  source 'https://rubygems.org'
-  gem 'kubeclient', '~> 4.7'
-  gem 'recursive-open-struct', '~> 1.1'
-  gem 'manageiq-messaging', '~> 2.1'
-  gem 'manageiq-loggers', '~> 2.0'
-  gem 'sd_notify', '~> 0.1.0' if ENV['APPLIANCE']
-end
-
-require 'json'
-require 'uri'
-require_relative 'event_parser'
 require_relative 'event_catcher'
 
 def build_logger
-  if ENV['CONTAINER']
+  require 'manageiq-loggers'
+
+  if ENV.fetch('CONTAINER', nil)
     ManageIQ::Loggers::Container.new
-  elsif ENV['APPLIANCE']
+  elsif ENV.fetch('APPLIANCE', nil)
     ManageIQ::Loggers::Journald.new
   else
     ManageIQ::Loggers::Base.new($stdout)
@@ -27,15 +15,24 @@ def build_logger
 end
 
 def parse_args
+  require 'json'
+
   JSON.parse($stdin.read)
 rescue JSON::ParserError
   abort('Invalid argument format')
 end
 
-args = parse_args
-ems = args['ems'].find { |m| m['type'].end_with?('ContainerManager') }
-endpoint = ems['endpoints'].find { |item| item['role'] == 'default' }
-authentication = ems['authentications'].find { |item| item['authtype'] == 'bearer' || item['authtype'] == 'default' }
-logger = build_logger
-logger.progname = 'evm'
-EventCatcher.new(ems, endpoint, authentication, args['settings'], args['messaging']&.transform_keys(&:to_sym) || {}, logger).run!
+def main(args)
+  logger = build_logger
+  logger.progname = 'evm'
+
+  ems            = args['ems'].find { |m| m['type'].end_with?('ContainerManager') }
+  endpoint       = ems['endpoints'].find { |item| item['role'] == 'default' }
+  authentication = ems['authentications'].find { |item| item['authtype'] == 'bearer' || item['authtype'] == 'default' }
+  settings       = args['settings']
+  messaging      = args['messaging']&.transform_keys(&:to_sym) || {}
+
+  EventCatcher.new(ems, endpoint, authentication, settings, messaging, logger).run!
+end
+
+main(parse_args)

@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../../../../../Gemfile', __dir__)
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
+
+require 'manageiq/providers/kubernetes/workers/event_catcher'
+
+def build_logger
+  require 'manageiq-loggers'
+
+  if ENV.fetch('CONTAINER', nil)
+    ManageIQ::Loggers::Container.new
+  elsif ENV.fetch('APPLIANCE', nil)
+    ManageIQ::Loggers::Journald.new
+  else
+    ManageIQ::Loggers::Base.new($stdout)
+  end
+end
+
+def parse_args
+  require 'json'
+
+  JSON.parse($stdin.read)
+rescue JSON::ParserError
+  abort('Invalid argument format')
+end
+
+def main(args)
+  logger = build_logger
+  logger.progname = 'evm'
+
+  ems            = args['ems'].find { |m| m['type'].end_with?('ContainerManager') }
+  endpoint       = ems['endpoints'].find { |item| item['role'] == 'default' }
+  authentication = ems['authentications'].find { |item| item['authtype'] == 'bearer' || item['authtype'] == 'default' }
+  settings       = args['settings']
+  messaging      = args['messaging']&.transform_keys(&:to_sym) || {}
+
+  ManageIQ::Providers::Kubernetes::Workers::EventCatcher.new(ems, endpoint, authentication, settings, messaging, logger).run!
+end
+
+main(parse_args)

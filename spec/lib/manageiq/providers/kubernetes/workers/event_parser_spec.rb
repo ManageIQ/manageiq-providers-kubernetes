@@ -1,7 +1,4 @@
-require 'recursive-open-struct'
-require_relative '../../../workers/event_catcher/event_parser'
-
-RSpec.describe EventParser do
+RSpec.describe ManageIQ::Providers::Kubernetes::Workers::EventParser do
   let(:fixture_dir) { File.expand_path('data', __dir__) }
 
   def load_event(name)

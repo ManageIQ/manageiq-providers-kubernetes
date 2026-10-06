@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 
-require_relative 'event_catcher'
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../../../../../Gemfile', __dir__)
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
+
+require 'manageiq/providers/kubernetes/workers/event_catcher'
 
 def build_logger
   require 'manageiq-loggers'
@@ -32,7 +35,7 @@ def main(args)
   settings       = args['settings']
   messaging      = args['messaging']&.transform_keys(&:to_sym) || {}
 
-  ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcher.new(ems, endpoint, authentication, settings, messaging, logger).run!
+  ManageIQ::Providers::Kubernetes::Workers::EventCatcher.new(ems, endpoint, authentication, settings, messaging, logger).run!
 end
 
 main(parse_args)

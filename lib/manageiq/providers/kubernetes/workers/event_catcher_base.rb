@@ -68,7 +68,7 @@ module ManageIQ
             watcher.each do |event|
               version = event.object&.metadata&.resourceVersion || version
 
-              event_data = EventParser.extract_event_data(event)
+              event_data = event_parser.extract_event_data(event)
 
               if event_data.empty?
                 if event.type == "ERROR"
@@ -93,7 +93,7 @@ module ManageIQ
 
               logger.info("#{log_prefix} Queuing event kind=#{event_data[:kind]} reason=#{event_data[:reason]} name=#{event_data[:name]} namespace=#{event_data[:namespace]}")
 
-              publish_events([EventParser.event_to_hash_from_data(event_data, ems['id'])])
+              publish_events([event_parser.event_to_hash_from_data(event_data, ems['id'])])
               heartbeat
             end
             version
@@ -213,6 +213,11 @@ module ManageIQ
           # Override in subclasses to customise the log prefix (e.g. to include the subclass name).
           def log_prefix
             'MIQ(ManageIQ::Providers::Kubernetes::ContainerManager::EventCatcher)'
+          end
+
+          # Override in subclasses to provide a provider-specific parser.
+          def event_parser
+            EventParser
           end
         end
       end

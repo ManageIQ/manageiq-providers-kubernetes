@@ -345,6 +345,29 @@ RSpec.describe ManageIQ::Providers::Kubernetes::Workers::EventCatcherBase do
     end
   end
 
+  describe '#event_parser' do
+    let(:watcher) { double('Kubeclient::Common::WatchStream') }
+    let(:client)  { double('Kubeclient::Client', :watch_events => watcher) }
+
+    it 'defaults to the Kubernetes Workers EventParser' do
+      expect(base_catcher.send(:event_parser)).to eq(ManageIQ::Providers::Kubernetes::Workers::EventParser)
+    end
+
+    it 'uses the subclass parser in watch_events' do
+      custom_parser = Class.new(ManageIQ::Providers::Kubernetes::Workers::EventParser)
+      custom_subclass = Class.new(described_class) { define_method(:event_parser) { custom_parser } }
+      catcher = custom_subclass.new(ems, endpoint, authentication, settings, {}, logger)
+      bare_event = double('WatchEvent', :type => 'BOOKMARK', :object => nil)
+
+      allow(catcher).to receive(:schedule_token_refresh).and_return(nil)
+      allow(watcher).to receive(:each).and_yield(bare_event)
+      expect(custom_parser).to receive(:extract_event_data).with(bare_event).and_return({})
+      expect(ManageIQ::Providers::Kubernetes::Workers::EventParser).not_to receive(:extract_event_data)
+
+      expect(catcher.send(:watch_events, client, '42')).to eq('42')
+    end
+  end
+
   describe '#run!' do
     let(:client) { double('Kubeclient::Client') }
 

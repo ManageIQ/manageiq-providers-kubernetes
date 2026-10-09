@@ -25,12 +25,12 @@ RSpec.describe ManageIQ::Providers::Kubernetes::Workers::EventCatcherBase do
     subclass.new(ems, endpoint, authentication, settings, {}, logger)
   end
 
-  def normal_event(kind, reason)
+  def normal_event(kind, reason, resource_version: '100')
     RecursiveOpenStruct.new(:object => {
                               :lastTimestamp  => 'now',
                               :involvedObject => {:kind => kind, :name => 'name', :uid => 'uid'},
                               :reason         => reason,
-                              :metadata       => {:uid => 'event-uid'}
+                              :metadata       => {:uid => 'event-uid', :resourceVersion => resource_version}
                             })
   end
 
@@ -248,12 +248,31 @@ RSpec.describe ManageIQ::Providers::Kubernetes::Workers::EventCatcherBase do
       expect(base_catcher.send(:watch_events, client, '42')).to eq('42')
     end
 
+    it 'advances the version from every event, including filtered and invalid ones' do
+      events = [
+        normal_event('Node', 'Unknown', :resource_version => '101'),       # passes through, queued
+        normal_event('Endpoints', 'Update', :resource_version => '102'),   # filtered (DISABLED_KIND)
+        normal_event('Node', 'NoTimestamp', :resource_version => '103'),   # no timestamp -> invalid
+      ]
+      events[2].object.lastTimestamp = nil
+
+      allow(watcher).to receive(:each)
+        .and_yield(events[0])
+        .and_yield(events[1])
+        .and_yield(events[2])
+
+      allow(base_catcher).to receive(:publish_events)
+      allow(base_catcher).to receive(:heartbeat)
+
+      expect(base_catcher.send(:watch_events, client, '100')).to eq('103')
+    end
+
     it 'skips and logs events with no involvedObject without crashing' do
-      bare_event = double('WatchEvent', :type => 'BOOKMARK')
+      bare_event = RecursiveOpenStruct.new(:type => 'BOOKMARK', :object => RecursiveOpenStruct.new(:metadata => RecursiveOpenStruct.new(:resourceVersion => '43')))
       allow(ManageIQ::Providers::Kubernetes::Workers::EventParser).to receive(:extract_event_data).and_return({})
       allow(watcher).to receive(:each).and_yield(bare_event)
       expect(logger).to receive(:info).with(/Skipping event with no involvedObject/)
-      expect(base_catcher.send(:watch_events, client, '42')).to eq('42')
+      expect(base_catcher.send(:watch_events, client, '42')).to eq('43')
     end
 
     it 'rescues EOFError, logs a reconnect message, and returns the current version' do

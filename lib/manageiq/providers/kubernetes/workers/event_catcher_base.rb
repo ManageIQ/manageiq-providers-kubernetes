@@ -66,6 +66,8 @@ module ManageIQ
             timer   = schedule_token_refresh(watcher)
 
             watcher.each do |event|
+              version = event.object&.metadata&.resourceVersion || version
+
               event_data = EventParser.extract_event_data(event)
 
               if event_data.empty?
@@ -91,7 +93,6 @@ module ManageIQ
 
               logger.info("#{log_prefix} Queuing event kind=#{event_data[:kind]} reason=#{event_data[:reason]} name=#{event_data[:name]} namespace=#{event_data[:namespace]}")
 
-              version = (event_data[:timestamp] && event.dig('metadata', 'resourceVersion')) || version
               publish_events([EventParser.event_to_hash_from_data(event_data, ems['id'])])
               heartbeat
             end

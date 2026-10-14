@@ -6,7 +6,9 @@ class ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup < Contai
 
   supports :capture
   supports :logs do
-    if ext_management_system.nil?
+    if archived?
+      _("The Pod is no longer active")
+    elsif ext_management_system.nil?
       _("The Pod is not associated with an active provider")
     elsif container_project.nil?
       _("The Pod is not associated with a project")

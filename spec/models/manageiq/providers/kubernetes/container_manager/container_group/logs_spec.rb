@@ -15,6 +15,12 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup do
       expect(container_group.supports?(:logs)).to be_truthy
     end
 
+    it "does not support logs when the pod is archived" do
+      container_group.update!(:deleted_on => Time.now.utc)
+      expect(container_group.supports?(:logs)).to be_falsey
+      expect(container_group.unsupported_reason(:logs)).to include("no longer active")
+    end
+
     it "does not support logs when EMS is missing" do
       container_group.ext_management_system = nil
       expect(container_group.supports?(:logs)).to be_falsey
@@ -31,7 +37,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup do
   context "#logs_queue" do
     let(:user) { FactoryBot.create(:user) }
 
-    it "enqueues raw_logs via MiqTask.generic_action_with_callback" do
+    it "enqueues logs via MiqTask.generic_action_with_callback" do
       task_id = container_group.logs_queue(user.userid, :tail_lines => 100, :container => "web")
 
       task = MiqTask.find(task_id)
@@ -41,7 +47,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::ContainerGroup do
       queue_item = MiqQueue.find_by(:miq_task_id => task_id)
       expect(queue_item.class_name).to eq(container_group.class.name)
       expect(queue_item.instance_id).to eq(container_group.id)
-      expect(queue_item.method_name).to eq("raw_logs")
+      expect(queue_item.method_name).to eq("logs")
       expect(queue_item.args).to eq([{:tail_lines => 100, :container => "web", :task_id => task_id}])
       expect(queue_item.role).to eq("ems_operations")
       expect(queue_item.zone).to eq(container_group.my_zone)

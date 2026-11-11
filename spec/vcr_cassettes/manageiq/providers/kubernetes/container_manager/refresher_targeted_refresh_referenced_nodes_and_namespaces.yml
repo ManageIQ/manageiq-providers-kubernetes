@@ -14,7 +14,7 @@ http_interactions:
       User-Agent:
       - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Authorization:
-      - Bearer theToken
+      - Bearer BEARER_TOKEN
   response:
     status:
       code: 200
@@ -49,7 +49,7 @@ http_interactions:
       User-Agent:
       - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Authorization:
-      - Bearer theToken
+      - Bearer BEARER_TOKEN
   response:
     status:
       code: 200
@@ -89,7 +89,7 @@ http_interactions:
       User-Agent:
       - rest-client/2.0.2 (linux-gnu x86_64) ruby/2.4.2p198
       Authorization:
-      - Bearer theToken
+      - Bearer BEARER_TOKEN
   response:
     status:
       code: 200

@@ -92,7 +92,7 @@ describe ManageIQ::Providers::Kubernetes::ContainerManager::Refresher do
         expect(ems.authentication_tokens.count).to eq(1)
         token = ems.authentication_tokens.last
         expect(token).to have_attributes(
-          :auth_key => 'valid-token'
+          :auth_key => 'BEARER_TOKEN'
         )
       end
 

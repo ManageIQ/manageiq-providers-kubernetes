@@ -8,7 +8,7 @@ http_interactions:
       string: ''
     headers:
       Authorization:
-      - Bearer good_token
+      - Bearer BEARER_TOKEN
       User-Agent:
       - Faraday v0.9.2
       Accept-Encoding:

@@ -7,7 +7,7 @@ shared_examples "kubernetes rollup tests" do
 
   let(:ems) do
     hostname = 'capture.context.com'
-    token = 'theToken'
+    token = 'BEARER_TOKEN'
 
     @ems = FactoryBot.create(
       :ems_kubernetes_with_zone,
